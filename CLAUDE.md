@@ -4,9 +4,9 @@ The site runs on **Firebase** (project `ops-tech-ed432`), live at **https://ops-
 (the second hosting target `ops-tech-ed432.web.app` serves the same site). All active code
 lives in the `firebase/` folder.
 
-The Apps Script files in the repo root are **legacy** — the old web app now just redirects
+The old Apps Script web app lives in `legacy-apps-script/` — it now just redirects
 to ops-tech.web.app (cutover 2026-07-23). Don't develop there; only touch `Code.gs`/clasp if
-the redirect itself needs changing (`clasp push --force`, then
+the redirect itself needs changing (from inside `legacy-apps-script/`: `clasp push --force`, then
 `clasp deploy --deploymentId AKfycbz2w7Le3BFViUITPqWklg9AAWNLAc6knBmJd8KC7jH1l1w4Bg_cFL7VDUbvxRxywzjlkw -d "..."`).
 The old bound spreadsheet (`12COE6cTBRL_HSW9rhC8fvXFth7mhh5BgwqR1gUacJRw`) is a read-only
 backup — never modify it.
