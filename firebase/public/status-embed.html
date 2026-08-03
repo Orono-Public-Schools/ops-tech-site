@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orono Tech — System Status</title>
+  <link rel="icon" type="image/png" href="img/favicon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Lexend', 'Segoe UI', sans-serif;
+      background: #f5f6fa;
+      color: #1d2a5d;
+      padding: 16px;
+    }
+
+    .wrap { max-width: 1000px; margin: 0 auto; }
+
+    /* ===== District branding hero — navy card + logo chip + live status ===== */
+    .brand {
+      background: linear-gradient(120deg, #2d3f69 0%, #1d2a5d 100%);
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: none;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 20px rgba(29, 42, 93, 0.25);
+    }
+
+    .brand.show { display: flex; }
+
+    .logo-chip {
+      width: 60px;
+      height: 60px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-chip img {
+      max-height: 44px;
+      max-width: 46px;
+      object-fit: contain;
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 1.22em;
+      color: white;
+      letter-spacing: 0.2px;
+    }
+
+    .brand-desc {
+      font-size: 0.84em;
+      color: rgba(255, 255, 255, 0.78);
+      margin-top: 5px;
+      line-height: 1.4;
+      font-weight: 300;
+    }
+
+    .brand-text { flex: 1; min-width: 220px; }
+
+    /* Live status box inside the hero (replaces the standalone pill bar
+       whenever branding is configured) */
+    .brand-status {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 12px;
+      padding: 10px 16px;
+    }
+
+    .brand-status .line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 0.9em;
+      color: white;
+      white-space: nowrap;
+    }
+
+    .brand-status .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #adb5bd;
+      flex-shrink: 0;
+    }
+
+    .brand-status.operational .dot { background: #2ebf4f; box-shadow: 0 0 8px rgba(46,191,79,0.7); animation: pulse 2.5s ease-in-out infinite; }
+    .brand-status.degraded .dot { background: #ffce3d; box-shadow: 0 0 8px rgba(255,206,61,0.7); }
+    .brand-status.down .dot { background: #ff4d5e; box-shadow: 0 0 8px rgba(255,77,94,0.7); animation: pulse 1.2s ease-in-out infinite; }
+
+    .brand-status .sub {
+      font-size: 0.72em;
+      color: rgba(255, 255, 255, 0.65);
+      margin-top: 4px;
+    }
+
+    /* ===== Slim overall banner ===== */
+    .overall {
+      background: white;
+      border-radius: 999px;
+      padding: 12px 22px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 10px rgba(29, 42, 93, 0.08);
+      border: 1px solid #e6e9f2;
+      margin-bottom: 22px;
+      font-size: 0.95em;
+    }
+
+    .overall .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #adb5bd;
+      flex-shrink: 0;
+    }
+
+    .overall.operational .dot { background: #28a745; box-shadow: 0 0 8px rgba(40,167,69,0.6); animation: pulse 2.5s ease-in-out infinite; }
+    .overall.degraded .dot { background: #e6a700; box-shadow: 0 0 8px rgba(230,167,0,0.6); }
+    .overall.down .dot { background: #dc3545; box-shadow: 0 0 8px rgba(220,53,69,0.6); animation: pulse 1.2s ease-in-out infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.45; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .overall .dot { animation: none !important; }
+    }
+
+    .overall strong { font-weight: 700; }
+    .overall .counts { color: #667; font-size: 0.88em; }
+    .overall .when { margin-left: auto; color: #99a; font-size: 0.8em; }
+
+    /* ===== Incident / maintenance banners ===== */
+    .incident-banner {
+      background: #fdf4f5;
+      border: 1px solid #f3d2d6;
+      border-radius: 12px;
+      padding: 13px 16px;
+      margin-bottom: 12px;
+    }
+
+    .incident-banner.maintenance {
+      background: #eef7f9;
+      border-color: #cfe7ec;
+    }
+
+    .ib-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    .ib-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(220, 53, 69, 0.13);
+      color: #dc3545;
+    }
+
+    .incident-banner.maintenance .ib-icon {
+      background: rgba(23, 162, 184, 0.14);
+      color: #117a8b;
+    }
+
+    .ib-icon .material-icons { font-size: 19px; }
+
+    .ib-title { font-weight: 700; font-size: 0.9em; color: #1d2a5d; }
+
+    .ib-pill {
+      padding: 2px 11px;
+      border-radius: 999px;
+      font-size: 0.66em;
+      font-weight: 700;
+      color: white;
+      background: #dc3545;
+    }
+
+    .ib-when { margin-left: auto; font-size: 0.72em; color: #99a; }
+    .ib-note { font-size: 0.8em; color: #556; margin-top: 6px; line-height: 1.45; }
+    .ib-systems { font-size: 0.72em; color: #2d3f69; font-weight: 600; margin-top: 5px; }
+
+    /* ===== Categories ===== */
+    .cat-title {
+      font-size: 0.8em;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: #2d3f69;
+      border-left: 4px solid #ad2122;
+      padding-left: 9px;
+      margin: 20px 0 10px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    /* ===== Compact system cards ===== */
+    .sys {
+      background: white;
+      border: 1px solid #e6e9f2;
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+      transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .sys:hover {
+      box-shadow: 0 6px 18px rgba(29, 42, 93, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .sys-head .chev {
+      margin-left: auto;
+      color: #c3c8d6;
+      font-size: 18px;
+      flex-shrink: 0;
+      transition: color 0.2s, transform 0.2s;
+    }
+
+    .sys:hover .chev { color: #ad2122; transform: translateX(2px); }
+
+    .sys-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .sys-head .material-icons {
+      font-size: 22px;
+      color: #ad2122;
+      flex-shrink: 0;
+    }
+
+    .sys-head img {
+      width: 24px;
+      height: 24px;
+      object-fit: cover;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    .sys-name {
+      font-weight: 600;
+      font-size: 0.92em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sys-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78em;
+      font-weight: 600;
+      flex-wrap: wrap;
+    }
+
+    .sdot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .sdot.operational { background: #28a745; }
+    .sdot.degraded { background: #ffc107; }
+    .sdot.partial { background: #fd7e14; }
+    .sdot.maintenance { background: #17a2b8; }
+    .sdot.down { background: #dc3545; }
+
+    .stxt.operational { color: #1e7e34; }
+    .stxt.degraded { color: #9c6f00; }
+    .stxt.partial { color: #c05600; }
+    .stxt.maintenance { color: #117a8b; }
+    .stxt.down { color: #b02a37; }
+
+    .since { color: #99a; font-weight: 400; }
+
+    .strip {
+      display: flex;
+      gap: 1px;
+      height: 12px;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .strip span { flex: 1; min-width: 1px; background: #e9ecef; }
+    .strip .operational { background: #28a745; }
+    .strip .maintenance { background: #17a2b8; }
+    .strip .degraded { background: #ffc107; }
+    .strip .partial { background: #fd7e14; }
+    .strip .down { background: #dc3545; }
+
+    .strip-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.62em;
+      color: #a6aabb;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .details {
+      font-size: 0.74em;
+      color: #856404;
+      background: #fff8e6;
+      border: 1px solid #ffe9a8;
+      border-radius: 7px;
+      padding: 6px 9px;
+      line-height: 1.4;
+    }
+
+    .sys.down .details {
+      color: #721c24;
+      background: #fdeaea;
+      border-color: #f5c6cb;
+    }
+
+    .empty {
+      background: white;
+      border: 1px solid #e6e9f2;
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      color: #778;
+      font-size: 0.9em;
+    }
+
+    .foot {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 0.72em;
+      color: #a6aabb;
+    }
+
+    /* ===== Detail modal ===== */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(29, 42, 93, 0.55);
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 18px;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+
+    .modal.show { display: flex; }
+
+    .modal-card {
+      background: white;
+      border-radius: 14px;
+      max-width: 560px;
+      width: 100%;
+      margin-top: 10px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px 20px;
+      border-bottom: 1px solid #eef0f6;
+    }
+
+    .modal-head .material-icons.sys-ic { color: #ad2122; font-size: 24px; }
+    .modal-head img { width: 26px; height: 26px; border-radius: 6px; object-fit: cover; }
+    .modal-head h2 { font-size: 1.05em; font-weight: 700; flex: 1; min-width: 0; }
+
+    .modal-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #889;
+      display: flex;
+      padding: 4px;
+    }
+
+    .modal-close:hover { color: #ad2122; }
+
+    .modal-body {
+      padding: 16px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .pill-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 0.78em;
+      font-weight: 700;
+      color: white;
+    }
+
+    .pill.operational { background: #28a745; }
+    .pill.degraded { background: #e6a700; }
+    .pill.partial { background: #fd7e14; }
+    .pill.maintenance { background: #17a2b8; }
+    .pill.down { background: #dc3545; }
+
+    .pill-row .since { font-size: 0.78em; }
+
+    .modal-desc { font-size: 0.85em; color: #667; line-height: 1.5; }
+
+    .sec-label {
+      font-size: 0.66em;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #2d3f69;
+      margin-top: 4px;
+    }
+
+    .modal .big-strip { height: 20px; }
+
+    .timeline { list-style: none; }
+
+    .timeline li {
+      display: flex;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f2f4f9;
+      align-items: flex-start;
+      font-size: 0.82em;
+    }
+
+    .timeline li:last-child { border-bottom: none; }
+    .timeline .sdot { margin-top: 5px; }
+    .timeline .what { font-weight: 700; }
+    .timeline .info { color: #778; line-height: 1.4; font-size: 0.92em; }
+    .timeline .when { margin-left: auto; color: #99a; white-space: nowrap; font-size: 0.88em; padding-top: 2px; }
+    .timeline-empty { color: #99a; font-size: 0.82em; }
+
+    .visit-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: #ad2122;
+      color: white;
+      text-decoration: none;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.8em;
+      align-self: flex-start;
+      transition: background 0.2s;
+    }
+
+    .visit-btn:hover { background: #7a1718; }
+    .visit-btn .material-icons { font-size: 15px; }
+
+    .foot img { height: 14px; vertical-align: -2px; }
+
+    /* ===== Email subscription card ===== */
+    .subscribe-card {
+      background: #fff;
+      border: 1px solid #e4e7f0;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 10px rgba(20, 28, 58, 0.06);
+    }
+
+    .subscribe-card .sub-text { flex: 1; min-width: 220px; }
+
+    .subscribe-card .sub-title {
+      font-weight: 700;
+      color: #1d2a5d;
+      font-size: 0.95em;
+      margin-bottom: 3px;
+    }
+
+    .subscribe-card .sub-desc {
+      color: #667;
+      font-size: 0.8em;
+      line-height: 1.5;
+    }
+
+    .sub-form {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .sub-form input {
+      padding: 9px 13px;
+      border: 1.5px solid #dfe2ec;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 0.85em;
+      min-width: 210px;
+    }
+
+    .sub-form input:focus { outline: none; border-color: #2d3f69; }
+
+    .sub-form button {
+      padding: 9px 20px;
+      border: none;
+      border-radius: 999px;
+      background: #ad2122;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.85em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .sub-form button:hover { background: #7a1718; }
+    .sub-form button:disabled { opacity: 0.6; cursor: default; }
+
+    .sub-msg {
+      width: 100%;
+      font-size: 0.8em;
+      display: none;
+    }
+
+    .sub-msg.ok { display: block; color: #1e7e34; }
+    .sub-msg.err { display: block; color: #ad2122; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand" id="brand">
+      <div class="logo-chip" id="brandLogoChip" style="display: none;">
+        <img id="brandLogo" alt="">
+      </div>
+      <div class="brand-text">
+        <div class="brand-title" id="brandTitle" style="display: none;"></div>
+        <div class="brand-desc" id="brandDesc" style="display: none;"></div>
+      </div>
+      <div class="brand-status" id="brandStatus" style="display: none;">
+        <div class="line"><span class="dot"></span><span id="bsTitle"></span></div>
+        <div class="sub" id="bsSub"></div>
+      </div>
+    </div>
+
+    <div class="overall" id="overall">
+      <span class="dot"></span>
+      <strong id="overallTitle">Loading system status…</strong>
+      <span class="counts" id="overallCounts"></span>
+      <span class="when" id="overallWhen"></span>
+    </div>
+
+    <div id="incidentArea"></div>
+
+    <div id="sections">
+      <div class="empty">Loading…</div>
+    </div>
+
+    <!-- Email subscription (double-opt-in via confirmation email) -->
+    <div class="subscribe-card">
+      <div class="sub-text">
+        <div class="sub-title">Get status updates by email</div>
+        <div class="sub-desc">We'll email you when an incident or scheduled maintenance is posted. Orono accounts only.</div>
+      </div>
+      <form id="subForm" class="sub-form">
+        <input type="email" id="subEmail" placeholder="you@orono.k12.mn.us" required autocomplete="email">
+        <button type="submit" id="subBtn">Subscribe</button>
+      </form>
+      <div class="sub-msg" id="subMsg"></div>
+    </div>
+
+    <p class="foot">Orono Public Schools — Technology Department · updates automatically</p>
+  </div>
+
+  <div class="modal" id="detailModal">
+    <div class="modal-card">
+      <div class="modal-head" id="detailHead"></div>
+      <div class="modal-body" id="detailBody"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import {
+      onStatusResults, getStatusCategoryOrder, getPublicStatusConfig, onActiveIncidents
+    } from './js/data.js';
+    import { functions } from './js/firebase-init.js';
+    import { httpsCallable } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-functions.js';
+
+    // ===== Email subscription (public, double-opt-in) =====
+    const statusSubscribeFn = httpsCallable(functions, 'statusSubscribe');
+    document.getElementById('subForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('subBtn');
+      const msg = document.getElementById('subMsg');
+      const email = document.getElementById('subEmail').value.trim();
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+      msg.className = 'sub-msg';
+      try {
+        const result = (await statusSubscribeFn({ email: email })).data;
+        msg.textContent = result.message;
+        msg.className = 'sub-msg ' + (result.success ? 'ok' : 'err');
+        if (result.success) document.getElementById('subEmail').value = '';
+      } catch (error) {
+        msg.textContent = 'Something went wrong — please try again.';
+        msg.className = 'sub-msg err';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Subscribe';
+      }
+    });
+
+    const SEVERITY = { operational: 0, maintenance: 1, degraded: 2, partial: 3, down: 4 };
+    const LABELS = {
+      operational: 'Operational',
+      degraded: 'Degraded',
+      partial: 'Partial Outage',
+      maintenance: 'Maintenance',
+      down: 'Major Outage'
+    };
+
+    let categoryOrder = [];
+    let statusById = {};
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text == null ? '' : String(text);
+      return div.innerHTML;
+    }
+
+    function toDate(ts) {
+      if (!ts) return null;
+      return typeof ts.toDate === 'function' ? ts.toDate() : new Date(ts);
+    }
+
+    function fmtWhen(d) {
+      if (!d) return '';
+      const sameDay = new Date().toDateString() === d.toDateString();
+      return sameDay
+        ? d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+        : d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    }
+
+    function worseOf(a, b) {
+      if (!a) return b;
+      if (!b) return a;
+      return (SEVERITY[b] || 0) > (SEVERITY[a] || 0) ? b : a;
+    }
+
+    function compareCats(a, b) {
+      const ia = categoryOrder.indexOf(a);
+      const ib = categoryOrder.indexOf(b);
+      if (ia !== -1 && ib !== -1) return ia - ib;
+      if (ia !== -1) return -1;
+      if (ib !== -1) return 1;
+      return a.localeCompare(b);
+    }
+
+    function stripHtml(hourly, segHours, count) {
+      const nowHour = Math.floor(Date.now() / 3600000);
+      const startHour = nowHour - segHours * count + 1;
+      let html = '';
+      for (let i = 0; i < count; i++) {
+        const from = startHour + i * segHours;
+        let s = null;
+        for (let h = from; h < from + segHours; h++) {
+          const v = hourly ? hourly[String(h)] : null;
+          if (v) s = worseOf(s, v);
+        }
+        const d = new Date(from * 3600000);
+        const when = d.toLocaleString('en-US', { weekday: 'short', hour: 'numeric' });
+        html += '<span class="' + (s ? escapeHtml(s) : '') + '" title="' +
+          escapeHtml(when + ' — ' + (s ? (LABELS[s] || s) : 'No data')) + '"></span>';
+      }
+      return html;
+    }
+
+    function uptimePct(hourly) {
+      const nowHour = Math.floor(Date.now() / 3600000);
+      let total = 0, bad = 0;
+      Object.keys(hourly || {}).forEach(k => {
+        const h = Number(k);
+        if (h < nowHour - 167 || h > nowHour) return;
+        total++;
+        const s = hourly[k];
+        if (s === 'degraded' || s === 'partial' || s === 'down') bad++;
+      });
+      if (!total) return null;
+      return Math.round((1 - bad / total) * 1000) / 10;
+    }
+
+    // Overall summary renders either as the standalone pill bar or, when
+    // branding is configured, inside the hero's status box.
+    let brandActive = false;
+    let lastSummary = null;
+
+    function updateOverallUI() {
+      const overall = document.getElementById('overall');
+      const box = document.getElementById('brandStatus');
+      const s = lastSummary || { cls: '', title: 'Loading system status…', counts: '', when: '' };
+      if (brandActive) {
+        overall.style.display = 'none';
+        box.style.display = 'block';
+        box.className = 'brand-status ' + s.cls;
+        document.getElementById('bsTitle').textContent = s.title;
+        document.getElementById('bsSub').textContent = [s.counts, s.when].filter(Boolean).join(' · ');
+      } else {
+        overall.style.display = 'flex';
+        overall.className = 'overall ' + s.cls;
+        document.getElementById('overallTitle').textContent = s.title;
+        document.getElementById('overallCounts').textContent = s.counts;
+        document.getElementById('overallWhen').textContent = s.when;
+      }
+    }
+
+    function render(statusData) {
+      const sections = document.getElementById('sections');
+
+      if (!statusData.length) {
+        lastSummary = { cls: '', title: 'Status unavailable', counts: '', when: '' };
+        updateOverallUI();
+        sections.innerHTML = '<div class="empty">No systems are being monitored yet.</div>';
+        return;
+      }
+
+      const total = statusData.length;
+      const opCount = statusData.filter(s => s.status === 'operational').length;
+      const warnCount = statusData.filter(s => ['degraded', 'partial', 'maintenance'].includes(s.status)).length;
+      const downCount = statusData.filter(s => s.status === 'down').length;
+
+      let cls = 'operational', title = 'All Systems Operational';
+      if (downCount > 0) { cls = 'down'; title = downCount + ' System' + (downCount > 1 ? 's' : '') + ' Down'; }
+      else if (warnCount > 0) { cls = 'degraded'; title = warnCount + ' System' + (warnCount > 1 ? 's' : '') + ' With Issues'; }
+
+      let latest = null;
+      statusData.forEach(s => {
+        const d = toDate(s.checkedAt);
+        if (d && (!latest || d > latest)) latest = d;
+      });
+
+      lastSummary = {
+        cls: cls,
+        title: title,
+        counts: opCount + ' of ' + total + ' systems up',
+        when: latest ? 'Checked ' + fmtWhen(latest) : ''
+      };
+      updateOverallUI();
+
+      // Group by category using the saved section order
+      const sorted = statusData.slice().sort((a, b) =>
+        compareCats(a.category || 'Other', b.category || 'Other') ||
+        ((a.sortKey || 0) - (b.sortKey || 0)) ||
+        String(a.name || '').localeCompare(String(b.name || '')));
+
+      statusById = {};
+      sorted.forEach(s => { statusById[s.id] = s; });
+
+      const map = {};
+      sorted.forEach(s => {
+        const cat = s.category || 'Other';
+        (map[cat] = map[cat] || []).push(s);
+      });
+      const cats = Object.keys(map).sort(compareCats);
+
+      let html = '';
+      cats.forEach(cat => {
+        html += '<div class="cat-title">' + escapeHtml(cat) + '</div><div class="grid">';
+        map[cat].forEach(s => {
+          const status = s.status || 'down';
+          const since = toDate(s.statusSince);
+          const pct = uptimePct(s.hourly);
+          const hasUrl = s.url && s.url !== 'INTERNAL';
+          const iconHtml = s.imageUrl
+            ? '<img src="' + escapeHtml(s.imageUrl) + '" alt="" onerror="this.outerHTML=\'<span class=&quot;material-icons&quot;>' + escapeHtml(s.icon || 'language') + '</span>\';">'
+            : '<span class="material-icons">' + escapeHtml(s.icon || 'language') + '</span>';
+          const sinceHtml = (status !== 'operational' && since)
+            ? '<span class="since">· since ' + escapeHtml(fmtWhen(since)) + '</span>' : '';
+          const detailsHtml = (status !== 'operational' && s.details)
+            ? '<div class="details">' + escapeHtml(s.details) + '</div>' : '';
+
+          html += `<div class="sys ${escapeHtml(status)}" data-id="${escapeHtml(s.id)}" role="button" tabindex="0">
+            <div class="sys-head">${iconHtml}<span class="sys-name">${escapeHtml(s.name)}</span>
+              <span class="material-icons chev">chevron_right</span></div>
+            <div class="sys-status">
+              <span class="sdot ${escapeHtml(status)}"></span>
+              <span class="stxt ${escapeHtml(status)}">${escapeHtml(LABELS[status] || status)}</span>
+              ${sinceHtml}
+            </div>
+            <div class="strip">${stripHtml(s.hourly, 2, 84)}</div>
+            <div class="strip-meta"><span>7 days</span><span>${pct == null ? '' : pct + '% uptime'}</span></div>
+            ${detailsHtml}
+          </div>`;
+        });
+        html += '</div>';
+      });
+
+      sections.innerHTML = html;
+    }
+
+    // ===== Detail modal =====
+
+    function openDetail(id) {
+      const s = statusById[id];
+      if (!s) return;
+      const status = s.status || 'down';
+      const since = toDate(s.statusSince);
+      const pct = uptimePct(s.hourly);
+
+      const iconHtml = s.imageUrl
+        ? '<img src="' + escapeHtml(s.imageUrl) + '" alt="">'
+        : '<span class="material-icons sys-ic">' + escapeHtml(s.icon || 'language') + '</span>';
+
+      document.getElementById('detailHead').innerHTML = iconHtml +
+        '<h2>' + escapeHtml(s.name) + '</h2>' +
+        '<button class="modal-close" id="detailClose"><span class="material-icons">close</span></button>';
+
+      const events = (s.events || []).slice().reverse();
+      const timelineHtml = events.length
+        ? '<ul class="timeline">' + events.map(ev => {
+            const at = toDate(ev.at);
+            return `<li>
+              <span class="sdot ${escapeHtml(ev.status)}"></span>
+              <div>
+                <div class="what stxt ${escapeHtml(ev.status)}">${escapeHtml(LABELS[ev.status] || ev.status)}</div>
+                ${ev.details ? '<div class="info">' + escapeHtml(ev.details) + '</div>' : ''}
+              </div>
+              <span class="when">${escapeHtml(fmtWhen(at))}</span>
+            </li>`;
+          }).join('') + '</ul>'
+        : '<div class="timeline-empty">No status changes in the last 7 days.</div>';
+
+      const hasUrl = s.url && s.url !== 'INTERNAL';
+
+      document.getElementById('detailBody').innerHTML = `
+        <div class="pill-row">
+          <span class="pill ${escapeHtml(status)}">${escapeHtml(LABELS[status] || status)}</span>
+          ${since ? '<span class="since">since ' + escapeHtml(fmtWhen(since)) + '</span>' : ''}
+        </div>
+        ${s.description ? '<p class="modal-desc">' + escapeHtml(s.description) + '</p>' : ''}
+        ${(status !== 'operational' && s.details) ? '<div class="details">' + escapeHtml(s.details) + '</div>' : ''}
+        <div class="sec-label">Past 7 Days ${pct == null ? '' : '— ' + pct + '% uptime'}</div>
+        <div class="strip big-strip">${stripHtml(s.hourly, 1, 168)}</div>
+        <div class="strip-meta"><span>7 days ago</span><span>Now</span></div>
+        <div class="sec-label">Recent Events</div>
+        ${timelineHtml}
+        ${hasUrl ? '<a class="visit-btn" href="' + escapeHtml(s.url) + '" target="_blank" rel="noopener">' +
+          '<span class="material-icons">open_in_new</span> Visit Status Page</a>' : ''}`;
+
+      document.getElementById('detailClose').addEventListener('click', closeDetail);
+      document.getElementById('detailModal').classList.add('show');
+    }
+
+    function closeDetail() {
+      document.getElementById('detailModal').classList.remove('show');
+    }
+
+    document.getElementById('sections').addEventListener('click', function(e) {
+      const card = e.target.closest('.sys');
+      if (card) openDetail(card.dataset.id);
+    });
+
+    document.getElementById('sections').addEventListener('keydown', function(e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const card = e.target.closest('.sys');
+      if (card) { e.preventDefault(); openDetail(card.dataset.id); }
+    });
+
+    document.getElementById('detailModal').addEventListener('click', function(e) {
+      if (e.target === this) closeDetail();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeDetail();
+    });
+
+    // District branding (config/publicStatus — admin-managed, publicly readable)
+    getPublicStatusConfig().then(cfg => {
+      const hasAny = cfg.logoUrl || cfg.title || cfg.description;
+      if (!hasAny) return;
+      document.getElementById('brand').classList.add('show');
+      brandActive = true;
+      updateOverallUI();
+      if (cfg.logoUrl) {
+        const chip = document.getElementById('brandLogoChip');
+        const logo = document.getElementById('brandLogo');
+        logo.src = cfg.logoUrl;
+        chip.style.display = 'flex';
+        logo.onerror = () => { chip.style.display = 'none'; };
+      }
+      if (cfg.title) {
+        const t = document.getElementById('brandTitle');
+        t.textContent = cfg.title;
+        t.style.display = 'block';
+        document.title = cfg.title;
+      }
+      if (cfg.description) {
+        const d = document.getElementById('brandDesc');
+        d.textContent = cfg.description;
+        d.style.display = 'block';
+      }
+    }).catch(() => {});
+
+    // Active incidents / maintenance banners (live)
+    const INC_LABELS = { down: 'Major Outage', partial: 'Partial Outage', degraded: 'Degraded' };
+
+    onActiveIncidents(function(list) {
+      const sorted = list.slice().sort((a, b) => {
+        if (a.type !== b.type) return a.type === 'maintenance' ? 1 : -1;
+        const ta = toDate(a.createdAt), tb = toDate(b.createdAt);
+        return (tb ? tb.getTime() : 0) - (ta ? ta.getTime() : 0);
+      });
+      document.getElementById('incidentArea').innerHTML = sorted.map(inc => {
+        const isMaint = inc.type === 'maintenance';
+        const start = toDate(inc.startAt), end = toDate(inc.endAt);
+        const upcoming = isMaint && start && start > new Date();
+        const pill = isMaint
+          ? (upcoming ? 'Scheduled Maintenance' : 'Maintenance In Progress')
+          : (INC_LABELS[inc.severity] || 'Incident');
+        const pillColor = isMaint
+          ? '#17a2b8'
+          : ({ down: '#dc3545', partial: '#fd7e14', degraded: '#e6a700' }[inc.severity] || '#dc3545');
+        const when = isMaint
+          ? (start ? fmtWhen(start) : '?') + ' – ' + (end ? fmtWhen(end) : '?')
+          : (toDate(inc.createdAt) ? 'since ' + fmtWhen(toDate(inc.createdAt)) : '');
+        return `
+          <div class="incident-banner ${isMaint ? 'maintenance' : ''}">
+            <div class="ib-head">
+              <div class="ib-icon"><span class="material-icons">${isMaint ? 'build_circle' : 'report'}</span></div>
+              <span class="ib-title">${escapeHtml(inc.title || (isMaint ? 'Scheduled maintenance' : 'Incident'))}</span>
+              <span class="ib-pill" style="background:${pillColor};">${escapeHtml(pill)}</span>
+              <span class="ib-when">${escapeHtml(when)}</span>
+            </div>
+            ${inc.note ? '<div class="ib-note">' + escapeHtml(inc.note) + '</div>' : ''}
+            ${(inc.systemNames && inc.systemNames.length)
+              ? '<div class="ib-systems">Affects: ' + escapeHtml(inc.systemNames.join(', ')) + '</div>' : ''}
+          </div>`;
+      }).join('');
+    });
+
+    getStatusCategoryOrder()
+      .then(order => { categoryOrder = order; })
+      .catch(() => {})
+      .finally(() => {
+        onStatusResults(render);
+      });
+  </script>
+</body>
+</html>

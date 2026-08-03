@@ -1,0 +1,19 @@
+{
+  "name": "ops-tech-functions",
+  "description": "Cloud Functions for the OPS Tech site (email sending, status monitoring)",
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^6.1.0",
+    "googleapis": "^144.0.0"
+  },
+  "private": true
+}

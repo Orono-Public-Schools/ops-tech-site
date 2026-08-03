@@ -1,0 +1,80 @@
+<!-- Site-wide Footer -->
+<style>
+  .site-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(45, 63, 105, 0.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 8000;
+    padding: 8px 20px;
+  }
+
+  .footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .footer-text {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8em;
+    font-weight: 400;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+
+  .footer-link {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8em;
+    font-weight: 400;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-link:hover {
+    color: rgba(255, 255, 255, 1);
+  }
+
+  .footer-separator {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.8em;
+  }
+
+  /* Offset body content to account for fixed footer */
+  body {
+    padding-bottom: 40px;
+  }
+
+  @media (max-width: 768px) {
+    .footer-text, .footer-link {
+      font-size: 0.7em;
+    }
+
+    .footer-separator {
+      font-size: 0.7em;
+    }
+
+    body {
+      padding-bottom: 35px;
+    }
+  }
+</style>
+
+<footer class="site-footer">
+  <div class="footer-content">
+    <span class="footer-text">Signed in as <?= userEmail ?></span>
+    <span class="footer-separator">|</span>
+    <span class="footer-text">Orono Technology <?= new Date().getFullYear() ?> - v1.7.0</span>
+    <span class="footer-separator">|</span>
+    <a href="<?= baseUrl ?>?page=status" class="footer-link" target="_top">System Status</a>
+  </div>
+</footer>

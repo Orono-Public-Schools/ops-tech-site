@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - OPS Technology</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="css/site.css" rel="stylesheet">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Lexend', sans-serif;
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      padding: 20px;
+      padding-top: 90px;
+      padding-bottom: 60px;
+      min-height: 100vh;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    .page-title {
+      color: white;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .page-title h1 { font-weight: 500; }
+
+    .panel {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .panel h2 {
+      color: #2d3f69;
+      font-size: 1.3em;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel .panel-note {
+      color: #666;
+      font-size: 0.85em;
+      margin-bottom: 20px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .form-row label { color: #2d3f69; font-weight: 600; font-size: 0.92em; }
+
+    .form-row input[type="text"], .form-row input[type="email"] {
+      padding: 10px 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.92em;
+      width: 100%;
+    }
+
+    .form-row input:focus { outline: none; border-color: #2d3f69; }
+
+    .form-row .toggle { justify-self: start; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.92em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary { background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%); color: white; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(45,63,105,0.3); }
+    .btn-danger { background: none; color: #ad2122; padding: 6px; }
+    .btn-danger:hover { background: #fbeaea; border-radius: 50%; }
+
+    .groups-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    .groups-table th {
+      text-align: left; color: #2d3f69; font-size: 0.85em;
+      border-bottom: 2px solid #e0e0e0; padding: 8px 10px;
+    }
+    .groups-table td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; font-size: 0.9em; color: #444; }
+    .groups-table input {
+      width: 100%; padding: 6px 8px; border: 1px solid #e0e0e0; border-radius: 4px;
+      font-family: 'Lexend', sans-serif; font-size: 0.9em;
+    }
+
+    .perm-col { text-align: center !important; font-size: 0.75em !important; }
+    .role-select {
+      padding: 6px 8px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 6px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.88em;
+      color: #2d3f69;
+      font-weight: 600;
+      background: white;
+      cursor: pointer;
+      width: 100%;
+      min-width: 128px;
+    }
+    .role-select:disabled { opacity: 0.6; cursor: not-allowed; }
+    .groups-table input[type="checkbox"] {
+      width: auto; cursor: pointer; accent-color: #2d3f69;
+    }
+    .groups-table td.perm-cell { text-align: center; }
+
+    .msg {
+      padding: 10px 14px; border-radius: 6px; font-size: 0.88em;
+      margin-top: 14px; display: none;
+    }
+    .msg.show { display: block; }
+    .msg.success { background: #d4edda; color: #155724; }
+    .msg.error { background: #f8d7da; color: #721c24; }
+
+    .loading-overlay {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 9999; transition: opacity 0.3s ease;
+    }
+    .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+    .spinner {
+      width: 60px; height: 60px;
+      border: 5px solid rgba(255,255,255,0.2); border-top: 5px solid #ad2122;
+      border-radius: 50%; animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { color: white; margin-top: 20px; font-weight: 500; }
+
+    @media (max-width: 700px) {
+      .form-row { grid-template-columns: 1fr; gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text">Loading...</div>
+  </div>
+
+  <div class="container">
+    <div class="page-title">
+      <h1>Site Administration</h1>
+    </div>
+
+    <div class="panel">
+      <h2><span class="material-icons">settings</span> Email &amp; Site Settings</h2>
+      <p class="panel-note">Replaces the old Config sheet. The sender address must be the mailbox the
+        Gmail service account is authorized to send as.</p>
+
+      <div class="form-row">
+        <label for="senderEmail">Sender email</label>
+        <input type="email" id="senderEmail" placeholder="technology@orono.k12.mn.us">
+      </div>
+      <div class="form-row">
+        <label for="senderName">Sender display name</label>
+        <input type="text" id="senderName" placeholder="Orono Tech Department">
+      </div>
+      <div class="form-row">
+        <label for="accessControlEnabled">Restrict access to a group</label>
+        <input type="checkbox" id="accessControlEnabled" class="toggle">
+      </div>
+      <div class="form-row">
+        <label for="allowedGroupEmail">Allowed Google Group</label>
+        <input type="email" id="allowedGroupEmail" placeholder="techstaff@orono.k12.mn.us">
+      </div>
+      <div class="form-row">
+        <label for="statusAlertEmails">Status alert emails</label>
+        <div style="min-width:0;">
+          <input type="text" id="statusAlertEmails" style="width:100%;"
+                 placeholder="you@orono.k12.mn.us, teammate@orono.k12.mn.us">
+          <small style="display:block; color:#888; font-size:0.78em; margin-top:4px;">
+            When monitoring detects a system going down, partial, or degraded, these
+            addresses get an alert email. Comma-separated; blank disables alerts.
+          </small>
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="faviconUrl">Favicon (browser tab icon)</label>
+        <div style="min-width:0;">
+          <input type="text" id="faviconUrl" style="width:100%;"
+                 placeholder="Leave blank for the default torch icon">
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="saveConfigBtn" type="button">
+        <span class="material-icons" style="font-size:18px;">save</span> Save Settings
+      </button>
+      <div class="msg" id="configMsg"></div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="material-icons">public</span> Public Status Page</h2>
+      <p class="panel-note">Branding for the view-only status page embedded on the district website
+        (<a href="status-embed.html" target="_blank" rel="noopener">preview it</a>).
+        Leave fields blank to omit them.</p>
+
+      <div class="form-row">
+        <label for="psLogoUrl">Logo image</label>
+        <div style="min-width:0;">
+          <input type="text" id="psLogoUrl" style="width:100%;"
+                 placeholder="Paste an image URL or upload below">
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="psTitle">Title</label>
+        <input type="text" id="psTitle" placeholder="Orono Schools — System Status">
+      </div>
+      <div class="form-row">
+        <label for="psDesc">Descriptor</label>
+        <input type="text" id="psDesc" placeholder="Live status of the technology systems used across the district">
+      </div>
+
+      <button class="btn btn-primary" id="savePublicStatusBtn" type="button">
+        <span class="material-icons" style="font-size:18px;">save</span> Save Public Page
+      </button>
+      <div class="msg" id="publicStatusMsg"></div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="material-icons">verified_user</span> Site Access</h2>
+      <p class="panel-note">Only these accounts can use the site (enforced by security rules).
+        Pick a role to set editing rights in one click — <b>Tech Specialist</b> can view
+        everything but edit nothing. Fine-tune with the checkboxes (shows as Custom).
+        New users start as view-only Tech Specialists. Don't remove yourself!</p>
+
+      <table class="groups-table" style="table-layout:auto;">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Role</th>
+            <th class="perm-col">Home</th>
+            <th class="perm-col">Links</th>
+            <th class="perm-col">Docs</th>
+            <th class="perm-col">Images</th>
+            <th class="perm-col">Comms</th>
+            <th class="perm-col">Admin</th>
+            <th style="width:44px"></th>
+          </tr>
+        </thead>
+        <tbody id="usersBody"></tbody>
+      </table>
+
+      <div style="display:flex; gap:10px;">
+        <input type="email" id="newUserEmail" placeholder="name@orono.k12.mn.us"
+               style="flex:1; padding:10px 12px; border:2px solid #e0e0e0; border-radius:6px; font-family:'Lexend',sans-serif; font-size:0.92em;">
+        <button class="btn btn-primary" id="addUserBtn" type="button">
+          <span class="material-icons" style="font-size:18px;">person_add</span> Add
+        </button>
+      </div>
+      <div class="msg" id="usersMsg"></div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="material-icons">groups</span> Email Groups</h2>
+      <p class="panel-note">Groups shown on the Compose page. Replaces the old EmailGroups sheet.</p>
+
+      <table class="groups-table">
+        <thead>
+          <tr><th style="width:25%">Name</th><th style="width:35%">Email</th><th>Description</th><th style="width:44px"></th></tr>
+        </thead>
+        <tbody id="groupsBody"></tbody>
+      </table>
+
+      <button class="btn btn-primary" id="addGroupBtn" type="button">
+        <span class="material-icons" style="font-size:18px;">add</span> Add Group
+      </button>
+      <div class="msg" id="groupsMsg"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { renderLayout } from './js/layout.js';
+    import { authReady, requirePerm } from './js/auth.js';
+    import {
+      getConfig, saveConfig, getEmailGroups, addItem, updateItem, deleteItem,
+      getAllowedUsers, addAllowedUser, removeAllowedUser, setAllowedUserPerm, setAllowedUserPerms,
+      getPublicStatusConfig, savePublicStatusConfig
+    } from './js/data.js';
+    import { attachImageUpload } from './js/upload.js';
+
+    renderLayout('admin');
+    requirePerm('admin');
+
+    const $ = id => document.getElementById(id);
+
+    // Public status page: logo upload + preview
+    attachImageUpload($('psLogoUrl'));
+    {
+      const uploadRow = $('psLogoUrl').nextElementSibling;
+      const preview = document.createElement('img');
+      preview.alt = '';
+      preview.style.cssText = 'height:24px; max-width:90px; object-fit:contain; flex-shrink:0;';
+      preview.style.display = 'none';
+      uploadRow.insertBefore(preview, uploadRow.firstElementChild);
+      $('psLogoUrl').addEventListener('input', () => {
+        const url = $('psLogoUrl').value.trim();
+        preview.src = url;
+        preview.style.display = url ? 'block' : 'none';
+      });
+    }
+
+    $('savePublicStatusBtn').addEventListener('click', async () => {
+      try {
+        await savePublicStatusConfig({
+          logoUrl: $('psLogoUrl').value.trim(),
+          title: $('psTitle').value.trim(),
+          description: $('psDesc').value.trim()
+        });
+        flash($('publicStatusMsg'), true, 'Public page branding saved.');
+      } catch (err) {
+        flash($('publicStatusMsg'), false, 'Save failed: ' + err.message);
+      }
+    });
+
+    // Favicon field: upload button + live preview of the current icon.
+    attachImageUpload($('faviconUrl'));
+    {
+      const uploadRow = $('faviconUrl').nextElementSibling; // row added above
+      const preview = document.createElement('img');
+      preview.id = 'faviconPreview';
+      preview.src = 'img/favicon.png';
+      preview.alt = '';
+      preview.style.cssText = 'width:24px; height:24px; object-fit:contain; flex-shrink:0;';
+      uploadRow.insertBefore(preview, uploadRow.firstElementChild);
+      $('faviconUrl').addEventListener('input', () => {
+        preview.src = $('faviconUrl').value.trim() || 'img/favicon.png';
+      });
+    }
+
+    function flash(el, ok, text) {
+      el.textContent = text;
+      el.className = 'msg show ' + (ok ? 'success' : 'error');
+      setTimeout(() => el.classList.remove('show'), 4000);
+    }
+
+    function escapeAttr(text) {
+      return String(text == null ? '' : text)
+        .replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    }
+
+    let groups = [];
+
+    function renderGroups() {
+      $('groupsBody').innerHTML = groups.map((g, i) => `
+        <tr data-id="${escapeAttr(g.id || '')}">
+          <td><input value="${escapeAttr(g.name)}" data-field="name" placeholder="Group name"></td>
+          <td><input value="${escapeAttr(g.email)}" data-field="email" placeholder="group@orono.k12.mn.us"></td>
+          <td><input value="${escapeAttr(g.description)}" data-field="description" placeholder="Description"></td>
+          <td><button class="btn btn-danger" data-del="${i}" title="Delete group">
+            <span class="material-icons" style="font-size:20px;">delete</span></button></td>
+        </tr>`).join('');
+
+      $('groupsBody').querySelectorAll('input').forEach(input => {
+        input.addEventListener('change', async (e) => {
+          const row = e.target.closest('tr');
+          const id = row.dataset.id;
+          const field = e.target.dataset.field;
+          const value = e.target.value.trim();
+          try {
+            if (id) {
+              await updateItem('emailGroups', id, { [field]: value });
+            } else if (row.querySelector('[data-field="name"]').value.trim()) {
+              const data = {
+                name: row.querySelector('[data-field="name"]').value.trim(),
+                email: row.querySelector('[data-field="email"]').value.trim(),
+                description: row.querySelector('[data-field="description"]').value.trim()
+              };
+              const newId = await addItem('emailGroups', data);
+              row.dataset.id = newId;
+              groups = await getEmailGroups();
+            }
+            flash($('groupsMsg'), true, 'Saved.');
+          } catch (err) {
+            flash($('groupsMsg'), false, 'Save failed: ' + err.message);
+          }
+        });
+      });
+
+      $('groupsBody').querySelectorAll('[data-del]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const row = btn.closest('tr');
+          const id = row.dataset.id;
+          const name = row.querySelector('[data-field="name"]').value || 'this group';
+          if (!confirm(`Delete "${name}"?`)) return;
+          try {
+            if (id) await deleteItem('emailGroups', id);
+            row.remove();
+            groups = groups.filter(g => g.id !== id);
+            flash($('groupsMsg'), true, 'Group deleted.');
+          } catch (err) {
+            flash($('groupsMsg'), false, 'Delete failed: ' + err.message);
+          }
+        });
+      });
+    }
+
+    let allowedUsers = [];
+    let currentEmail = '';
+
+    const PERM_KEYS = ['homePages', 'links', 'documentation', 'images', 'communications', 'admin'];
+
+    // Role presets: assigning one sets the whole perms map. Roles are derived
+    // from perms (not stored) so the checkboxes stay the source of truth.
+    const ROLE_PRESETS = {
+      admin:  { label: 'Admin',           perms: { homePages: true,  links: true,  documentation: true,  images: true,  communications: true,  admin: true  } },
+      editor: { label: 'Editor',          perms: { homePages: true,  links: true,  documentation: true,  images: true,  communications: true,  admin: false } },
+      viewer: { label: 'Tech Specialist', perms: { homePages: false, links: false, documentation: false, images: false, communications: false, admin: false } }
+    };
+
+    function deriveRole(perms) {
+      perms = perms || {};
+      for (const [key, preset] of Object.entries(ROLE_PRESETS)) {
+        if (PERM_KEYS.every(k => !!perms[k] === !!preset.perms[k])) return key;
+      }
+      return 'custom';
+    }
+
+    function renderUsers() {
+      $('usersBody').innerHTML = allowedUsers.map(u => {
+        const perms = u.perms || {};
+        const role = deriveRole(perms);
+        const roleOptions = Object.entries(ROLE_PRESETS).map(([key, preset]) =>
+          `<option value="${key}" ${key === role ? 'selected' : ''}>${preset.label}</option>`
+        ).join('') + `<option value="custom" disabled ${role === 'custom' ? 'selected' : ''}>Custom</option>`;
+        const permCells = PERM_KEYS.map(key => `
+          <td class="perm-cell">
+            <input type="checkbox" data-perm="${key}" data-email="${escapeAttr(u.email)}"
+                   ${perms[key] ? 'checked' : ''}
+                   ${u.email === currentEmail && key === 'admin' ? 'disabled title="You cannot remove your own admin access"' : ''}>
+          </td>`).join('');
+        return `
+        <tr>
+          <td>${escapeAttr(u.email)}</td>
+          <td>
+            <select class="role-select" data-role data-email="${escapeAttr(u.email)}"
+                    ${u.email === currentEmail ? 'disabled title="You cannot change your own role"' : ''}>
+              ${roleOptions}
+            </select>
+          </td>
+          ${permCells}
+          <td>${u.email === currentEmail ? '' : `
+            <button class="btn btn-danger" data-user="${escapeAttr(u.email)}" title="Remove access">
+              <span class="material-icons" style="font-size:20px;">person_remove</span></button>`}
+          </td>
+        </tr>`;
+      }).join('');
+
+      $('usersBody').querySelectorAll('select[data-role]').forEach(sel => {
+        sel.addEventListener('change', async () => {
+          const email = sel.dataset.email;
+          const preset = ROLE_PRESETS[sel.value];
+          if (!preset) return;
+          try {
+            await setAllowedUserPerms(email, { ...preset.perms });
+            const u = allowedUsers.find(x => x.email === email);
+            if (u) u.perms = { ...preset.perms };
+            renderUsers();
+            flash($('usersMsg'), true, `${email} is now ${preset.label}.`);
+          } catch (err) {
+            renderUsers();
+            flash($('usersMsg'), false, 'Update failed: ' + err.message);
+          }
+        });
+      });
+
+      $('usersBody').querySelectorAll('input[type="checkbox"][data-perm]').forEach(box => {
+        box.addEventListener('change', async () => {
+          const email = box.dataset.email;
+          const key = box.dataset.perm;
+          try {
+            await setAllowedUserPerm(email, key, box.checked);
+            const u = allowedUsers.find(x => x.email === email);
+            if (u) {
+              u.perms = { ...(u.perms || {}), [key]: box.checked };
+              // Keep the row's role dropdown in sync with the new perms
+              const roleSel = box.closest('tr').querySelector('select[data-role]');
+              if (roleSel) roleSel.value = deriveRole(u.perms);
+            }
+            flash($('usersMsg'), true, `${key} ${box.checked ? 'enabled' : 'disabled'} for ${email}.`);
+          } catch (err) {
+            box.checked = !box.checked;
+            flash($('usersMsg'), false, 'Update failed: ' + err.message);
+          }
+        });
+      });
+
+      $('usersBody').querySelectorAll('[data-user]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const email = btn.dataset.user;
+          if (!confirm(`Remove site access for ${email}?`)) return;
+          try {
+            await removeAllowedUser(email);
+            allowedUsers = allowedUsers.filter(u => u.email !== email);
+            renderUsers();
+            flash($('usersMsg'), true, 'Access removed.');
+          } catch (err) {
+            flash($('usersMsg'), false, 'Remove failed: ' + err.message);
+          }
+        });
+      });
+    }
+
+    $('addUserBtn').addEventListener('click', async () => {
+      const email = $('newUserEmail').value.trim().toLowerCase();
+      if (!email.endsWith('@orono.k12.mn.us')) {
+        flash($('usersMsg'), false, 'Must be an @orono.k12.mn.us address.');
+        return;
+      }
+      try {
+        const perms = await addAllowedUser(email);
+        if (!allowedUsers.some(u => u.email === email)) {
+          allowedUsers.push({ email, perms });
+          allowedUsers.sort((a, b) => a.email.localeCompare(b.email));
+        }
+        $('newUserEmail').value = '';
+        renderUsers();
+        flash($('usersMsg'), true, email + ' added as a view-only Tech Specialist — assign a role to grant editing.');
+      } catch (err) {
+        flash($('usersMsg'), false, 'Add failed: ' + err.message);
+      }
+    });
+
+    $('addGroupBtn').addEventListener('click', () => {
+      groups.push({ id: '', name: '', email: '', description: '' });
+      renderGroups();
+      const rows = $('groupsBody').querySelectorAll('tr');
+      rows[rows.length - 1].querySelector('input').focus();
+    });
+
+    $('saveConfigBtn').addEventListener('click', async () => {
+      try {
+        await saveConfig({
+          senderEmail: $('senderEmail').value.trim(),
+          senderName: $('senderName').value.trim() || 'Orono Tech Department',
+          accessControlEnabled: $('accessControlEnabled').checked,
+          allowedGroupEmail: $('allowedGroupEmail').value.trim(),
+          faviconUrl: $('faviconUrl').value.trim(),
+          statusAlertEmails: $('statusAlertEmails').value.trim()
+        });
+        // Apply immediately in this tab (other pages pick it up via layout.js)
+        const fav = $('faviconUrl').value.trim();
+        if (fav) localStorage.setItem('faviconUrl', fav);
+        else localStorage.removeItem('faviconUrl');
+        const iconLink = document.querySelector('link[rel="icon"]');
+        if (iconLink) iconLink.href = fav || 'img/favicon.png';
+        flash($('configMsg'), true, 'Settings saved.');
+      } catch (err) {
+        flash($('configMsg'), false, 'Save failed: ' + err.message);
+      }
+    });
+
+    async function init() {
+      const user = await authReady;
+      currentEmail = user.email.toLowerCase();
+      try {
+        allowedUsers = await getAllowedUsers();
+        renderUsers();
+      } catch (err) {
+        flash($('usersMsg'), false, 'Load failed: ' + err.message);
+      }
+      try {
+        const cfg = await getConfig();
+        $('senderEmail').value = cfg.senderEmail || '';
+        $('senderName').value = cfg.senderName || '';
+        $('accessControlEnabled').checked = !!cfg.accessControlEnabled;
+        $('allowedGroupEmail').value = cfg.allowedGroupEmail || '';
+        $('statusAlertEmails').value = cfg.statusAlertEmails || '';
+        $('faviconUrl').value = cfg.faviconUrl || '';
+        $('faviconUrl').dispatchEvent(new Event('input'));
+        const ps = await getPublicStatusConfig();
+        $('psLogoUrl').value = ps.logoUrl || '';
+        $('psLogoUrl').dispatchEvent(new Event('input'));
+        $('psTitle').value = ps.title || '';
+        $('psDesc').value = ps.description || '';
+        groups = await getEmailGroups();
+        renderGroups();
+      } catch (err) {
+        flash($('configMsg'), false, 'Load failed: ' + err.message);
+      }
+      const overlay = $('loadingOverlay');
+      overlay.classList.add('hidden');
+      setTimeout(() => { overlay.style.display = 'none'; }, 300);
+    }
+
+    init();
+  </script>
+</body>
+</html>

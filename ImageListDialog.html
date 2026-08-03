@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Lexend', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+
+    .container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      color: #2d3f69;
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+
+    .image-grid {
+      display: grid;
+      gap: 15px;
+    }
+
+    .image-item {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      transition: all 0.3s;
+    }
+
+    .image-item:hover {
+      border-color: #2d3f69;
+      box-shadow: 0 2px 8px rgba(45, 63, 105, 0.15);
+    }
+
+    .image-preview {
+      width: 100%;
+      max-height: 150px;
+      object-fit: contain;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      background-color: white;
+    }
+
+    .image-description {
+      color: #2d3f69;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .image-url {
+      background-color: white;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #666;
+      word-break: break-all;
+      font-family: 'Courier New', monospace;
+      border: 1px solid #e0e0e0;
+      margin-bottom: 8px;
+    }
+
+    .copy-btn {
+      padding: 6px 12px;
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      width: 100%;
+    }
+
+    .copy-btn:hover {
+      background: linear-gradient(135deg, #1d2a5d 0%, #2d3f69 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 2px 6px rgba(45, 63, 105, 0.3);
+    }
+
+    .copy-btn.copied {
+      background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+    }
+
+    .loading {
+      text-align: center;
+      color: #2d3f69;
+      padding: 40px;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #666;
+      padding: 40px;
+    }
+
+    .empty-state p {
+      margin-bottom: 20px;
+    }
+
+    .close-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #f5f5f5;
+      color: #2d3f69;
+      border: 2px solid #e0e0e0;
+      border-radius: 4px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+      width: 100%;
+    }
+
+    .close-btn:hover {
+      background-color: #e0e0e0;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .count {
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>Image Library</h2>
+      <span class="count" id="imageCount">Loading...</span>
+    </div>
+
+    <div id="loading" class="loading">
+      Loading images...
+    </div>
+
+    <div id="imageGrid" class="image-grid" style="display: none;">
+      <!-- Images will be loaded here -->
+    </div>
+
+    <div id="emptyState" class="empty-state" style="display: none;">
+      <p>No images found in the Image_URLS sheet.</p>
+      <p>Use "Image Manager > Add New Image" to add your first image.</p>
+    </div>
+
+    <button class="close-btn" onclick="google.script.host.close()">Close</button>
+  </div>
+
+  <script>
+    // Load images when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      google.script.run
+        .withSuccessHandler(displayImages)
+        .withFailureHandler(function(error) {
+          document.getElementById('loading').innerHTML = 'Error loading images: ' + error.message;
+        })
+        .getImageList();
+    });
+
+    function displayImages(images) {
+      const loading = document.getElementById('loading');
+      const imageGrid = document.getElementById('imageGrid');
+      const emptyState = document.getElementById('emptyState');
+      const imageCount = document.getElementById('imageCount');
+
+      loading.style.display = 'none';
+
+      if (!images || images.length === 0) {
+        emptyState.style.display = 'block';
+        imageCount.textContent = '0 images';
+        return;
+      }
+
+      imageCount.textContent = images.length + ' image' + (images.length !== 1 ? 's' : '');
+      imageGrid.style.display = 'grid';
+
+      // Create image items
+      images.forEach(function(image, index) {
+        const imageItem = document.createElement('div');
+        imageItem.className = 'image-item';
+
+        imageItem.innerHTML = `
+          <img src="${image.url}" alt="${image.description}" class="image-preview" onerror="this.style.display='none';">
+          <div class="image-description">${image.description}</div>
+          <div class="image-url">${image.url}</div>
+          <button class="copy-btn" onclick="copyUrl('${image.url}', this)">Copy URL</button>
+        `;
+
+        imageGrid.appendChild(imageItem);
+      });
+    }
+
+    function copyUrl(url, button) {
+      // Create temporary textarea to copy text
+      const textarea = document.createElement('textarea');
+      textarea.value = url;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+
+      try {
+        document.execCommand('copy');
+        button.textContent = 'Copied!';
+        button.classList.add('copied');
+
+        setTimeout(function() {
+          button.textContent = 'Copy URL';
+          button.classList.remove('copied');
+        }, 2000);
+      } catch (error) {
+        button.textContent = 'Failed to copy';
+        setTimeout(function() {
+          button.textContent = 'Copy URL';
+        }, 2000);
+      }
+
+      document.body.removeChild(textarea);
+    }
+  </script>
+</body>
+</html>

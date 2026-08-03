@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Status</title>
+
+  <!-- Preconnect to external resources -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Material Icons CDN -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" rel="stylesheet">
+
+  <!-- Google Fonts - Lexend -->
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Lexend', sans-serif;
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      padding: 20px;
+      padding-top: 90px !important;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* ========== HEADER ========== */
+    .page-header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+
+    .page-header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .page-header p {
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+
+    /* ========== OVERALL STATUS ========== */
+    .overall-status {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    .overall-status .status-icon {
+      font-size: 64px;
+      margin-bottom: 15px;
+    }
+
+    .overall-status h2 {
+      font-size: 1.8em;
+      margin-bottom: 10px;
+      color: #2d3f69;
+    }
+
+    .overall-status p {
+      color: #666;
+      font-size: 1.1em;
+    }
+
+    .status-operational .status-icon {
+      color: #28a745;
+    }
+
+    .status-degraded .status-icon {
+      color: #ffc107;
+    }
+
+    .status-down .status-icon {
+      color: #dc3545;
+    }
+
+    /* ========== LAST UPDATED ========== */
+    .last-updated {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+      font-size: 0.9em;
+      opacity: 0.8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .refresh-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.9em;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s;
+      margin-left: 15px;
+    }
+
+    .refresh-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .refresh-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .refresh-btn .material-icons {
+      font-size: 18px;
+    }
+
+    .refresh-btn.loading .material-icons {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* ========== SYSTEM CARDS ========== */
+    .systems-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+
+    .system-card {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 280px;
+    }
+
+    .system-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: #e0e0e0;
+    }
+
+    .system-card.operational::before {
+      background: #28a745;
+    }
+
+    .system-card.degraded::before {
+      background: #ffc107;
+    }
+
+    .system-card.down::before {
+      background: #dc3545;
+    }
+
+    .system-card.partial::before {
+      background: #fd7e14;
+    }
+
+    .system-card.maintenance::before {
+      background: #17a2b8;
+    }
+
+    .system-card.checking::before {
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .system-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    }
+
+    .card-edit-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(45, 63, 105, 0.9);
+      color: white;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      z-index: 10;
+    }
+
+    .card-edit-btn:hover {
+      background: #ad2122;
+      transform: scale(1.1);
+    }
+
+    .card-edit-btn .material-icons {
+      font-size: 18px;
+    }
+
+    .system-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .system-icon {
+      font-size: 40px;
+      color: #2d3f69;
+    }
+
+    .system-info {
+      flex: 1;
+    }
+
+    .system-name {
+      font-size: 1.3em;
+      font-weight: 600;
+      color: #2d3f69;
+      margin-bottom: 5px;
+    }
+
+    .system-description {
+      font-size: 0.85em;
+      color: #666;
+    }
+
+    .system-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      font-size: 0.95em;
+      margin-bottom: 15px;
+    }
+
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .status-indicator.operational {
+      background: #28a745;
+      box-shadow: 0 0 8px rgba(40, 167, 69, 0.5);
+    }
+
+    .status-indicator.degraded {
+      background: #ffc107;
+      box-shadow: 0 0 8px rgba(255, 193, 7, 0.5);
+    }
+
+    .status-indicator.down {
+      background: #dc3545;
+      box-shadow: 0 0 8px rgba(220, 53, 69, 0.5);
+    }
+
+    .status-indicator.partial {
+      background: #fd7e14;
+      box-shadow: 0 0 8px rgba(253, 126, 20, 0.5);
+    }
+
+    .status-indicator.maintenance {
+      background: #17a2b8;
+      box-shadow: 0 0 8px rgba(23, 162, 184, 0.5);
+    }
+
+    .status-indicator.checking {
+      background: #6c757d;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .system-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .metric {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .metric-label {
+      font-size: 0.75em;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .metric-value {
+      font-size: 1.1em;
+      font-weight: 600;
+      color: #2d3f69;
+    }
+
+    .system-card-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .system-card-footer {
+      margin-top: auto;
+      padding-top: 15px;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .system-details {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #e0e0e0;
+      font-size: 0.85em;
+      color: #666;
+    }
+
+    .error-message {
+      margin-top: 10px;
+      padding: 10px;
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      border-radius: 6px;
+      color: #721c24;
+      font-size: 0.85em;
+    }
+
+    /* ========== LOADING STATE ========== */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(29, 42, 93, 0.95);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.3s ease;
+    }
+
+    .loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .loading-text {
+      color: white;
+      margin-top: 20px;
+      font-size: 1.1em;
+      font-weight: 500;
+    }
+
+    /* ========== MODAL ========== */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 10000;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .modal.show {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 60px;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 700px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 25px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      color: #2d3f69;
+      font-size: 1.5em;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #666;
+      padding: 5px;
+      display: flex;
+      align-items: center;
+      transition: color 0.2s;
+    }
+
+    .close-btn:hover {
+      color: #ad2122;
+    }
+
+    .modal-tabs {
+      display: flex;
+      border-bottom: 2px solid #e0e0e0;
+      background: #f5f5f5;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 15px 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.95em;
+      font-weight: 500;
+      color: #666;
+      transition: all 0.3s;
+      border-bottom: 3px solid transparent;
+    }
+
+    .tab-btn:hover {
+      background: rgba(45, 63, 105, 0.05);
+    }
+
+    .tab-btn.active {
+      color: #2d3f69;
+      border-bottom-color: #ad2122;
+      background: white;
+    }
+
+    .tab-content {
+      padding: 25px;
+    }
+
+    .tab-content.hidden {
+      display: none;
+    }
+
+    /* ========== FORMS ========== */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #2d3f69;
+      font-weight: 500;
+      font-size: 0.9em;
+    }
+
+    .form-group input[type="text"],
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.95em;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input[type="text"]:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #2d3f69;
+    }
+
+    .form-group textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .form-group small {
+      display: block;
+      margin-top: 5px;
+      color: #666;
+      font-size: 0.85em;
+      font-style: italic;
+    }
+
+    .form-group input[type="checkbox"] {
+      margin-right: 8px;
+    }
+
+    .btn-primary {
+      background: #2d3f69;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 1em;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      width: 100%;
+    }
+
+    .btn-primary:hover {
+      background: #1d2a5d;
+      transform: translateY(-2px);
+    }
+
+    /* ========== SYSTEMS LIST ========== */
+    .system-item {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 4px solid #2d3f69;
+    }
+
+    .system-item.disabled {
+      opacity: 0.6;
+      border-left-color: #999;
+    }
+
+    .system-item-info {
+      flex: 1;
+    }
+
+    .system-item-name {
+      font-weight: 600;
+      color: #2d3f69;
+      margin-bottom: 4px;
+    }
+
+    .system-item-url {
+      font-size: 0.85em;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .system-item-desc {
+      font-size: 0.85em;
+      color: #666;
+    }
+
+    .system-item-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.2s;
+    }
+
+    .btn-icon:hover {
+      background: #2d3f69;
+      color: white;
+      border-color: #2d3f69;
+    }
+
+    .btn-icon.delete:hover {
+      background: #ad2122;
+      border-color: #ad2122;
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 768px) {
+      .page-header h1 {
+        font-size: 2em;
+      }
+
+      .systems-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .system-metrics {
+        grid-template-columns: 1fr;
+      }
+
+      .last-updated {
+        flex-wrap: wrap;
+      }
+
+      .refresh-btn {
+        margin-left: 0;
+        margin-top: 10px;
+      }
+
+      .system-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .system-item-actions {
+        margin-top: 12px;
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <?!= include('SiteHeader', {baseUrl: baseUrl, currentPage: currentPage}) ?>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text">Checking system status...</div>
+  </div>
+
+  <div class="container">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1>System Status</h1>
+      <p>Real-time monitoring of OPSTech systems and services</p>
+    </div>
+
+    <!-- Last Updated -->
+    <div class="last-updated">
+      <span class="material-icons">schedule</span>
+      <span id="lastUpdated">Loading...</span>
+      <button class="refresh-btn" id="refreshBtn" onclick="refreshStatus()">
+        <span class="material-icons">refresh</span>
+        Refresh
+      </button>
+      <button class="refresh-btn" id="manageBtn" onclick="openManageModal()">
+        <span class="material-icons">settings</span>
+        Manage Systems
+      </button>
+    </div>
+
+    <!-- Overall Status -->
+    <div class="overall-status" id="overallStatus">
+      <div class="status-icon material-icons">cloud_queue</div>
+      <h2>Checking Systems...</h2>
+      <p>Please wait while we check all systems</p>
+    </div>
+
+    <!-- Systems Grid -->
+    <div class="systems-grid" id="systemsGrid">
+      <!-- System cards will be populated here -->
+    </div>
+  </div>
+
+  <!-- Manage Systems Modal -->
+  <div class="modal" id="manageModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Manage Monitored Systems</h2>
+        <button class="close-btn" onclick="closeManageModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <div class="modal-tabs">
+        <button class="tab-btn active" onclick="switchTab('list')">System List</button>
+        <button class="tab-btn" onclick="switchTab('add')">Add System</button>
+        <button class="tab-btn" onclick="switchTab('bulk')">Bulk Import</button>
+      </div>
+
+      <!-- System List Tab -->
+      <div class="tab-content" id="listTab">
+        <div id="systemsList">
+          <p style="text-align: center; color: #666;">Loading systems...</p>
+        </div>
+      </div>
+
+      <!-- Add System Tab -->
+      <div class="tab-content hidden" id="addTab">
+        <form id="addSystemForm" onsubmit="return addSystem(event)">
+          <div class="form-group">
+            <label>System Name *</label>
+            <input type="text" id="systemName" required placeholder="e.g., Canvas LMS">
+          </div>
+          <div class="form-group">
+            <label>Status Page URL *</label>
+            <input type="text" id="systemUrl" required placeholder="https://status.example.com or INTERNAL">
+            <small>For external services, enter their status page URL (e.g., https://status.classlink.com/). Use INTERNAL for Google Workspace services.</small>
+          </div>
+          <div class="form-group">
+            <label>Description *</label>
+            <textarea id="systemDescription" required placeholder="Brief description of this system"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Icon</label>
+            <select id="systemIcon">
+              <option value="language">Language (Globe)</option>
+              <option value="school">School</option>
+              <option value="work">Work</option>
+              <option value="devices">Devices</option>
+              <option value="computer">Computer</option>
+              <option value="wifi">WiFi</option>
+              <option value="router">Router</option>
+              <option value="server">Server</option>
+              <option value="dns">DNS</option>
+              <option value="cloud">Cloud</option>
+              <option value="security">Security</option>
+              <option value="workspaces">Workspaces</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" id="systemCategory" placeholder="e.g., Core Services, Education">
+          </div>
+          <div class="form-group">
+            <label>RSS/Atom Feed URL (optional)</label>
+            <input type="text" id="systemFeedUrl" placeholder="https://status.example.com/feed.rss">
+            <small>If provided, will use RSS/Atom feed for status checking instead of HTML scraping. More reliable for services that provide feeds.</small>
+          </div>
+          <div class="form-group">
+            <label>Status Override (optional)</label>
+            <select id="systemStatusOverride">
+              <option value="">Auto-detect (default)</option>
+              <option value="operational">Operational</option>
+              <option value="degraded">Degraded Performance</option>
+              <option value="partial">Partial Outage</option>
+              <option value="down">Major Outage</option>
+              <option value="maintenance">Maintenance</option>
+            </select>
+            <small>Leave as "Auto-detect" to automatically check status. Set a specific status to override automated checks.</small>
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="systemEnabled" checked>
+              Enabled (monitor this system)
+            </label>
+          </div>
+          <button type="submit" class="btn-primary">Add System</button>
+        </form>
+      </div>
+
+      <!-- Bulk Import Tab -->
+      <div class="tab-content hidden" id="bulkTab">
+        <p><strong>Paste system data</strong> - one system per line in this format:</p>
+        <p style="font-size: 0.85em; color: #666; margin: 10px 0; font-family: monospace; background: #f8f9fa; padding: 8px; border-radius: 4px;">
+          Name | Status Page URL | Description | Icon (optional) | Category (optional)
+        </p>
+        <p style="font-size: 0.85em; color: #666; margin-bottom: 12px;">
+          <strong>Example:</strong><br>
+          <code style="background: #f8f9fa; padding: 4px 8px; border-radius: 3px; display: inline-block; margin-top: 5px;">ClassLink | https://status.classlink.com/ | Single sign-on platform | school | Education</code>
+        </p>
+        <p style="font-size: 0.85em; color: #666; margin-bottom: 12px;">
+          <strong>Note:</strong> For external services, use their status page URL (not the main site URL). Use INTERNAL for Google Workspace services.
+        </p>
+        <textarea id="bulkImportData" rows="10" placeholder="ClassLink | https://status.classlink.com/ | Single sign-on platform | school | Education
+Google Classroom | INTERNAL | Google's classroom platform | workspaces | Core Services
+Canvas LMS | https://status.instructure.com/ | Learning management system | school | Education"></textarea>
+        <button onclick="bulkImportSystems()" class="btn-primary">Import Systems</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit System Modal -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Edit System</h2>
+        <button class="close-btn" onclick="closeEditModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="tab-content">
+        <form id="editSystemForm" onsubmit="return updateSystem(event)">
+          <input type="hidden" id="editRowIndex">
+          <div class="form-group">
+            <label>System Name *</label>
+            <input type="text" id="editSystemName" required>
+          </div>
+          <div class="form-group">
+            <label>Status Page URL *</label>
+            <input type="text" id="editSystemUrl" required>
+            <small>For external services, enter their status page URL (e.g., https://status.classlink.com/). Use INTERNAL for Google Workspace services.</small>
+          </div>
+          <div class="form-group">
+            <label>Description *</label>
+            <textarea id="editSystemDescription" required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Icon</label>
+            <select id="editSystemIcon">
+              <option value="language">Language (Globe)</option>
+              <option value="school">School</option>
+              <option value="work">Work</option>
+              <option value="devices">Devices</option>
+              <option value="computer">Computer</option>
+              <option value="wifi">WiFi</option>
+              <option value="router">Router</option>
+              <option value="server">Server</option>
+              <option value="dns">DNS</option>
+              <option value="cloud">Cloud</option>
+              <option value="security">Security</option>
+              <option value="workspaces">Workspaces</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" id="editSystemCategory">
+          </div>
+          <div class="form-group">
+            <label>RSS/Atom Feed URL (optional)</label>
+            <input type="text" id="editSystemFeedUrl" placeholder="https://status.example.com/feed.rss">
+            <small>If provided, will use RSS/Atom feed for status checking instead of HTML scraping. More reliable for services that provide feeds.</small>
+          </div>
+          <div class="form-group">
+            <label>Status Override (optional)</label>
+            <select id="editSystemStatusOverride">
+              <option value="">Auto-detect (default)</option>
+              <option value="operational">Operational</option>
+              <option value="degraded">Degraded Performance</option>
+              <option value="partial">Partial Outage</option>
+              <option value="down">Major Outage</option>
+              <option value="maintenance">Maintenance</option>
+            </select>
+            <small>Leave as "Auto-detect" to automatically check status. Set a specific status to override automated checks.</small>
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="editSystemEnabled">
+              Enabled (monitor this system)
+            </label>
+          </div>
+          <button type="submit" class="btn-primary">Update System</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var statusCheckInterval = null;
+
+    // Check status on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      checkSystemStatus();
+
+      // Auto-refresh every 60 seconds
+      statusCheckInterval = setInterval(function() {
+        checkSystemStatus(false);
+      }, 60000);
+    });
+
+    function refreshStatus() {
+      var btn = document.getElementById('refreshBtn');
+      btn.disabled = true;
+      btn.classList.add('loading');
+      checkSystemStatus();
+    }
+
+    function checkSystemStatus(showLoading = true) {
+      if (showLoading) {
+        document.getElementById('loadingOverlay').classList.remove('hidden');
+      }
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          renderSystemStatus(result);
+          document.getElementById('loadingOverlay').classList.add('hidden');
+
+          var btn = document.getElementById('refreshBtn');
+          btn.disabled = false;
+          btn.classList.remove('loading');
+
+          updateLastUpdated();
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to check system status:', error);
+          document.getElementById('loadingOverlay').classList.add('hidden');
+
+          var btn = document.getElementById('refreshBtn');
+          btn.disabled = false;
+          btn.classList.remove('loading');
+
+          showErrorState();
+        })
+        .checkSystemStatus();
+    }
+
+    function renderSystemStatus(statusData) {
+      var grid = document.getElementById('systemsGrid');
+      var overall = document.getElementById('overallStatus');
+
+      // Count system statuses
+      var totalSystems = statusData.length;
+      var operationalSystems = statusData.filter(s => s.status === 'operational').length;
+      var degradedSystems = statusData.filter(s => s.status === 'degraded' || s.status === 'partial' || s.status === 'maintenance').length;
+      var downSystems = statusData.filter(s => s.status === 'down').length;
+
+      // Determine overall status
+      var hasDown = statusData.some(s => s.status === 'down');
+      var hasDegraded = statusData.some(s => s.status === 'degraded' || s.status === 'partial' || s.status === 'maintenance');
+
+      var overallStatus = 'operational';
+      var overallIcon = 'check_circle';
+      var overallTitle = 'All Systems Operational';
+      var overallDesc = operationalSystems + ' of ' + totalSystems + ' systems operational';
+
+      if (hasDown) {
+        overallStatus = 'down';
+        overallIcon = 'error';
+        overallTitle = 'System Issues Detected';
+        overallDesc = downSystems + ' system' + (downSystems > 1 ? 's' : '') + ' down, ' +
+                      degradedSystems + ' degraded, ' +
+                      operationalSystems + ' of ' + totalSystems + ' operational';
+      } else if (hasDegraded) {
+        overallStatus = 'degraded';
+        overallIcon = 'warning';
+        overallTitle = 'Partial System Degradation';
+        overallDesc = degradedSystems + ' system' + (degradedSystems > 1 ? 's' : '') + ' experiencing issues, ' +
+                      operationalSystems + ' of ' + totalSystems + ' operational';
+      }
+
+      overall.className = 'overall-status status-' + overallStatus;
+      overall.innerHTML = `
+        <div class="status-icon material-icons">${overallIcon}</div>
+        <h2>${overallTitle}</h2>
+        <p>${overallDesc}</p>
+      `;
+
+      // Render system cards
+      grid.innerHTML = '';
+      statusData.forEach(function(system) {
+        var card = document.createElement('div');
+        card.className = 'system-card ' + system.status;
+
+        var statusText = system.status === 'partial' ? 'Partial Outage' :
+                         system.status === 'degraded' ? 'Degraded Performance' :
+                         system.status === 'maintenance' ? 'Maintenance' :
+                         system.status === 'down' ? 'Major Outage' :
+                         system.status.charAt(0).toUpperCase() + system.status.slice(1);
+        var statusColor = system.status === 'operational' ? '#28a745' :
+                         system.status === 'degraded' ? '#ffc107' :
+                         system.status === 'partial' ? '#fd7e14' :
+                         system.status === 'maintenance' ? '#17a2b8' : '#dc3545';
+
+        // Only show details when system is not operational
+        var detailsHtml = '';
+        if (system.status !== 'operational' && system.details) {
+          detailsHtml = `<div class="system-details">${system.details}</div>`;
+        }
+
+        var errorHtml = '';
+        if (system.error) {
+          errorHtml = `<div class="error-message">${system.error}</div>`;
+        }
+
+        var statusPageButton = '';
+        if (system.url && system.url !== 'INTERNAL') {
+          statusPageButton = `
+            <a href="${system.url}" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: #2d3f69; color: white; text-decoration: none; border-radius: 6px; font-size: 0.9em; font-weight: 500; transition: all 0.2s;">
+              <span class="material-icons" style="font-size: 18px;">open_in_new</span>
+              View Status Page
+            </a>
+          `;
+        }
+
+        card.innerHTML = `
+          <button class="card-edit-btn" onclick='editSystemFromCard(${JSON.stringify(system)})' title="Edit System">
+            <span class="material-icons">edit</span>
+          </button>
+          <div class="system-card-content">
+            <div class="system-header">
+              <span class="material-icons system-icon">${system.icon}</span>
+              <div class="system-info">
+                <div class="system-name">${system.name}</div>
+                <div class="system-description">${system.description}</div>
+              </div>
+            </div>
+            <div class="system-status">
+              <span class="status-indicator ${system.status}"></span>
+              <span style="color: ${statusColor};">${statusText}</span>
+            </div>
+            ${detailsHtml}
+            ${errorHtml}
+          </div>
+          ${statusPageButton ? `<div class="system-card-footer">${statusPageButton}</div>` : ''}
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    function showErrorState() {
+      var overall = document.getElementById('overallStatus');
+      overall.className = 'overall-status status-down';
+      overall.innerHTML = `
+        <div class="status-icon material-icons">error</div>
+        <h2>Unable to Check Status</h2>
+        <p>Failed to retrieve system status. Please try again.</p>
+      `;
+    }
+
+    function updateLastUpdated() {
+      var now = new Date();
+      var timeStr = now.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      document.getElementById('lastUpdated').textContent = 'Last updated: ' + timeStr;
+    }
+
+    // Quick edit from card
+    function editSystemFromCard(system) {
+      openEditModal(system);
+    }
+
+    // ========== MANAGEMENT FUNCTIONS ==========
+
+    function openManageModal() {
+      document.getElementById('manageModal').classList.add('show');
+      loadSystemsList();
+    }
+
+    function closeManageModal() {
+      document.getElementById('manageModal').classList.remove('show');
+    }
+
+    function openEditModal(system) {
+      document.getElementById('editRowIndex').value = system.rowIndex;
+      document.getElementById('editSystemName').value = system.name;
+      document.getElementById('editSystemUrl').value = system.url;
+      document.getElementById('editSystemDescription').value = system.description;
+      document.getElementById('editSystemIcon').value = system.icon;
+      document.getElementById('editSystemCategory').value = system.category;
+      document.getElementById('editSystemFeedUrl').value = system.feedUrl || '';
+      document.getElementById('editSystemStatusOverride').value = system.statusOverride || '';
+      document.getElementById('editSystemEnabled').checked = system.enabled;
+      document.getElementById('editModal').classList.add('show');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('show');
+    }
+
+    function switchTab(tabName) {
+      // Hide all tabs
+      document.getElementById('listTab').classList.add('hidden');
+      document.getElementById('addTab').classList.add('hidden');
+      document.getElementById('bulkTab').classList.add('hidden');
+
+      // Remove active class from all tab buttons
+      var tabs = document.querySelectorAll('.tab-btn');
+      tabs.forEach(function(tab) {
+        tab.classList.remove('active');
+      });
+
+      // Show selected tab
+      if (tabName === 'list') {
+        document.getElementById('listTab').classList.remove('hidden');
+        tabs[0].classList.add('active');
+        loadSystemsList();
+      } else if (tabName === 'add') {
+        document.getElementById('addTab').classList.remove('hidden');
+        tabs[1].classList.add('active');
+      } else if (tabName === 'bulk') {
+        document.getElementById('bulkTab').classList.remove('hidden');
+        tabs[2].classList.add('active');
+      }
+    }
+
+    function loadSystemsList() {
+      var listDiv = document.getElementById('systemsList');
+      listDiv.innerHTML = '<p style="text-align: center; color: #666;">Loading systems...</p>';
+
+      google.script.run
+        .withSuccessHandler(function(systems) {
+          if (systems.length === 0) {
+            listDiv.innerHTML = '<p style="text-align: center; color: #666;">No systems configured. Add one using the "Add System" tab.</p>';
+            return;
+          }
+
+          var html = '';
+          systems.forEach(function(system) {
+            html += `
+              <div class="system-item ${!system.enabled ? 'disabled' : ''}">
+                <div class="system-item-info">
+                  <div class="system-item-name">${system.name}</div>
+                  <div class="system-item-url">${system.url}</div>
+                  <div class="system-item-desc">${system.description}</div>
+                  <div style="font-size: 0.8em; color: #999; margin-top: 4px;">
+                    Category: ${system.category || 'None'} | Icon: ${system.icon} | ${system.enabled ? 'Enabled' : 'Disabled'}
+                  </div>
+                </div>
+                <div class="system-item-actions">
+                  <button class="btn-icon" onclick='editSystemClick(${JSON.stringify(system)})' title="Edit">
+                    <span class="material-icons">edit</span>
+                  </button>
+                  <button class="btn-icon delete" onclick="deleteSystemClick(${system.rowIndex})" title="Delete">
+                    <span class="material-icons">delete</span>
+                  </button>
+                </div>
+              </div>
+            `;
+          });
+          listDiv.innerHTML = html;
+        })
+        .withFailureHandler(function(error) {
+          listDiv.innerHTML = '<p style="text-align: center; color: #ad2122;">Error loading systems: ' + error.message + '</p>';
+        })
+        .getMonitoredSystems();
+    }
+
+    function editSystemClick(system) {
+      closeManageModal();
+      openEditModal(system);
+    }
+
+    function deleteSystemClick(rowIndex) {
+      if (!confirm('Are you sure you want to delete this system?')) {
+        return;
+      }
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            alert(result.message);
+            loadSystemsList();
+            checkSystemStatus(false);
+          } else {
+            alert('Error: ' + result.message);
+          }
+        })
+        .withFailureHandler(function(error) {
+          alert('Error deleting system: ' + error.message);
+        })
+        .deleteMonitoredSystem(rowIndex);
+    }
+
+    function addSystem(event) {
+      event.preventDefault();
+
+      var systemData = {
+        name: document.getElementById('systemName').value,
+        url: document.getElementById('systemUrl').value,
+        description: document.getElementById('systemDescription').value,
+        icon: document.getElementById('systemIcon').value,
+        category: document.getElementById('systemCategory').value,
+        feedUrl: document.getElementById('systemFeedUrl').value,
+        statusOverride: document.getElementById('systemStatusOverride').value,
+        enabled: document.getElementById('systemEnabled').checked
+      };
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            alert(result.message);
+            document.getElementById('addSystemForm').reset();
+            switchTab('list');
+            checkSystemStatus(false);
+          } else {
+            alert('Error: ' + result.message);
+          }
+        })
+        .withFailureHandler(function(error) {
+          alert('Error adding system: ' + error.message);
+        })
+        .addMonitoredSystem(systemData);
+
+      return false;
+    }
+
+    function updateSystem(event) {
+      event.preventDefault();
+
+      var rowIndex = parseInt(document.getElementById('editRowIndex').value);
+      var systemData = {
+        name: document.getElementById('editSystemName').value,
+        url: document.getElementById('editSystemUrl').value,
+        description: document.getElementById('editSystemDescription').value,
+        icon: document.getElementById('editSystemIcon').value,
+        category: document.getElementById('editSystemCategory').value,
+        feedUrl: document.getElementById('editSystemFeedUrl').value,
+        statusOverride: document.getElementById('editSystemStatusOverride').value,
+        enabled: document.getElementById('editSystemEnabled').checked
+      };
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            alert(result.message);
+            closeEditModal();
+            openManageModal();
+            checkSystemStatus(false);
+          } else {
+            alert('Error: ' + result.message);
+          }
+        })
+        .withFailureHandler(function(error) {
+          alert('Error updating system: ' + error.message);
+        })
+        .updateMonitoredSystem(rowIndex, systemData);
+
+      return false;
+    }
+
+    function bulkImportSystems() {
+      var data = document.getElementById('bulkImportData').value.trim();
+      if (!data) {
+        alert('Please paste system data to import');
+        return;
+      }
+
+      var systemsList = [];
+
+      // Try to detect format - JSON or pipe-separated
+      if (data.startsWith('[') || data.startsWith('{')) {
+        // JSON format
+        try {
+          systemsList = JSON.parse(data);
+          if (!Array.isArray(systemsList)) {
+            systemsList = [systemsList];
+          }
+        } catch (error) {
+          alert('Invalid JSON format. Please check your data and try again.\n\nError: ' + error.message);
+          return;
+        }
+      } else {
+        // Pipe-separated format: Name | URL | Description | Icon (optional) | Category (optional)
+        var lines = data.split('\n');
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i].trim();
+          if (!line) continue; // Skip empty lines
+
+          var parts = line.split('|').map(function(part) { return part.trim(); });
+          if (parts.length < 3) {
+            alert('Line ' + (i + 1) + ' is invalid. Each line needs at least: Name | URL | Description\n\nFound: ' + line);
+            return;
+          }
+
+          systemsList.push({
+            name: parts[0],
+            url: parts[1],
+            description: parts[2],
+            icon: parts[3] || 'language',  // Default to 'language' if not provided
+            category: parts[4] || '',       // Default to empty string if not provided
+            enabled: true                   // Default to enabled
+          });
+        }
+      }
+
+      if (systemsList.length === 0) {
+        alert('No valid systems found to import');
+        return;
+      }
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            alert(result.message);
+            document.getElementById('bulkImportData').value = '';
+            switchTab('list');
+            checkSystemStatus(false);
+          } else {
+            alert('Error: ' + result.message);
+          }
+        })
+        .withFailureHandler(function(error) {
+          alert('Error during bulk import: ' + error.message);
+        })
+        .bulkImportSystems(systemsList);
+    }
+
+    // Cleanup interval on page unload
+    window.addEventListener('beforeunload', function() {
+      if (statusCheckInterval) {
+        clearInterval(statusCheckInterval);
+      }
+    });
+  </script>
+
+  <?!= include('SiteFooter', {userEmail: userEmail, baseUrl: baseUrl}) ?>
+</body>
+</html>

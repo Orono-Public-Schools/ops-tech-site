@@ -1,0 +1,129 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Google sign-ins carry email_verified; ClassLink SAML assertions don't,
+    // but ClassLink is the district's own IdP so its emails are authoritative.
+    function isOrono() {
+      return request.auth != null
+        && (request.auth.token.email_verified == true
+            || request.auth.token.firebase.sign_in_provider == 'saml.classlink')
+        && request.auth.token.email.matches('.*@orono[.]k12[.]mn[.]us');
+    }
+
+    function myEmail() {
+      return request.auth.token.email.lower();
+    }
+
+    // Tech-dept allowlist: managed on the Admin page (allowedUsers collection).
+    function isAllowed() {
+      return isOrono()
+        && exists(/databases/$(database)/documents/allowedUsers/$(myEmail()));
+    }
+
+    // Per-capability permission from the user's allowlist entry
+    // (perms map set on the Admin page; missing key = no permission).
+    function hasPerm(key) {
+      return isAllowed()
+        && get(/databases/$(database)/documents/allowedUsers/$(myEmail()))
+             .data.get(['perms', key], false) == true;
+    }
+
+    // Users may check their own entry (auth gate UX); admins manage the list.
+    match /allowedUsers/{email} {
+      allow get: if isOrono() && email == myEmail();
+      allow read, write: if hasPerm('admin');
+    }
+
+    // Content collections: read for all allowed users, write per capability
+    match /links/{id} {
+      allow read: if isAllowed();
+      allow write: if hasPerm('links');
+    }
+    match /documentation/{id} {
+      allow read: if isAllowed();
+      allow write: if hasPerm('documentation');
+    }
+    match /homePages/{id} {
+      allow read: if isAllowed();
+      allow write: if hasPerm('homePages');
+    }
+    match /images/{id} {
+      allow read: if isAllowed();
+      allow write: if hasPerm('images');
+    }
+    match /emailGroups/{id} {
+      allow read: if isAllowed();
+      allow write: if hasPerm('admin');
+    }
+    // Status systems: editing is admin-only. The _categoryOrder sentinel
+    // doc is publicly gettable so the district-site embed can order sections.
+    match /monitoredSystems/{id} {
+      allow get: if isAllowed() || id == '_categoryOrder';
+      allow list: if isAllowed();
+      allow write: if hasPerm('admin');
+    }
+    match /config/{id} {
+      allow read: if isAllowed();
+      allow write: if hasPerm('admin');
+    }
+
+    // Branding for the public status embed (logo/title/descriptor) —
+    // readable without sign-in; writes covered by the admin rule above.
+    match /config/publicStatus {
+      allow get: if true;
+    }
+
+    // Incidents & scheduled maintenance: shown on the public embed too.
+    match /incidents/{id} {
+      allow read: if true;
+      allow write: if hasPerm('admin');
+    }
+
+    // Sent-email archive: create requires communications permission;
+    // sendEmail function archives via Admin SDK (bypasses rules)
+    match /communications/{id} {
+      allow read: if isAllowed();
+      allow create: if hasPerm('communications');
+      allow update, delete: if false;
+    }
+
+    // Status results: written only by Cloud Functions (Admin SDK).
+    // Publicly readable — powers the view-only district-site embed.
+    match /statusResults/{systemId} {
+      allow read: if true;
+      allow write: if false;
+      match /history/{entryId} {
+        allow read: if isAllowed();
+        allow write: if false;
+      }
+    }
+
+    // Per-user email drafts
+    match /users/{uid}/drafts/{draftId} {
+      allow read, write: if isAllowed() && request.auth.uid == uid;
+    }
+
+    // Status-update subscriptions: managed entirely by Cloud Functions
+    // (public embed form + tokened confirm/unsubscribe email links).
+    // Admins may inspect the list; no client writes.
+    match /statusSubscribers/{email} {
+      allow read: if hasPerm('admin');
+      allow write: if false;
+    }
+
+    // Shared compose snippets (reusable intro/outro blocks)
+    match /snippets/{id} {
+      allow read: if isAllowed();
+      allow write: if hasPerm('communications');
+    }
+
+    // Scheduled emails: created/cancelled on the site; the
+    // processScheduledEmails function (Admin SDK) sends and updates them.
+    match /scheduledEmails/{id} {
+      allow read: if hasPerm('communications');
+      allow create, delete: if hasPerm('communications');
+      allow update: if false;
+    }
+  }
+}

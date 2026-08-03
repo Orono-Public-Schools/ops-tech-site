@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In - OPS Technology</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Lexend', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+    }
+
+    /* ========== SPLIT CARD ========== */
+    .card {
+      display: flex;
+      width: 680px;
+      max-width: 100%;
+      min-height: 340px;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    .brand-panel {
+      flex: 1.05;
+      background: linear-gradient(150deg, #2d3f69 0%, #1d2a5d 100%);
+      color: white;
+      padding: 38px 34px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .brand-panel .ghost {
+      position: absolute;
+      right: -28px;
+      bottom: -34px;
+      height: 200px;
+      opacity: 0.14;
+      pointer-events: none;
+    }
+
+    .brand-panel .mark {
+      height: 46px;
+      align-self: flex-start;
+    }
+
+    .brand-panel h1 {
+      margin: 16px 0 8px;
+      font-size: 1.45em;
+      font-weight: 700;
+      position: relative;
+      display: inline-block;
+      padding-bottom: 11px;
+      align-self: flex-start;
+    }
+
+    .brand-panel h1::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 46px;
+      height: 3px;
+      background: #ad2122;
+      border-radius: 2px;
+    }
+
+    .brand-panel p {
+      margin: 6px 0 0;
+      font-size: 0.85em;
+      opacity: 0.85;
+      line-height: 1.65;
+    }
+
+    .signin-panel {
+      flex: 1;
+      background: white;
+      padding: 38px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .panel-label {
+      color: #8b93a9;
+      font-size: 0.7em;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+      text-align: center;
+    }
+
+    /* ========== STATE BLOCKS ========== */
+    .state-block p {
+      color: #6a7288;
+      font-size: 0.85em;
+      line-height: 1.6;
+      margin: 0 0 18px;
+      text-align: center;
+    }
+
+    .material-icons.denied-icon {
+      display: block;
+      font-size: 48px;
+      color: #ad2122;
+      margin: 0 auto 12px;
+      text-align: center;
+    }
+
+    #deniedBlock h2 {
+      color: #2d3f69;
+      font-size: 1.15em;
+      margin: 0 0 10px;
+      text-align: center;
+    }
+
+    /* ========== BUTTONS ========== */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 11px;
+      width: 100%;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.92em;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: default;
+      transform: none !important;
+    }
+
+    .btn img {
+      display: block;
+    }
+
+    .btn-google {
+      background: white;
+      color: #3c4043;
+      border: 1.5px solid #dfe2ec;
+    }
+
+    .btn-google:hover {
+      background: #f6f8fc;
+      border-color: #2d3f69;
+      transform: translateY(-1px);
+    }
+
+    .btn-google img {
+      height: 20px;
+    }
+
+    .btn-classlink {
+      background: #0080c6;
+      color: white;
+    }
+
+    .btn-classlink:hover {
+      background: #006ba6;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 128, 198, 0.4);
+    }
+
+    .btn-classlink img {
+      height: 24px;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #a0a7ba;
+      font-size: 0.75em;
+      margin: 14px 0;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e4e6ee;
+    }
+
+    .error-text {
+      color: #ad2122;
+      font-size: 0.8em;
+      min-height: 1.2em;
+      margin-top: 14px;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* ========== MOBILE ========== */
+    @media (max-width: 640px) {
+      .card {
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .brand-panel {
+        padding: 28px 28px 26px;
+      }
+
+      .brand-panel .ghost {
+        height: 140px;
+        right: -20px;
+        bottom: -28px;
+      }
+
+      .signin-panel {
+        padding: 28px 26px 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <!-- Left: brand panel -->
+    <div class="brand-panel">
+      <img class="ghost" src="img/torch-white.png" alt="">
+      <img class="mark" src="img/torch-white.png" alt="">
+      <h1>OPS Technology</h1>
+      <p>The Orono Tech Department's home for links, documentation, system status, and communications.</p>
+    </div>
+
+    <!-- Right: sign-in panel -->
+    <div class="signin-panel">
+      <div id="signinBlock">
+        <div class="panel-label">Sign in to continue</div>
+      </div>
+
+      <div id="deniedBlock" class="state-block" style="display:none;">
+        <span class="material-icons denied-icon">block</span>
+        <h2>Access Denied</h2>
+        <p>This site is only available to Orono Public Schools staff.
+           Please sign in with your <strong>@orono.k12.mn.us</strong> account.</p>
+      </div>
+
+      <div id="linkBlock" class="state-block" style="display:none;">
+        <p><strong>One-time account link needed.</strong><br>
+          Your email already has a Google sign-in on this site. Sign in with Google once
+          to link ClassLink to it — after that, either button works.</p>
+      </div>
+
+      <button class="btn btn-google" id="signinBtn" type="button">
+        <img src="img/google-g.png" alt="">
+        <span id="googleBtnText">Sign in with Google</span>
+      </button>
+      <div class="divider">or</div>
+      <button class="btn btn-classlink" id="classlinkBtn" type="button">
+        <img src="img/classlink-white.png" alt="">
+        Sign in with ClassLink
+      </button>
+
+      <div class="error-text" id="errorText"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth } from './js/firebase-init.js';
+    import {
+      GoogleAuthProvider, SAMLAuthProvider, signInWithPopup, signInWithRedirect,
+      getRedirectResult, linkWithRedirect, onAuthStateChanged, signOut
+    } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+    import { isAllowedUser } from './js/domain.js';
+
+    const CLASSLINK_PROVIDER_ID = 'saml.classlink';
+
+    const params = new URLSearchParams(location.search);
+    const btn = document.getElementById('signinBtn');
+    const classlinkBtn = document.getElementById('classlinkBtn');
+    const errorText = document.getElementById('errorText');
+    let linkAfterGoogle = false; // set when a one-time SAML↔Google link is needed
+
+    if (params.get('denied')) {
+      document.getElementById('deniedBlock').style.display = 'block';
+      document.getElementById('signinBlock').style.display = 'none';
+    }
+
+    function samlProvider() {
+      return new SAMLAuthProvider(CLASSLINK_PROVIDER_ID);
+    }
+
+    function googleProvider() {
+      const p = new GoogleAuthProvider();
+      p.setCustomParameters({ hd: 'orono.k12.mn.us', prompt: 'select_account' });
+      return p;
+    }
+
+    function showDenied() {
+      document.getElementById('deniedBlock').style.display = 'block';
+      document.getElementById('signinBlock').style.display = 'none';
+      document.getElementById('linkBlock').style.display = 'none';
+    }
+
+    // Only allow same-site relative redirect targets.
+    function nextUrl() {
+      const next = params.get('next') || 'index.html';
+      if (/^https?:|^\/\/|^\\/i.test(next)) {
+        return 'index.html';
+      }
+      return next;
+    }
+
+    async function handleSignedIn(user) {
+      if (isAllowedUser(user)) {
+        sessionStorage.removeItem('ssoTried');
+        location.replace(nextUrl());
+      } else if (user) {
+        await signOut(auth);
+        showDenied();
+      }
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (isAllowedUser(user)) {
+        sessionStorage.removeItem('ssoTried');
+        location.replace(nextUrl());
+      }
+    });
+
+    // Result of a ClassLink redirect round-trip (sign-in or account link).
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result && result.user) handleSignedIn(result.user);
+      })
+      .catch((err) => {
+        if (err.code === 'auth/account-exists-with-different-credential') {
+          // This email already has a Google-based account: one-time link flow.
+          linkAfterGoogle = true;
+          document.getElementById('linkBlock').style.display = 'block';
+          document.getElementById('signinBlock').style.display = 'none';
+          document.getElementById('googleBtnText').textContent = 'Sign in with Google to link';
+        } else if (err.code === 'auth/operation-not-allowed') {
+          errorText.textContent = 'ClassLink sign-in is not configured yet — use Google for now.';
+        } else {
+          errorText.textContent = 'Sign-in failed: ' + (err.message || err.code || err);
+        }
+      });
+
+    // ClassLink tile in LaunchPad points here with ?sso=1 — start the SAML
+    // hop automatically (guarded so a failed round-trip can't loop; the guard
+    // clears itself so the NEXT tile click retries fresh).
+    if (params.get('sso') && !params.get('denied')) {
+      if (sessionStorage.getItem('ssoTried')) {
+        sessionStorage.removeItem('ssoTried');
+      } else {
+        onAuthStateChanged(auth, (user) => {
+          if (!user && !sessionStorage.getItem('ssoTried')) {
+            sessionStorage.setItem('ssoTried', '1');
+            signInWithRedirect(auth, samlProvider());
+          }
+        });
+      }
+    }
+
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      errorText.textContent = '';
+      try {
+        const result = await signInWithPopup(auth, googleProvider());
+        if (linkAfterGoogle && isAllowedUser(result.user)) {
+          // Finish the one-time ClassLink link, then round-trip back here.
+          await linkWithRedirect(result.user, samlProvider());
+          return;
+        }
+        handleSignedIn(result.user);
+      } catch (err) {
+        if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
+          errorText.textContent = 'Sign-in failed: ' + (err.message || err.code || err);
+        }
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    classlinkBtn.addEventListener('click', async () => {
+      classlinkBtn.disabled = true;
+      errorText.textContent = '';
+      try {
+        const result = await signInWithPopup(auth, samlProvider());
+        handleSignedIn(result.user);
+      } catch (err) {
+        if (err.code === 'auth/account-exists-with-different-credential') {
+          linkAfterGoogle = true;
+          document.getElementById('linkBlock').style.display = 'block';
+          document.getElementById('signinBlock').style.display = 'none';
+          document.getElementById('googleBtnText').textContent = 'Sign in with Google to link';
+        } else if (err.code === 'auth/operation-not-allowed') {
+          errorText.textContent = 'ClassLink sign-in is not configured yet — use Google for now.';
+        } else if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
+          errorText.textContent = 'Sign-in failed: ' + (err.message || err.code || err);
+        }
+      } finally {
+        classlinkBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

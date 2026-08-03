@@ -1,0 +1,58 @@
+{
+  "hosting": [
+    {
+      "target": "main",
+      "public": "public",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        { "source": "/links", "destination": "/links.html" },
+        { "source": "/documentation", "destination": "/documentation.html" },
+        { "source": "/communications", "destination": "/communications.html" },
+        { "source": "/compose", "destination": "/compose.html" },
+        { "source": "/image-library", "destination": "/image-library.html" },
+        { "source": "/status", "destination": "/status.html" },
+        { "source": "/status-embed", "destination": "/status-embed.html" },
+        { "source": "/admin", "destination": "/admin.html" },
+        { "source": "/signin", "destination": "/signin.html" }
+      ]
+    },
+    {
+      "target": "legacy",
+      "public": "public",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        { "source": "/links", "destination": "/links.html" },
+        { "source": "/documentation", "destination": "/documentation.html" },
+        { "source": "/communications", "destination": "/communications.html" },
+        { "source": "/compose", "destination": "/compose.html" },
+        { "source": "/image-library", "destination": "/image-library.html" },
+        { "source": "/status", "destination": "/status.html" },
+        { "source": "/status-embed", "destination": "/status-embed.html" },
+        { "source": "/admin", "destination": "/admin.html" },
+        { "source": "/signin", "destination": "/signin.html" }
+      ]
+    }
+  ],
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "runtime": "nodejs22",
+      "ignore": ["node_modules", ".git", "*.log"]
+    }
+  ],
+  "emulators": {
+    "auth": { "port": 9099 },
+    "firestore": { "port": 8080 },
+    "functions": { "port": 5001 },
+    "hosting": { "port": 5000 },
+    "ui": { "enabled": true }
+  }
+}

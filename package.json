@@ -1,0 +1,31 @@
+{
+  "name": "opstech-site",
+  "version": "1.0.0",
+  "description": "Orono Tech Department web app - Google Apps Script project",
+  "scripts": {
+    "push": "clasp push",
+    "pull": "clasp pull",
+    "open": "clasp open-script",
+    "watch": "clasp push --watch",
+    "deploy": "deploy.bat",
+    "logs": "clasp tail-logs",
+    "status": "clasp show-file-status",
+    "deployments": "clasp list-deployments",
+    "versions": "clasp list-versions"
+  },
+  "keywords": [
+    "google-apps-script",
+    "webapp",
+    "orono",
+    "tech-department"
+  ],
+  "author": "Orono Tech Department",
+  "license": "MIT",
+  "devDependencies": {
+    "@google/clasp": "^2.4.2",
+    "@types/google-apps-script": "^1.0.83"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.6.0"
+  }
+}

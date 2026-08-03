@@ -1,0 +1,203 @@
+<!-- Site-wide Navigation Header -->
+<style>
+  .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    z-index: 9000;
+    padding: 0;
+  }
+
+  .site-nav {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px 18px 20px;
+    gap: 20px;
+  }
+
+  .site-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: white;
+    font-weight: 700;
+    font-size: 1.2em;
+    white-space: nowrap;
+  }
+
+  .site-logo img {
+    height: 40px;
+    width: auto;
+    filter: brightness(0) invert(1);
+  }
+
+  .site-logo .material-icons {
+    font-size: 28px;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: white;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.95em;
+    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .nav-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .nav-link.active {
+    background: #ad2122;
+  }
+
+  .nav-link .material-icons {
+    font-size: 18px;
+  }
+
+  /* Responsive nav text - show full text by default */
+  .nav-text-full {
+    display: inline;
+  }
+
+  .nav-text-short {
+    display: none;
+  }
+
+  /* Mobile menu toggle */
+  .mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 5px;
+  }
+
+  /* Offset body content to account for fixed header */
+  body {
+    padding-top: 70px;
+  }
+
+  /* Medium screens: show abbreviated text */
+  @media (max-width: 950px) and (min-width: 769px) {
+    .nav-text-full {
+      display: none;
+    }
+
+    .nav-text-short {
+      display: inline;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .site-nav {
+      flex-wrap: wrap;
+    }
+
+    .nav-links {
+      display: none;
+      width: 100%;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 10px;
+    }
+
+    .nav-links.show {
+      display: flex;
+    }
+
+    .nav-link {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .mobile-menu-toggle {
+      display: block;
+    }
+
+    body {
+      padding-top: 60px;
+    }
+  }
+</style>
+
+<header class="site-header">
+  <nav class="site-nav">
+    <a href="<?= baseUrl ?>" class="site-logo" target="_top">
+      <img src="https://lh3.googleusercontent.com/d/1H7rg0o4dRIw_KM-c8bW0glwtU9RNXAik" alt="Orono Tech Logo">
+    </a>
+
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+      <span class="material-icons">menu</span>
+    </button>
+
+    <div class="nav-links" id="navLinks">
+      <a href="<?= baseUrl ?>" class="nav-link <?= currentPage === 'home' ? 'active' : '' ?>" target="_top">
+        <span class="material-icons">home</span>
+        <span class="nav-text-full">Home</span>
+        <span class="nav-text-short">Home</span>
+      </a>
+      <a href="<?= baseUrl ?>?page=links" class="nav-link <?= currentPage === 'links' ? 'active' : '' ?>" target="_top">
+        <span class="material-icons">link</span>
+        <span class="nav-text-full">Links</span>
+        <span class="nav-text-short">Links</span>
+      </a>
+      <a href="<?= baseUrl ?>?page=documentation" class="nav-link <?= currentPage === 'documentation' ? 'active' : '' ?>" target="_top">
+        <span class="material-icons">description</span>
+        <span class="nav-text-full">Documentation</span>
+        <span class="nav-text-short">Docs</span>
+      </a>
+      <a href="<?= baseUrl ?>?page=communications" class="nav-link <?= currentPage === 'communications' ? 'active' : '' ?>" target="_top">
+        <span class="material-icons">campaign</span>
+        <span class="nav-text-full">Communications</span>
+        <span class="nav-text-short">Comms</span>
+      </a>
+      <a href="<?= baseUrl ?>?page=image-library" class="nav-link <?= currentPage === 'image-library' ? 'active' : '' ?>" target="_top">
+        <span class="material-icons">photo_library</span>
+        <span class="nav-text-full">Image Library</span>
+        <span class="nav-text-short">Images</span>
+      </a>
+    </div>
+  </nav>
+</header>
+
+<script>
+  function toggleMobileMenu() {
+    const navLinks = document.getElementById('navLinks');
+    navLinks.classList.toggle('show');
+  }
+
+  // Close mobile menu when clicking a link
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', function() {
+      const navLinks = document.getElementById('navLinks');
+      if (window.innerWidth <= 768) {
+        navLinks.classList.remove('show');
+      }
+    });
+  });
+</script>

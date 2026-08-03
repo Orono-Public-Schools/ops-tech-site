@@ -1,0 +1,71 @@
+<!-- Embedded Add Documentation Form (shown in modal on Documentation page) -->
+<div id="addDocModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Add New Documentation</h2>
+      <span class="close-modal" onclick="closeAddDocModal()">&times;</span>
+    </div>
+
+    <div id="docFormMessage" class="form-message"></div>
+
+    <form id="addDocForm" onsubmit="submitAddDoc(event)">
+      <div class="form-group">
+        <label for="docTitle">Documentation Title *</label>
+        <input type="text" id="docTitle" name="docTitle" placeholder="e.g., Student Handbook" required>
+      </div>
+
+      <div class="form-group">
+        <label for="docUrl">Documentation URL *</label>
+        <input type="url" id="docUrl" name="docUrl" placeholder="https://..." required>
+      </div>
+
+      <div class="form-group">
+        <label for="docDescription">Description *</label>
+        <input type="text" id="docDescription" name="docDescription" placeholder="Brief description" required>
+      </div>
+
+      <div class="form-group">
+        <label for="docCategory">Category *</label>
+        <select id="docCategory" name="docCategory" required>
+          <option value="">-- Select a category --</option>
+          <option value="__NEW__">+ Add New Category</option>
+        </select>
+        <div id="newDocCategoryInput" class="new-category-input" style="display: none; margin-top: 10px;">
+          <input type="text" id="newDocCategory" placeholder="Enter new category name">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="docIconClass">Icon *</label>
+        <select id="docIconClass" name="docIconClass" required>
+          <option value="">-- Select an icon --</option>
+          <option value="description">description</option>
+          <option value="article">article</option>
+          <option value="book">book</option>
+          <option value="slideshow">slideshow</option>
+          <option value="grid_on">grid_on (spreadsheet)</option>
+          <option value="picture_as_pdf">picture_as_pdf</option>
+          <option value="folder">folder</option>
+          <option value="library_books">library_books</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="docImageUrl">Custom Image URL (Optional)</label>
+        <input type="url" id="docImageUrl" name="docImageUrl" placeholder="https://...">
+        <small>Leave blank to use Material Icon</small>
+      </div>
+
+      <div class="button-group">
+        <button type="button" class="btn-secondary" onclick="closeAddDocModal()">Cancel</button>
+        <button type="submit" class="btn-primary" id="docSubmitBtn">Add Documentation</button>
+      </div>
+    </form>
+
+    <div id="docFormLoading" class="form-loading" style="display: none;">
+      <div class="spinner-small"></div>
+      Adding documentation to sheet...
+    </div>
+  </div>
+</div>
+

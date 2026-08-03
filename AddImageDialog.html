@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Lexend', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+
+    .container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      color: #2d3f69;
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      color: #2d3f69;
+      font-weight: 500;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #e0e0e0;
+      border-radius: 4px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #2d3f69;
+    }
+
+    .help-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 25px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #1d2a5d 0%, #2d3f69 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(45, 63, 105, 0.3);
+    }
+
+    .btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background-color: #f5f5f5;
+      color: #2d3f69;
+      border: 2px solid #e0e0e0;
+    }
+
+    .btn-secondary:hover {
+      background-color: #e0e0e0;
+    }
+
+    .message {
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .message.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      color: #2d3f69;
+      margin-top: 10px;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .url-preview {
+      background-color: #f8f9fa;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 15px;
+      font-size: 12px;
+      color: #666;
+      word-break: break-all;
+      display: none;
+    }
+
+    .url-preview.show {
+      display: block;
+    }
+
+    .url-preview strong {
+      color: #2d3f69;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <h2>Add New Image to Image_URLS</h2>
+
+    <div id="message" class="message"></div>
+
+    <form id="imageForm" onsubmit="handleSubmit(event)">
+      <div class="form-group">
+        <label for="description">Image Description *</label>
+        <input
+          type="text"
+          id="description"
+          name="description"
+          placeholder="e.g., Orono Tech Logo, Student Handbook Cover, etc."
+          required
+        >
+        <div class="help-text">A clear description to help identify this image later</div>
+      </div>
+
+      <div class="form-group">
+        <label for="driveUrl">Image URL *</label>
+        <input
+          type="text"
+          id="driveUrl"
+          name="driveUrl"
+          placeholder="Google Drive URL or any direct image URL"
+          required
+        >
+        <div class="help-text">
+          Accepts Google Drive URLs or any direct image URL. Examples:<br>
+          • Google Drive: https://drive.google.com/file/d/FILE_ID/view<br>
+          • Direct URL: https://example.com/image.png<br>
+          • Google User Content: https://lh3.googleusercontent.com/...
+        </div>
+      </div>
+
+      <div id="urlPreview" class="url-preview"></div>
+
+      <div class="button-group">
+        <button type="button" class="btn-secondary" onclick="google.script.host.close()">Cancel</button>
+        <button type="submit" class="btn-primary" id="submitBtn">Add Image</button>
+      </div>
+    </form>
+
+    <div id="loading" class="loading">
+      Adding image to sheet...
+    </div>
+  </div>
+
+  <script>
+    function handleSubmit(event) {
+      event.preventDefault();
+
+      const description = document.getElementById('description').value.trim();
+      const driveUrl = document.getElementById('driveUrl').value.trim();
+      const submitBtn = document.getElementById('submitBtn');
+      const loading = document.getElementById('loading');
+      const messageDiv = document.getElementById('message');
+
+      // Disable submit button and show loading
+      submitBtn.disabled = true;
+      loading.classList.add('show');
+      messageDiv.classList.remove('show');
+
+      // Call Apps Script function
+      google.script.run
+        .withSuccessHandler(function(result) {
+          submitBtn.disabled = false;
+          loading.classList.remove('show');
+
+          if (result.success) {
+            // Show success message
+            showMessage('success', result.message);
+
+            // Show final URL
+            const urlPreview = document.getElementById('urlPreview');
+            urlPreview.innerHTML = '<strong>Final URL:</strong> ' + result.url;
+            urlPreview.classList.add('show');
+
+            // Clear form after 2 seconds and close dialog after 3 seconds
+            setTimeout(function() {
+              document.getElementById('imageForm').reset();
+              urlPreview.classList.remove('show');
+            }, 2000);
+
+            setTimeout(function() {
+              google.script.host.close();
+            }, 3000);
+
+          } else {
+            // Show error message
+            showMessage('error', result.message);
+          }
+        })
+        .withFailureHandler(function(error) {
+          submitBtn.disabled = false;
+          loading.classList.remove('show');
+          showMessage('error', 'Error: ' + error.message);
+        })
+        .addImageToSheet(description, driveUrl);
+    }
+
+    function showMessage(type, message) {
+      const messageDiv = document.getElementById('message');
+      messageDiv.className = 'message ' + type + ' show';
+      messageDiv.textContent = message;
+    }
+
+    // Auto-hide messages after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+      const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.target.classList.contains('show')) {
+            setTimeout(function() {
+              mutation.target.classList.remove('show');
+            }, 5000);
+          }
+        });
+      });
+
+      observer.observe(document.getElementById('message'), {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    });
+  </script>
+</body>
+</html>

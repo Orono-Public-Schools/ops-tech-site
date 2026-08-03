@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Communications Archive</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://lh3.googleusercontent.com">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="css/site.css" rel="stylesheet">
+
+  <style>
+    /* ========== GLOBAL STYLES ========== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Lexend', sans-serif;
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      padding: 20px;
+      padding-top: 70px;
+      padding-bottom: 40px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* ========== HERO HEADER ========== */
+    .page-header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+      padding: 40px 20px 0;
+    }
+
+    .page-header h1 {
+      font-size: 2.5em;
+      font-weight: 500;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .page-header p {
+      font-size: 1.1em;
+      font-weight: 300;
+      opacity: 0.95;
+    }
+
+    .page-header .nav-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 22px;
+      flex-wrap: wrap;
+    }
+
+    /* ========== ACTION PILLS (style B) ========== */
+    .action-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ad2122;
+      color: white;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 999px;
+      font-family: 'Lexend', sans-serif;
+      font-weight: 600;
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-decoration: none;
+    }
+
+    .action-pill:hover {
+      background: #7a1718;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(173, 33, 34, 0.4);
+    }
+
+    .action-pill .material-icons {
+      font-size: 18px;
+    }
+
+    .action-pill.outline {
+      background: white;
+      color: #2d3f69;
+      border: 2px solid #d8dbe4;
+      padding: 8px 20px;
+    }
+
+    .action-pill.outline:hover {
+      background: #eef1f8;
+      border-color: #2d3f69;
+      box-shadow: none;
+    }
+
+    .page-header .action-pill.secondary {
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: 8px 20px;
+    }
+
+    .page-header .action-pill.secondary:hover {
+      background: rgba(255, 255, 255, 0.28);
+      box-shadow: none;
+    }
+
+    .page-header .action-pill.ghost {
+      background: rgba(255, 255, 255, 0.08);
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      padding: 8px 20px;
+    }
+
+    .page-header .action-pill.ghost:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: white;
+      box-shadow: none;
+    }
+
+    /* ========== TOOLBAR ========== */
+    .toolbar {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 16px 22px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-wrap {
+      flex: 1;
+      min-width: 220px;
+      position: relative;
+    }
+
+    .search-wrap .material-icons {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 19px;
+      color: #8b93a9;
+      pointer-events: none;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      padding: 10px 14px 10px 42px;
+      border: 2px solid #e4e6ee;
+      border-radius: 999px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.9em;
+      background: white;
+      transition: border-color 0.2s;
+    }
+
+    .search-wrap input:focus {
+      outline: none;
+      border-color: #2d3f69;
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-pill {
+      padding: 7px 16px;
+      border-radius: 999px;
+      border: 2px solid #e4e6ee;
+      background: white;
+      color: #4a5470;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.82em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-pill:hover {
+      border-color: #2d3f69;
+      color: #2d3f69;
+    }
+
+    .filter-pill.active {
+      background: #2d3f69;
+      border-color: #2d3f69;
+      color: white;
+    }
+
+    .result-count {
+      color: #8b93a9;
+      font-size: 0.82em;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    /* ========== SCHEDULED QUEUE ========== */
+    .scheduled-panel {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 18px 22px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .scheduled-panel h3 {
+      color: #1d2a5d;
+      font-size: 0.95em;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scheduled-panel h3 .material-icons {
+      font-size: 19px;
+      color: #ad2122;
+    }
+
+    .scheduled-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 11px 14px;
+      border-radius: 10px;
+      background: #f8f9fc;
+      border: 1.5px solid #e8eaf1;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .scheduled-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .scheduled-item .when {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82em;
+      font-weight: 700;
+      color: #2d3f69;
+      background: #eef1f8;
+      padding: 5px 12px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .scheduled-item .when .material-icons {
+      font-size: 15px;
+    }
+
+    .scheduled-item .when.error {
+      background: rgba(173, 33, 34, 0.1);
+      color: #ad2122;
+    }
+
+    .scheduled-item .subj {
+      flex: 1;
+      min-width: 140px;
+      font-weight: 600;
+      color: #1d2a5d;
+      font-size: 0.92em;
+      cursor: pointer;
+    }
+
+    .scheduled-item .subj:hover {
+      color: #ad2122;
+    }
+
+    .scheduled-item .to {
+      color: #6a7288;
+      font-size: 0.8em;
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .scheduled-item .cancel-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1.5px solid rgba(173,33,34,0.4);
+      background: white;
+      color: #ad2122;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.78em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .scheduled-item .cancel-btn:hover {
+      background: #ad2122;
+      border-color: #ad2122;
+      color: white;
+    }
+
+    .scheduled-item .cancel-btn .material-icons {
+      font-size: 14px;
+    }
+
+    /* ========== POST GRID (style G cards) ========== */
+    .post-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+      gap: 22px;
+      margin-bottom: 30px;
+    }
+
+    .post-card {
+      background: white;
+      border-radius: 12px;
+      padding: 22px 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .post-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+    }
+
+    .post-card .watermark {
+      position: absolute;
+      right: -16px;
+      bottom: -22px;
+      font-size: 110px;
+      opacity: 0.05;
+      transform: rotate(-12deg);
+      color: #2d3f69;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .post-card .icon-chip {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      background: linear-gradient(135deg, rgba(173,33,34,0.15), rgba(173,33,34,0.05));
+      color: #ad2122;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .post-card .icon-chip .material-icons {
+      font-size: 21px;
+    }
+
+    .post-subject {
+      font-size: 1.25em;
+      font-weight: 700;
+      color: #1d2a5d;
+      line-height: 1.3;
+      position: relative;
+      display: inline-block;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+    }
+
+    .post-subject::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 42px;
+      height: 3px;
+      background: #ad2122;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    .post-card:hover .post-subject::after {
+      width: 100%;
+    }
+
+    .post-preview {
+      color: #555;
+      font-size: 0.88em;
+      line-height: 1.6;
+      margin-bottom: 14px;
+      flex-grow: 1;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+    }
+
+    .meta-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      position: relative;
+    }
+
+    .mchip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72em;
+      font-weight: 600;
+      padding: 4px 11px;
+      border-radius: 999px;
+      background: #eef1f8;
+      color: #2d3f69;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mchip .material-icons {
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .mchip.red {
+      background: rgba(173, 33, 34, 0.1);
+      color: #ad2122;
+    }
+
+    /* ========== EMPTY STATE ========== */
+    .empty-state {
+      background: white;
+      border-radius: 12px;
+      padding: 60px 40px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .empty-state .material-icons {
+      font-size: 80px;
+      color: #d8dbe4;
+      margin-bottom: 20px;
+    }
+
+    .empty-state h2 {
+      color: #1d2a5d;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .empty-state p {
+      color: #666666;
+      margin-bottom: 20px;
+    }
+
+    /* ========== MODALS ========== */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(20, 27, 51, 0.72);
+      overflow-y: auto;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.show {
+      display: flex !important;
+    }
+
+    .modal-card {
+      background: white;
+      border-radius: 14px;
+      max-width: 860px;
+      width: 92%;
+      max-height: 90vh;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      position: relative;
+      margin: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-head {
+      background: #2d3f69;
+      color: white;
+      padding: 20px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .modal-head h2 {
+      margin: 0;
+      font-size: 1.35em;
+      font-weight: 600;
+      line-height: 1.3;
+      flex: 1;
+    }
+
+    .modal-close {
+      color: white;
+      font-size: 30px;
+      font-weight: 300;
+      cursor: pointer;
+      line-height: 1;
+      transition: transform 0.2s;
+      background: none;
+      border: none;
+      flex-shrink: 0;
+    }
+
+    .modal-close:hover {
+      transform: scale(1.1);
+    }
+
+    .modal-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 16px 28px;
+      border-bottom: 1.5px solid #edeef4;
+      background: #f8f9fc;
+    }
+
+    .modal-body {
+      padding: 24px 28px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* ========== DRAFTS MODAL ========== */
+    .draft-item {
+      background: #f8f9fc;
+      border: 1.5px solid #e8eaf1;
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      transition: all 0.25s;
+    }
+
+    .draft-item:hover {
+      border-color: #c9d2e6;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .draft-subject {
+      font-size: 1.1em;
+      font-weight: 700;
+      color: #1d2a5d;
+      margin-bottom: 8px;
+    }
+
+    .draft-meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .draft-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .draft-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      border: none;
+      border-radius: 999px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.85em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    .draft-btn .material-icons {
+      font-size: 17px;
+    }
+
+    .draft-btn-load {
+      background: #2d3f69;
+      color: white;
+    }
+
+    .draft-btn-load:hover {
+      background: #1d2a5d;
+      transform: translateY(-1px);
+    }
+
+    .draft-btn-delete {
+      background: white;
+      color: #ad2122;
+      border: 1.5px solid rgba(173,33,34,0.4);
+    }
+
+    .draft-btn-delete:hover {
+      background: #ad2122;
+      border-color: #ad2122;
+      color: white;
+    }
+
+    .drafts-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+    }
+
+    .drafts-empty .material-icons {
+      font-size: 64px;
+      color: #e0e0e0;
+      margin-bottom: 15px;
+    }
+
+    /* ========== LOADING INDICATOR ========== */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.3s ease;
+    }
+
+    .loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(255, 255, 255, 0.2);
+      border-top: 5px solid #ad2122;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: white;
+      margin-top: 20px;
+      font-size: 1.1em;
+      font-weight: 500;
+    }
+
+    /* ========== SKELETON LOADERS ========== */
+    .skeleton-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+      gap: 22px;
+      margin-bottom: 30px;
+    }
+
+    .skeleton-post {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sk {
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+    }
+
+    .sk-chip { height: 40px; width: 40px; border-radius: 10px; margin-bottom: 14px; }
+    .sk-title { height: 26px; width: 80%; margin-bottom: 12px; }
+    .sk-line { height: 14px; width: 100%; margin-bottom: 8px; }
+    .sk-line.short { width: 65%; margin-bottom: 14px; }
+    .sk-tags { height: 22px; width: 60%; }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .skeleton-container {
+      transition: opacity 0.3s ease;
+    }
+
+    .skeleton-container.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ========== RESPONSIVE DESIGN ========== */
+    @media (max-width: 768px) {
+      .post-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page-header h1 {
+        font-size: 2em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text">Loading...</div>
+  </div>
+
+  <div class="container">
+    <!-- Hero Header -->
+    <div class="page-header">
+      <h1>
+        <span class="material-icons" style="font-size: 1em;">campaign</span>
+        Communications
+      </h1>
+      <p>Sent tech tips and announcements</p>
+      <div class="nav-actions">
+        <a href="index.html" class="action-pill ghost">
+          <span class="material-icons">arrow_back</span>
+          Home
+        </a>
+        <a href="compose.html" class="action-pill edit-only">
+          <span class="material-icons">edit</span>
+          Compose New Email
+        </a>
+        <button onclick="openDraftsModal()" class="action-pill secondary edit-only">
+          <span class="material-icons">drafts</span>
+          View Drafts
+        </button>
+      </div>
+    </div>
+
+    <!-- Scheduled Queue (communications perm only; hidden when empty) -->
+    <div class="scheduled-panel edit-only" id="scheduledPanel" style="display: none;">
+      <h3><span class="material-icons">schedule_send</span>Scheduled</h3>
+      <div id="scheduledList"></div>
+    </div>
+
+    <!-- Search + Filter Toolbar -->
+    <div class="toolbar" id="toolbar" style="display: none;">
+      <div class="search-wrap">
+        <span class="material-icons">search</span>
+        <input type="search" id="searchInput" placeholder="Search sent emails..." autocomplete="off">
+      </div>
+      <div class="filter-pills" id="filterPills"></div>
+      <span class="result-count" id="resultCount"></span>
+    </div>
+
+    <!-- Skeleton Loader -->
+    <div id="skeletonLoader" class="skeleton-container">
+      <div class="skeleton-grid">
+        <div class="skeleton-post">
+          <div class="sk sk-chip"></div>
+          <div class="sk sk-title"></div>
+          <div class="sk sk-line"></div>
+          <div class="sk sk-line"></div>
+          <div class="sk sk-line short"></div>
+          <div class="sk sk-tags"></div>
+        </div>
+        <div class="skeleton-post">
+          <div class="sk sk-chip"></div>
+          <div class="sk sk-title"></div>
+          <div class="sk sk-line"></div>
+          <div class="sk sk-line"></div>
+          <div class="sk sk-line short"></div>
+          <div class="sk sk-tags"></div>
+        </div>
+        <div class="skeleton-post">
+          <div class="sk sk-chip"></div>
+          <div class="sk sk-title"></div>
+          <div class="sk sk-line"></div>
+          <div class="sk sk-line"></div>
+          <div class="sk sk-line short"></div>
+          <div class="sk sk-tags"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div id="content" style="display: none;"></div>
+  </div>
+
+  <!-- View Email Modal -->
+  <div id="viewModal" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="modalSubject"></h2>
+        <button type="button" class="modal-close" onclick="closeViewModal()">&times;</button>
+      </div>
+      <div class="modal-meta" id="modalMeta"></div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Drafts Modal -->
+  <div id="draftsModal" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>Saved Drafts</h2>
+        <button type="button" class="modal-close" onclick="closeDraftsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="draftsLoading" style="text-align: center; padding: 40px; display: none;">
+          <p>Loading drafts...</p>
+        </div>
+        <div id="draftsContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { renderLayout } from './js/layout.js';
+    import { authReady, gateEditing } from './js/auth.js';
+    import {
+      getCommunications, getAllDrafts, deleteDraft,
+      getScheduledEmails, cancelScheduledEmail
+    } from './js/data.js';
+
+    renderLayout('communications');
+    gateEditing('communications');
+
+    // Communications data for the view modal, loaded from Firestore.
+    let communicationsData = [];
+    let scheduledData = [];
+    let currentUser = null;
+    let activeFilter = 'All';
+    let searchTerm = '';
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text == null ? '' : String(text);
+      return div.innerHTML;
+    }
+
+    // sentAt / updatedAt are Firestore Timestamps; guard for odd values.
+    function toDate(value) {
+      if (!value) return null;
+      if (typeof value.toDate === 'function') return value.toDate();
+      const d = new Date(value);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    // "hero Layout" / "Hero Layout" / "Manual" -> "Hero" / "Manual"
+    function templateLabel(templateUsed) {
+      const raw = String(templateUsed || '').replace(/\s*layout\s*$/i, '').trim();
+      if (!raw) return 'Custom';
+      return raw.charAt(0).toUpperCase() + raw.slice(1);
+    }
+
+    // ========== TOOLBAR (search + template filter pills) ==========
+    function buildToolbar() {
+      const labels = new Set();
+      communicationsData.forEach(c => labels.add(templateLabel(c.templateUsed)));
+      const pills = ['All', ...[...labels].sort()];
+
+      const wrap = document.getElementById('filterPills');
+      wrap.innerHTML = pills.map(label =>
+        `<button type="button" class="filter-pill${label === activeFilter ? ' active' : ''}" data-filter="${escapeHtml(label)}">${escapeHtml(label)}</button>`
+      ).join('');
+
+      wrap.querySelectorAll('.filter-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          activeFilter = btn.dataset.filter;
+          wrap.querySelectorAll('.filter-pill').forEach(b =>
+            b.classList.toggle('active', b === btn));
+          render();
+        });
+      });
+
+      document.getElementById('toolbar').style.display =
+        communicationsData.length ? 'flex' : 'none';
+    }
+
+    document.getElementById('searchInput').addEventListener('input', function() {
+      searchTerm = this.value.trim().toLowerCase();
+      render();
+    });
+
+    function visibleCommunications() {
+      return communicationsData.filter(c => {
+        if (activeFilter !== 'All' && templateLabel(c.templateUsed) !== activeFilter) return false;
+        if (searchTerm) {
+          const hay = [c.subject, c.previewText, c.recipients, c.sentBy]
+            .map(v => String(v || '').toLowerCase()).join(' ');
+          if (!hay.includes(searchTerm)) return false;
+        }
+        return true;
+      });
+    }
+
+    // ========== RENDER (style G cards) ==========
+    function render() {
+      const content = document.getElementById('content');
+
+      if (!communicationsData.length) {
+        document.getElementById('resultCount').textContent = '';
+        content.innerHTML = `
+          <div class="empty-state">
+            <span class="material-icons">mail_outline</span>
+            <h2>No Communications Yet</h2>
+            <p>Sent emails will appear here once you compose and send your first message.</p>
+            <a href="compose.html" class="action-pill edit-only" style="display: inline-flex;">
+              <span class="material-icons">edit</span>
+              <span>Compose Your First Email</span>
+            </a>
+          </div>`;
+        return;
+      }
+
+      const visible = visibleCommunications();
+      document.getElementById('resultCount').textContent =
+        visible.length === communicationsData.length
+          ? communicationsData.length + ' sent'
+          : visible.length + ' of ' + communicationsData.length;
+
+      if (!visible.length) {
+        content.innerHTML = `
+          <div class="empty-state">
+            <span class="material-icons">search_off</span>
+            <h2>No Matches</h2>
+            <p>No sent emails match your search or filter.</p>
+          </div>`;
+        return;
+      }
+
+      content.innerHTML = '<div class="post-grid">' + visible.map(comm => {
+        const index = communicationsData.indexOf(comm);
+        const date = toDate(comm.sentAt);
+        const dateStr = date
+          ? date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+          : 'Date unavailable';
+        const tpl = templateLabel(comm.templateUsed);
+        return `
+          <div class="post-card" onclick="viewEmail(${index})">
+            <span class="watermark material-icons">mail</span>
+            <div class="icon-chip"><span class="material-icons">${comm.source === 'scheduled' ? 'schedule_send' : 'mail'}</span></div>
+            <h3 class="post-subject">${escapeHtml(comm.subject)}</h3>
+            <p class="post-preview">${escapeHtml(comm.previewText)}</p>
+            <div class="meta-chips">
+              <span class="mchip"><span class="material-icons">event</span>${escapeHtml(dateStr)}</span>
+              <span class="mchip red"><span class="material-icons">label</span>${escapeHtml(tpl)}</span>
+              <span class="mchip" title="${escapeHtml(comm.recipients || '')}"><span class="material-icons">group</span>${escapeHtml(comm.recipients || '—')}</span>
+            </div>
+          </div>`;
+      }).join('') + '</div>';
+    }
+
+    // ========== VIEW MODAL ==========
+    window.viewEmail = function(index) {
+      const comm = communicationsData[index];
+      if (!comm) return;
+      openViewModal(comm);
+    };
+
+    function openViewModal(comm) {
+      document.getElementById('modalSubject').textContent = comm.subject || '';
+
+      const date = toDate(comm.sentAt);
+      const chips = [];
+      chips.push(chip('event', date
+        ? date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+        : 'Date unavailable'));
+      if (comm.recipients) chips.push(chip('group', comm.recipients));
+      chips.push(chip('label', templateLabel(comm.templateUsed), true));
+      if (comm.sentBy) chips.push(chip('person', comm.sentBy));
+      if (comm.source === 'scheduled') chips.push(chip('schedule_send', 'Scheduled send', true));
+
+      document.getElementById('modalMeta').innerHTML = chips.join('');
+      // Newsletters and regular emails alike store their full HTML in bodyHtml.
+      document.getElementById('modalBody').innerHTML = comm.bodyHtml || '';
+      document.getElementById('viewModal').classList.add('show');
+    }
+
+    function chip(icon, text, red) {
+      return `<span class="mchip${red ? ' red' : ''}"><span class="material-icons">${icon}</span>${escapeHtml(text)}</span>`;
+    }
+
+    window.closeViewModal = function() {
+      document.getElementById('viewModal').classList.remove('show');
+    };
+
+    // ========== SCHEDULED QUEUE ==========
+    async function loadScheduled() {
+      const panel = document.getElementById('scheduledPanel');
+      try {
+        scheduledData = (await getScheduledEmails())
+          .filter(s => s.status === 'pending' || s.status === 'error');
+      } catch (err) {
+        // No communications permission (or offline) — just hide the panel.
+        scheduledData = [];
+      }
+      if (!scheduledData.length) {
+        panel.style.display = 'none';
+        return;
+      }
+      panel.style.display = 'block';
+      document.getElementById('scheduledList').innerHTML = scheduledData.map(s => {
+        const when = toDate(s.sendAt);
+        const whenStr = when
+          ? when.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+          : '—';
+        const isError = s.status === 'error';
+        return `
+          <div class="scheduled-item">
+            <span class="when${isError ? ' error' : ''}">
+              <span class="material-icons">${isError ? 'error' : 'schedule'}</span>
+              ${isError ? 'Failed' : escapeHtml(whenStr)}
+            </span>
+            <span class="subj" onclick="viewScheduled('${escapeHtml(s.id)}')">${escapeHtml(s.subject || 'Untitled')}</span>
+            <span class="to" title="${escapeHtml(describeScheduledRecipients(s))}">${escapeHtml(describeScheduledRecipients(s))}</span>
+            <button type="button" class="cancel-btn" onclick="cancelScheduled('${escapeHtml(s.id)}')">
+              <span class="material-icons">close</span>${isError ? 'Dismiss' : 'Cancel'}
+            </button>
+          </div>`;
+      }).join('');
+    }
+
+    function describeScheduledRecipients(s) {
+      const parts = [];
+      const groups = Array.isArray(s.groupIds) ? s.groupIds.length : 0;
+      if (groups) parts.push(groups + ' group' + (groups > 1 ? 's' : ''));
+      const indiv = s.individualRecipients || {};
+      const n = ['to', 'cc', 'bcc'].reduce((sum, k) =>
+        sum + (Array.isArray(indiv[k]) ? indiv[k].length : 0), 0);
+      if (n) parts.push(n + ' recipient' + (n > 1 ? 's' : ''));
+      return parts.join(' + ') || '—';
+    }
+
+    window.viewScheduled = function(id) {
+      const s = scheduledData.find(x => x.id === id);
+      if (!s) return;
+      openViewModal({
+        subject: s.subject,
+        sentAt: s.sendAt,
+        recipients: describeScheduledRecipients(s) + (s.status === 'error' ? ' — failed: ' + (s.error || 'unknown error') : ''),
+        templateUsed: s.templateUsed,
+        sentBy: s.createdBy,
+        bodyHtml: s.bodyHtml,
+        source: 'scheduled'
+      });
+    };
+
+    window.cancelScheduled = async function(id) {
+      const s = scheduledData.find(x => x.id === id);
+      const label = s && s.status === 'error' ? 'Dismiss this failed email?' : 'Cancel this scheduled email?';
+      if (!confirm(label)) return;
+      try {
+        await cancelScheduledEmail(id);
+        loadScheduled();
+      } catch (err) {
+        alert('Failed to cancel: ' + err.message);
+      }
+    };
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+      const modal = document.getElementById('viewModal');
+      if (event.target === modal) {
+        closeViewModal();
+      }
+    });
+
+    // ========== DRAFTS MODAL ==========
+    window.openDraftsModal = async function() {
+      const modal = document.getElementById('draftsModal');
+      const loading = document.getElementById('draftsLoading');
+      const container = document.getElementById('draftsContainer');
+
+      modal.classList.add('show');
+      loading.style.display = 'block';
+      container.innerHTML = '';
+
+      try {
+        const drafts = await getAllDrafts(currentUser.uid);
+        loading.style.display = 'none';
+        renderDrafts(drafts);
+      } catch (error) {
+        loading.style.display = 'none';
+        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ad2122;">Error loading drafts: ' + escapeHtml(error.message) + '</div>';
+      }
+    };
+
+    window.closeDraftsModal = function() {
+      document.getElementById('draftsModal').classList.remove('show');
+    };
+
+    function renderDrafts(drafts) {
+      const container = document.getElementById('draftsContainer');
+
+      if (!drafts || drafts.length === 0) {
+        container.innerHTML = `
+          <div class="drafts-empty">
+            <span class="material-icons">inbox</span>
+            <h3>No Drafts Found</h3>
+            <p>Saved email drafts will appear here</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = '';
+
+      drafts.forEach(function(draft) {
+        const draftEl = document.createElement('div');
+        draftEl.className = 'draft-item';
+
+        const date = toDate(draft.updatedAt);
+        const dateStr = date
+          ? date.toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })
+          : 'Date unavailable';
+
+        draftEl.innerHTML = `
+          <div class="draft-subject">${escapeHtml(draft.preview || 'Untitled Draft')}</div>
+          <div class="draft-meta">
+            <span class="mchip"><span class="material-icons">schedule</span>${escapeHtml(dateStr)}</span>
+            <span class="mchip red"><span class="material-icons">label</span>${escapeHtml(templateLabel(draft.template))}</span>
+          </div>
+          <div class="draft-actions">
+            <button class="draft-btn draft-btn-load" onclick="loadDraftAndNavigate('${escapeHtml(draft.id)}')">
+              <span class="material-icons">open_in_new</span>
+              Load Draft
+            </button>
+            <button class="draft-btn draft-btn-delete" onclick="deleteDraftItem('${escapeHtml(draft.id)}')">
+              <span class="material-icons">delete</span>
+              Delete
+            </button>
+          </div>
+        `;
+
+        container.appendChild(draftEl);
+      });
+    }
+
+    window.loadDraftAndNavigate = function(draftId) {
+      // Navigate to compose page with draft ID
+      window.open('compose.html?draftId=' + encodeURIComponent(draftId), '_top');
+    };
+
+    window.deleteDraftItem = async function(draftId) {
+      if (!confirm('Are you sure you want to delete this draft?')) {
+        return;
+      }
+
+      try {
+        await deleteDraft(currentUser.uid, draftId);
+        // Reload drafts list
+        openDraftsModal();
+      } catch (error) {
+        alert('Error deleting draft: ' + error.message);
+      }
+    };
+
+    // Close drafts modal when clicking outside
+    window.addEventListener('click', function(event) {
+      const draftsModal = document.getElementById('draftsModal');
+      if (event.target === draftsModal) {
+        closeDraftsModal();
+      }
+    });
+
+    async function init() {
+      currentUser = await authReady;
+
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      loadingOverlay.classList.add('hidden');
+      setTimeout(function() {
+        loadingOverlay.style.display = 'none';
+      }, 300);
+
+      try {
+        communicationsData = await getCommunications();
+      } catch (err) {
+        console.error('Failed to load communications:', err);
+        communicationsData = [];
+      }
+
+      buildToolbar();
+      render();
+      loadScheduled();
+
+      // Hide skeleton and show actual content
+      const skeletonLoader = document.getElementById('skeletonLoader');
+      const content = document.getElementById('content');
+      skeletonLoader.classList.add('hidden');
+      content.style.display = 'block';
+      setTimeout(function() {
+        skeletonLoader.style.display = 'none';
+      }, 300);
+
+      // ?drafts=1 — deep link from the Compose page's "Drafts" pill
+      if (new URLSearchParams(window.location.search).get('drafts')) {
+        openDraftsModal();
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

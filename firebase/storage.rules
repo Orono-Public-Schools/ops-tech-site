@@ -1,0 +1,51 @@
+rules_version = '2';
+
+// NOTE: these rules read Firestore (cross-service). The Storage service agent
+// service-770722055544@gcp-sa-firebasestorage.iam.gserviceaccount.com must
+// hold roles/firebaserules.firestoreServiceAgent or every request 403s.
+
+// Uploaded images (Image Library + link icons). Mirrors the Firestore
+// allowlist: only allowlisted @orono.k12.mn.us users with a relevant
+// content permission may upload. Files are served to pages/emails via
+// tokened download URLs, so <img> embeds work without auth.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Google sign-ins carry email_verified; ClassLink SAML assertions don't,
+    // but ClassLink is the district's own IdP so its emails are authoritative.
+    function isOrono() {
+      return request.auth != null
+        && (request.auth.token.email_verified == true
+            || request.auth.token.firebase.sign_in_provider == 'saml.classlink')
+        && request.auth.token.email.matches('.*@orono[.]k12[.]mn[.]us');
+    }
+
+    function myEmail() {
+      return request.auth.token.email.lower();
+    }
+
+    function isAllowed() {
+      return isOrono()
+        && firestore.exists(/databases/(default)/documents/allowedUsers/$(myEmail()));
+    }
+
+    // The user's perms map from their allowlist entry (missing key = false).
+    function perms() {
+      return firestore.get(/databases/(default)/documents/allowedUsers/$(myEmail()))
+        .data.get('perms', {});
+    }
+
+    match /uploads/{fileName} {
+      allow read: if isAllowed();
+      allow create: if isAllowed()
+        && (perms().get('images', false) == true
+            || perms().get('links', false) == true
+            || perms().get('homePages', false) == true
+            || perms().get('communications', false) == true)
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow update: if false;
+      allow delete: if isAllowed() && perms().get('images', false) == true;
+    }
+  }
+}

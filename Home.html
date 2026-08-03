@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orono Tech Department</title>
+
+  <!-- Preconnect to external resources for faster loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://lh3.googleusercontent.com">
+
+  <!-- Material Icons CDN -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" rel="stylesheet">
+
+  <!-- Google Fonts - Lexend (Primary Typeface) -->
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ========== GLOBAL STYLES ========== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Lexend', sans-serif;
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* ========== HEADER ========== */
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 50px;
+      padding: 20px;
+    }
+
+    .header-logo {
+      margin-bottom: 20px;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-logo img {
+      max-width: 300px;
+      max-height: 100px;
+      height: auto;
+      filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+    }
+
+    .header-logo .logo-fallback {
+      font-size: 1.5em;
+      font-weight: 700;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .header h1 {
+      font-size: 3em;
+      font-weight: 500;
+      margin-bottom: 15px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .header p {
+      font-size: 1.2em;
+      font-weight: 300;
+      opacity: 0.95;
+    }
+
+    @media (max-width: 768px) {
+      .header-logo img {
+        max-width: 200px;
+      }
+    }
+
+    /* ========== CARD GRID ========== */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    /* ========== INDIVIDUAL CARD ========== */
+    .page-card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .page-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #2d3f69 0%, #ad2122 100%);
+    }
+
+    .page-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+
+    /* ========== CARD ICON ========== */
+    .card-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      border-radius: 50%;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 15px rgba(45, 63, 105, 0.4);
+    }
+
+    .card-icon .material-icons {
+      font-size: 40px;
+      color: white;
+    }
+
+    .card-icon img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    /* ========== CARD CONTENT ========== */
+    .card-title {
+      font-size: 1.4em;
+      font-weight: 700;
+      color: #1d2a5d;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .card-description {
+      font-size: 0.9em;
+      color: #666666;
+      line-height: 1.5;
+      margin-bottom: 20px;
+      flex-grow: 1;
+    }
+
+    /* ========== ARROW ICON ========== */
+    .arrow-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: #ad2122;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .arrow-icon .material-icons {
+      font-size: 20px;
+      color: white;
+    }
+
+    .page-card:hover .arrow-icon {
+      background: #7a1718;
+      transform: translateX(5px);
+    }
+
+    /* ========== RESPONSIVE DESIGN ========== */
+    @media (max-width: 768px) {
+      .card-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 2.2em;
+      }
+
+      .header p {
+        font-size: 1em;
+      }
+    }
+
+    /* ========== EMPTY STATE ========== */
+    .empty-state {
+      background: white;
+      border-radius: 12px;
+      padding: 60px 40px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .empty-state .material-icons {
+      font-size: 80px;
+      color: #bdc3c7;
+      margin-bottom: 20px;
+    }
+
+    .empty-state h2 {
+      color: #1d2a5d;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .empty-state p {
+      color: #666666;
+    }
+
+    /* ========== LOADING INDICATOR ========== */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.3s ease;
+    }
+
+    .loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(255, 255, 255, 0.2);
+      border-top: 5px solid #ad2122;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: white;
+      margin-top: 20px;
+      font-size: 1.1em;
+      font-weight: 500;
+    }
+
+    /* ========== MODAL STYLES ========== */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      overflow-y: auto;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.show {
+      display: flex !important;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      position: relative;
+      margin: 20px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .modal-header h2 {
+      color: #2d3f69;
+      font-size: 1.5em;
+      margin: 0;
+    }
+
+    .close-modal {
+      font-size: 28px;
+      font-weight: bold;
+      color: #999;
+      cursor: pointer;
+      transition: color 0.2s;
+      line-height: 1;
+    }
+
+    .close-modal:hover {
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #2d3f69;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.95em;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.95em;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #2d3f69;
+    }
+
+    .form-group small {
+      display: block;
+      color: #666;
+      font-size: 0.85em;
+      margin-top: 5px;
+    }
+
+    .new-category-input {
+      margin-top: 10px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 25px;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.95em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #1d2a5d 0%, #2d3f69 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(45, 63, 105, 0.3);
+    }
+
+    .btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background-color: #f5f5f5;
+      color: #2d3f69;
+      border: 2px solid #e0e0e0;
+    }
+
+    .btn-secondary:hover {
+      background-color: #e0e0e0;
+    }
+
+    .form-message {
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 0.9em;
+      display: none;
+    }
+
+    .form-message.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .form-message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .form-message.show {
+      display: block;
+    }
+
+    .form-loading {
+      text-align: center;
+      color: #2d3f69;
+      padding: 20px;
+      font-weight: 500;
+    }
+
+    .spinner-small {
+      width: 30px;
+      height: 30px;
+      border: 3px solid rgba(45, 63, 105, 0.2);
+      border-top: 3px solid #2d3f69;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+
+    .url-preview {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.9em;
+      margin-top: 15px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <?!= include('SiteHeader', {baseUrl: baseUrl, currentPage: currentPage}) ?>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text">Loading...</div>
+  </div>
+  <div class="container">
+    <!-- Header Section -->
+    <div class="header">
+      <h1>Orono Tech Department</h1>
+      <p>Welcome! Select a resource below to get started</p>
+    </div>
+
+    <!-- Main Content Area -->
+    <div id="content">
+      <?
+        // Get the home page data passed from Code.gs
+        var pages = homeData;
+
+        // Check if we have any pages to display
+        if (pages && pages.length > 0) {
+      ?>
+          <div class="card-grid">
+            <?
+              // Display each page card
+              for (var i = 0; i < pages.length; i++) {
+                var page = pages[i];
+                var iconClass = page.ICON_CLASS || 'folder'; // Default icon if none specified
+            ?>
+              <a href="<?= page.PAGE_URL.indexOf('http') === 0 ? page.PAGE_URL : (ScriptApp.getService().getUrl() + page.PAGE_URL) ?>" class="page-card" target="_top">
+                <!-- Icon Circle -->
+                <div class="card-icon">
+                  <? if (page.IMAGE_URL && page.IMAGE_URL !== '') { ?>
+                    <img src="<?= page.IMAGE_URL ?>"
+                         alt="<?= page.PAGE_NAME ?>"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                    <span class="material-icons" style="display:none;"><?= iconClass ?></span>
+                  <? } else { ?>
+                    <span class="material-icons"><?= iconClass ?></span>
+                  <? } ?>
+                </div>
+
+                <!-- Card Content -->
+                <h3 class="card-title"><?= page.PAGE_NAME ?></h3>
+                <p class="card-description"><?= page.DESCRIPTION ?></p>
+
+                <!-- Arrow Icon -->
+                <div class="arrow-icon">
+                  <span class="material-icons">arrow_forward</span>
+                </div>
+              </a>
+            <? } // End page loop ?>
+          </div>
+      <?
+        } else {
+          // Display empty state if no pages are found
+      ?>
+          <div class="empty-state">
+            <span class="material-icons">folder_off</span>
+            <h2>No Pages Available</h2>
+            <p>Please add pages to the 'Home' sheet in your spreadsheet.</p>
+          </div>
+      <? } // End if-else ?>
+    </div>
+  </div>
+
+  <script>
+    // Hide loading overlay once page is fully loaded
+    window.addEventListener('load', function() {
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      loadingOverlay.classList.add('hidden');
+
+      // Remove from DOM after transition
+      setTimeout(function() {
+        loadingOverlay.style.display = 'none';
+      }, 300);
+    });
+  </script>
+
+  <?!= include('AddImageModal') ?>
+  <?!= include('SiteFooter', {userEmail: userEmail, baseUrl: baseUrl}) ?>
+</body>
+</html>

@@ -1,0 +1,376 @@
+<!-- Add Image Modal (accessible from site header) -->
+<div id="addImageModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Add New Image</h2>
+      <span class="close-modal" onclick="closeAddImageModal()">&times;</span>
+    </div>
+
+    <div id="imageFormMessage" class="form-message"></div>
+
+    <!-- Mode Toggle -->
+    <div class="mode-toggle" style="display: flex; gap: 10px; margin-bottom: 20px; padding: 10px; background: #f8f9fa; border-radius: 6px;">
+      <button type="button" class="mode-btn active" onclick="switchToSingleMode()" id="singleModeBtn" style="flex: 1; padding: 10px; border: 2px solid #2d3f69; background: #2d3f69; color: white; border-radius: 6px; cursor: pointer; font-family: 'Lexend', sans-serif; font-weight: 600; transition: all 0.3s;">Single Image</button>
+      <button type="button" class="mode-btn" onclick="switchToBulkMode()" id="bulkModeBtn" style="flex: 1; padding: 10px; border: 2px solid #e0e0e0; background: white; color: #2d3f69; border-radius: 6px; cursor: pointer; font-family: 'Lexend', sans-serif; font-weight: 600; transition: all 0.3s;">Bulk Add</button>
+    </div>
+
+    <form id="addImageForm" onsubmit="submitAddImage(event)">
+      <div class="form-group">
+        <label for="imageDescription">Image Description *</label>
+        <input type="text" id="imageDescription" name="imageDescription"
+               placeholder="e.g., Orono Tech Logo, Student Handbook Cover" required>
+        <small>A clear description to help identify this image later</small>
+      </div>
+
+      <div class="form-group">
+        <label for="imageUrlInput">Image URL *</label>
+        <input type="text" id="imageUrlInput" name="imageUrlInput"
+               placeholder="Google Drive URL or any direct image URL" required>
+        <small>
+          Examples:<br>
+          • Google Drive: https://drive.google.com/file/d/FILE_ID/view<br>
+          • Direct URL: https://example.com/image.png<br>
+          • Google User Content: https://lh3.googleusercontent.com/...
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="imageCategory">Category *</label>
+        <select id="imageCategory" name="imageCategory" onchange="toggleNewCategoryInput()" required>
+          <option value="">Select a category...</option>
+          <option value="Icons">Icons</option>
+          <option value="Branding">Branding</option>
+          <option value="Photos">Photos</option>
+          <option value="Graphics">Graphics</option>
+          <option value="Backgrounds">Backgrounds</option>
+          <option value="new">+ Add New Category</option>
+        </select>
+        <small>Choose an existing category or create a new one</small>
+        <div id="newCategoryInput" class="new-category-input" style="display: none;">
+          <input type="text" id="newCategoryName" placeholder="Enter new category name">
+        </div>
+      </div>
+
+      <div id="imageUrlPreview" class="url-preview" style="display: none; margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 0.9em;">
+        <strong>Final URL:</strong> <span id="previewUrl"></span>
+      </div>
+
+      <div class="button-group">
+        <button type="button" class="btn-secondary" onclick="closeAddImageModal()">Cancel</button>
+        <button type="submit" class="btn-primary" id="imageSubmitBtn">Add Image</button>
+      </div>
+    </form>
+
+    <!-- Bulk Add Form -->
+    <form id="bulkAddImageForm" onsubmit="submitBulkAddImages(event)" style="display: none;">
+      <div class="form-group">
+        <label for="bulkCategory">Category for All Images *</label>
+        <select id="bulkCategory" name="bulkCategory" onchange="toggleBulkNewCategoryInput()" required>
+          <option value="">Select a category...</option>
+          <option value="Icons">Icons</option>
+          <option value="Branding">Branding</option>
+          <option value="Photos">Photos</option>
+          <option value="Graphics">Graphics</option>
+          <option value="Backgrounds">Backgrounds</option>
+          <option value="new">+ Add New Category</option>
+        </select>
+        <small>All images will be added to this category</small>
+        <div id="bulkNewCategoryInput" class="new-category-input" style="display: none;">
+          <input type="text" id="bulkNewCategoryName" placeholder="Enter new category name">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="bulkImageData">Image Data *</label>
+        <textarea id="bulkImageData" name="bulkImageData"
+                  placeholder="Enter one image per line in format:&#10;Description | URL&#10;&#10;Example:&#10;Orono Tech Logo | https://drive.google.com/file/d/FILE_ID/view&#10;Student Handbook | https://example.com/image.png&#10;Calendar Icon | https://lh3.googleusercontent.com/..."
+                  required
+                  style="min-height: 300px; font-family: 'Courier New', monospace; font-size: 0.9em;"></textarea>
+        <small>
+          Format: <strong>Description | URL</strong> (one per line)<br>
+          Use the pipe character ( | ) to separate description from URL
+        </small>
+      </div>
+
+      <div id="bulkPreview" style="display: none; margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 6px; max-height: 200px; overflow-y: auto;">
+        <strong>Preview:</strong>
+        <div id="bulkPreviewContent" style="margin-top: 10px; font-size: 0.9em;"></div>
+      </div>
+
+      <div class="button-group">
+        <button type="button" class="btn-secondary" onclick="closeAddImageModal()">Cancel</button>
+        <button type="button" class="btn-secondary" onclick="previewBulkImages()" style="background: #666;">Preview</button>
+        <button type="submit" class="btn-primary" id="bulkSubmitBtn">Add All Images</button>
+      </div>
+    </form>
+
+    <div id="imageFormLoading" class="form-loading" style="display: none;">
+      <div class="spinner-small"></div>
+      <span id="loadingText">Adding image to sheet...</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openAddImageModalFromNav() {
+    const modal = document.getElementById('addImageModal');
+    modal.classList.add('show');
+  }
+
+  function closeAddImageModal() {
+    const modal = document.getElementById('addImageModal');
+    modal.classList.remove('show');
+    document.getElementById('addImageForm').reset();
+    document.getElementById('bulkAddImageForm').reset();
+    document.getElementById('imageUrlPreview').style.display = 'none';
+    document.getElementById('bulkPreview').style.display = 'none';
+    showImageFormMessage('', '');
+    // Reset to single mode
+    switchToSingleMode();
+  }
+
+  function switchToSingleMode() {
+    document.getElementById('singleModeBtn').style.background = '#2d3f69';
+    document.getElementById('singleModeBtn').style.color = 'white';
+    document.getElementById('singleModeBtn').style.borderColor = '#2d3f69';
+    document.getElementById('bulkModeBtn').style.background = 'white';
+    document.getElementById('bulkModeBtn').style.color = '#2d3f69';
+    document.getElementById('bulkModeBtn').style.borderColor = '#e0e0e0';
+
+    document.getElementById('addImageForm').style.display = 'block';
+    document.getElementById('bulkAddImageForm').style.display = 'none';
+    showImageFormMessage('', '');
+  }
+
+  function switchToBulkMode() {
+    document.getElementById('bulkModeBtn').style.background = '#2d3f69';
+    document.getElementById('bulkModeBtn').style.color = 'white';
+    document.getElementById('bulkModeBtn').style.borderColor = '#2d3f69';
+    document.getElementById('singleModeBtn').style.background = 'white';
+    document.getElementById('singleModeBtn').style.color = '#2d3f69';
+    document.getElementById('singleModeBtn').style.borderColor = '#e0e0e0';
+
+    document.getElementById('addImageForm').style.display = 'none';
+    document.getElementById('bulkAddImageForm').style.display = 'block';
+    showImageFormMessage('', '');
+  }
+
+  function toggleNewCategoryInput() {
+    const categorySelect = document.getElementById('imageCategory');
+    const newCategoryInput = document.getElementById('newCategoryInput');
+
+    if (categorySelect.value === 'new') {
+      newCategoryInput.style.display = 'block';
+      document.getElementById('newCategoryName').required = true;
+    } else {
+      newCategoryInput.style.display = 'none';
+      document.getElementById('newCategoryName').required = false;
+    }
+  }
+
+  function toggleBulkNewCategoryInput() {
+    const categorySelect = document.getElementById('bulkCategory');
+    const newCategoryInput = document.getElementById('bulkNewCategoryInput');
+
+    if (categorySelect.value === 'new') {
+      newCategoryInput.style.display = 'block';
+      document.getElementById('bulkNewCategoryName').required = true;
+    } else {
+      newCategoryInput.style.display = 'none';
+      document.getElementById('bulkNewCategoryName').required = false;
+    }
+  }
+
+  function parseBulkImageData(text) {
+    const lines = text.split('\n').filter(line => line.trim() !== '');
+    const images = [];
+    const errors = [];
+
+    lines.forEach((line, index) => {
+      const parts = line.split('|');
+      if (parts.length !== 2) {
+        errors.push(`Line ${index + 1}: Invalid format (must be "Description | URL")`);
+      } else {
+        const description = parts[0].trim();
+        const url = parts[1].trim();
+        if (!description || !url) {
+          errors.push(`Line ${index + 1}: Description and URL cannot be empty`);
+        } else {
+          images.push({ description, url });
+        }
+      }
+    });
+
+    return { images, errors };
+  }
+
+  function previewBulkImages() {
+    const bulkData = document.getElementById('bulkImageData').value;
+    const { images, errors } = parseBulkImageData(bulkData);
+    const previewDiv = document.getElementById('bulkPreview');
+    const previewContent = document.getElementById('bulkPreviewContent');
+
+    if (errors.length > 0) {
+      showImageFormMessage('error', errors.join('<br>'));
+      previewDiv.style.display = 'none';
+      return;
+    }
+
+    if (images.length === 0) {
+      showImageFormMessage('error', 'No images found. Please enter at least one image.');
+      previewDiv.style.display = 'none';
+      return;
+    }
+
+    showImageFormMessage('', '');
+    previewContent.innerHTML = images.map((img, index) =>
+      `<div style="margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px;">
+        <strong>${index + 1}.</strong> ${img.description}<br>
+        <span style="color: #666; font-size: 0.85em;">${img.url}</span>
+      </div>`
+    ).join('');
+    previewDiv.style.display = 'block';
+  }
+
+  function submitBulkAddImages(event) {
+    event.preventDefault();
+
+    const bulkData = document.getElementById('bulkImageData').value;
+    const categorySelect = document.getElementById('bulkCategory');
+    let category = categorySelect.value;
+
+    // If "new" category is selected, use the custom category name
+    if (category === 'new') {
+      category = document.getElementById('bulkNewCategoryName').value.trim();
+      if (!category) {
+        showImageFormMessage('error', 'Please enter a category name.');
+        return;
+      }
+    }
+
+    const { images, errors } = parseBulkImageData(bulkData);
+
+    if (errors.length > 0) {
+      showImageFormMessage('error', errors.join('<br>'));
+      return;
+    }
+
+    if (images.length === 0) {
+      showImageFormMessage('error', 'No images found. Please enter at least one image.');
+      return;
+    }
+
+    const submitBtn = document.getElementById('bulkSubmitBtn');
+    const loading = document.getElementById('imageFormLoading');
+    const loadingText = document.getElementById('loadingText');
+
+    submitBtn.disabled = true;
+    loading.style.display = 'block';
+    loadingText.textContent = `Adding ${images.length} image${images.length > 1 ? 's' : ''} to sheet...`;
+    showImageFormMessage('', '');
+
+    // Prepare bulk data with category
+    const bulkImages = images.map(img => ({
+      description: img.description,
+      url: img.url,
+      category: category
+    }));
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        submitBtn.disabled = false;
+        loading.style.display = 'none';
+
+        if (result.success) {
+          showImageFormMessage('success', result.message);
+
+          // Close modal after 2 seconds and refresh page
+          setTimeout(function() {
+            closeAddImageModal();
+            window.location.reload();
+          }, 2000);
+        } else {
+          showImageFormMessage('error', result.message);
+        }
+      })
+      .withFailureHandler(function(error) {
+        submitBtn.disabled = false;
+        loading.style.display = 'none';
+        showImageFormMessage('error', 'Error: ' + error.message);
+      })
+      .addBulkImagesToSheet(bulkImages);
+  }
+
+  function submitAddImage(event) {
+    event.preventDefault();
+
+    const description = document.getElementById('imageDescription').value.trim();
+    const imageUrl = document.getElementById('imageUrlInput').value.trim();
+    const categorySelect = document.getElementById('imageCategory');
+    let category = categorySelect.value;
+
+    // If "new" category is selected, use the custom category name
+    if (category === 'new') {
+      category = document.getElementById('newCategoryName').value.trim();
+      if (!category) {
+        showImageFormMessage('error', 'Please enter a category name.');
+        return;
+      }
+    }
+
+    const submitBtn = document.getElementById('imageSubmitBtn');
+    const loading = document.getElementById('imageFormLoading');
+
+    submitBtn.disabled = true;
+    loading.style.display = 'block';
+    showImageFormMessage('', '');
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        submitBtn.disabled = false;
+        loading.style.display = 'none';
+
+        if (result.success) {
+          showImageFormMessage('success', result.message);
+
+          // Show final URL
+          const urlPreview = document.getElementById('imageUrlPreview');
+          const previewUrl = document.getElementById('previewUrl');
+          previewUrl.textContent = result.url;
+          urlPreview.style.display = 'block';
+
+          // Close modal after 2 seconds
+          setTimeout(function() {
+            closeAddImageModal();
+          }, 2000);
+        } else {
+          showImageFormMessage('error', result.message);
+        }
+      })
+      .withFailureHandler(function(error) {
+        submitBtn.disabled = false;
+        loading.style.display = 'none';
+        showImageFormMessage('error', 'Error: ' + error.message);
+      })
+      .addImageToSheet(description, imageUrl, category);
+  }
+
+  function showImageFormMessage(type, message) {
+    const messageDiv = document.getElementById('imageFormMessage');
+    if (type && message) {
+      messageDiv.className = 'form-message ' + type + ' show';
+      messageDiv.innerHTML = message;
+    } else {
+      messageDiv.className = 'form-message';
+      messageDiv.innerHTML = '';
+    }
+  }
+
+  // Close modal when clicking outside
+  window.addEventListener('click', function(event) {
+    const modal = document.getElementById('addImageModal');
+    if (event.target === modal) {
+      closeAddImageModal();
+    }
+  });
+</script>

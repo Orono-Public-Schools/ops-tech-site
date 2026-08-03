@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Department Links</title>
+
+  <!-- Preconnect to external resources for faster loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://lh3.googleusercontent.com">
+
+  <!-- Material Icons CDN -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" rel="stylesheet">
+
+  <!-- Google Fonts - Lexend (Primary Typeface) -->
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ========== GLOBAL STYLES ========== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Lexend', sans-serif;
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* ========== HEADER ========== */
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+      padding: 40px 20px 20px 20px;
+    }
+
+    .header h1 {
+      font-size: 2.5em;
+      font-weight: 500;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .header p {
+      font-size: 1.1em;
+      font-weight: 300;
+      opacity: 0.95;
+    }
+
+    /* ========== BACK TO HOME BUTTON ========== */
+    .back-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.95em;
+      transition: all 0.3s ease;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      margin-top: 15px;
+    }
+
+    .back-home:hover {
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: translateX(-3px);
+    }
+
+    .back-home .material-icons {
+      font-size: 18px;
+    }
+
+    /* ========== CATEGORY NAVIGATION ========== */
+    .category-nav {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 20px 30px;
+      margin-bottom: 40px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .category-nav h3 {
+      color: #1d2a5d;
+      font-size: 1em;
+      font-weight: 700;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .category-nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .category-link {
+      display: inline-block;
+      padding: 8px 16px;
+      background: #2d3f69;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 0.9em;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+      box-shadow: 0 2px 4px rgba(45, 63, 105, 0.2);
+    }
+
+    .category-link:hover {
+      background: #ad2122;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(173, 33, 34, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      .category-nav-links {
+        flex-direction: column;
+      }
+
+      .category-link {
+        text-align: center;
+      }
+    }
+
+    /* ========== ADD LINK BUTTON ========== */
+    .add-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #ad2122 0%, #7a1718 100%);
+      color: white;
+      text-decoration: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95em;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(173, 33, 34, 0.3);
+      margin-left: auto;
+    }
+
+    .add-link-btn:hover {
+      background: linear-gradient(135deg, #7a1718 0%, #ad2122 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(173, 33, 34, 0.4);
+    }
+
+    .add-link-btn .material-icons {
+      font-size: 20px;
+    }
+
+    .category-nav-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .add-link-btn {
+        width: 100%;
+        justify-content: center;
+        margin-left: 0;
+      }
+    }
+
+    /* ========== MODAL STYLES ========== */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      overflow-y: auto;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.show {
+      display: flex !important;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      position: relative;
+      margin: 20px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .modal-header h2 {
+      color: #2d3f69;
+      font-size: 1.5em;
+      margin: 0;
+    }
+
+    .close-modal {
+      font-size: 28px;
+      font-weight: bold;
+      color: #999;
+      cursor: pointer;
+      transition: color 0.2s;
+      line-height: 1;
+    }
+
+    .close-modal:hover {
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #2d3f69;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.95em;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.95em;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #2d3f69;
+    }
+
+    .form-group small {
+      display: block;
+      color: #666;
+      font-size: 0.85em;
+      margin-top: 5px;
+    }
+
+    .new-category-input {
+      margin-top: 10px;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.95em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #1d2a5d 0%, #2d3f69 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(45, 63, 105, 0.3);
+    }
+
+    .btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background-color: #f5f5f5;
+      color: #2d3f69;
+      border: 2px solid #e0e0e0;
+    }
+
+    .btn-secondary:hover {
+      background-color: #e0e0e0;
+    }
+
+    .form-message {
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 0.9em;
+      display: none;
+    }
+
+    .form-message.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .form-message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .form-message.show {
+      display: block;
+    }
+
+    .form-loading {
+      text-align: center;
+      color: #2d3f69;
+      padding: 20px;
+      font-weight: 500;
+    }
+
+    .spinner-small {
+      width: 30px;
+      height: 30px;
+      border: 3px solid rgba(45, 63, 105, 0.2);
+      border-top: 3px solid #2d3f69;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+
+    /* ========== CATEGORY SECTIONS ========== */
+    .category-section {
+      margin-bottom: 50px;
+    }
+
+    .category-title {
+      color: white;
+      font-size: 1.8em;
+      font-weight: 500;
+      margin-bottom: 20px;
+      padding-left: 10px;
+      border-left: 5px solid #ad2122;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+    }
+
+    /* ========== CARD GRID ========== */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+
+    /* ========== INDIVIDUAL CARD ========== */
+    .link-card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .link-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #2d3f69 0%, #ad2122 100%);
+    }
+
+    .link-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    }
+
+    .link-card.dragging {
+      opacity: 0.5;
+      cursor: grabbing;
+      transform: scale(1.05);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .link-card.drag-over {
+      border: 3px dashed #ad2122;
+      background: #fff5f5;
+    }
+
+    .drag-handle {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      transition: all 0.3s;
+    }
+
+    .drag-handle:hover {
+      background: white;
+      transform: scale(1.1);
+    }
+
+    .drag-handle .material-icons {
+      font-size: 18px;
+      color: #2d3f69;
+    }
+
+    /* ========== CARD ICON ========== */
+    .card-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      border-radius: 50%;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 15px rgba(45, 63, 105, 0.4);
+    }
+
+    .card-icon .material-icons {
+      font-size: 36px;
+      color: white;
+    }
+
+    .card-icon img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    /* ========== CARD CONTENT ========== */
+    .card-title {
+      font-size: 1.4em;
+      font-weight: 700;
+      color: #1d2a5d;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .card-description {
+      font-size: 0.95em;
+      color: #666666;
+      line-height: 1.6;
+      margin-bottom: 25px;
+      flex-grow: 1;
+    }
+
+    /* ========== LAUNCH BUTTON ========== */
+    .launch-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #ad2122;
+      color: white;
+      text-decoration: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.95em;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(173, 33, 34, 0.3);
+      align-self: flex-start;
+    }
+
+    .launch-button:hover {
+      background: #7a1718;
+      box-shadow: 0 6px 20px rgba(173, 33, 34, 0.5);
+      transform: translateX(3px);
+    }
+
+    .launch-button .material-icons {
+      font-size: 18px;
+    }
+
+    /* ========== RESPONSIVE DESIGN ========== */
+    @media (max-width: 768px) {
+      .card-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 2em;
+      }
+
+      .category-title {
+        font-size: 1.5em;
+      }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .card-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* ========== EMPTY STATE ========== */
+    .empty-state {
+      background: white;
+      border-radius: 12px;
+      padding: 60px 40px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .empty-state .material-icons {
+      font-size: 80px;
+      color: #bdc3c7;
+      margin-bottom: 20px;
+    }
+
+    .empty-state h2 {
+      color: #1d2a5d;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .empty-state p {
+      color: #666666;
+    }
+
+    /* ========== LOADING INDICATOR ========== */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.3s ease;
+    }
+
+    .loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(255, 255, 255, 0.2);
+      border-top: 5px solid #ad2122;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: white;
+      margin-top: 20px;
+      font-size: 1.1em;
+      font-weight: 500;
+    }
+
+    /* ========== SKELETON LOADERS ========== */
+    .skeleton-nav {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 20px 30px;
+      margin-bottom: 40px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .skeleton-nav-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .skeleton-title {
+      height: 16px;
+      width: 150px;
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+    }
+
+    .skeleton-button {
+      height: 40px;
+      width: 140px;
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+    }
+
+    .skeleton-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .skeleton-link {
+      height: 36px;
+      width: 100px;
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+    }
+
+    .skeleton-section {
+      margin-bottom: 50px;
+    }
+
+    .skeleton-section-title {
+      height: 32px;
+      width: 200px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.3) 25%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0.3) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      padding-left: 10px;
+      border-left: 5px solid rgba(173, 33, 34, 0.5);
+    }
+
+    .skeleton-card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .skeleton-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    .skeleton-icon {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 50%;
+      margin-bottom: 20px;
+    }
+
+    .skeleton-card-title {
+      height: 24px;
+      width: 80%;
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+
+    .skeleton-card-desc {
+      height: 16px;
+      width: 100%;
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    .skeleton-card-desc:last-of-type {
+      width: 60%;
+      margin-bottom: 25px;
+    }
+
+    .skeleton-launch-btn {
+      height: 40px;
+      width: 120px;
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -200% 0;
+      }
+      100% {
+        background-position: 200% 0;
+      }
+    }
+
+    .skeleton-container {
+      transition: opacity 0.3s ease;
+    }
+
+    .skeleton-container.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <?!= include('SiteHeader', {baseUrl: baseUrl, currentPage: currentPage}) ?>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text">Loading...</div>
+  </div>
+  <div class="container">
+    <!-- Header Section -->
+    <div class="header">
+      <h1>Tech Department Links</h1>
+      <p>Quick access to all your essential tools and resources</p>
+      <a href="https://script.google.com/a/macros/orono.k12.mn.us/s/AKfycbz2w7Le3BFViUITPqWklg9AAWNLAc6knBmJd8KC7jH1l1w4Bg_cFL7VDUbvxRxywzjlkw/exec" class="back-home">
+        <span class="material-icons">arrow_back</span>
+        <span>Back to Home</span>
+      </a>
+    </div>
+
+    <!-- Skeleton Loader -->
+    <div id="skeletonLoader" class="skeleton-container">
+      <!-- Skeleton Category Navigation -->
+      <div class="skeleton-nav">
+        <div class="skeleton-nav-header">
+          <div class="skeleton-title"></div>
+          <div class="skeleton-button"></div>
+        </div>
+        <div class="skeleton-links">
+          <div class="skeleton-link"></div>
+          <div class="skeleton-link"></div>
+          <div class="skeleton-link"></div>
+          <div class="skeleton-link"></div>
+        </div>
+      </div>
+
+      <!-- Skeleton Category Section 1 -->
+      <div class="skeleton-section">
+        <div class="skeleton-section-title"></div>
+        <div class="card-grid">
+          <div class="skeleton-card">
+            <div class="skeleton-icon"></div>
+            <div class="skeleton-card-title"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-launch-btn"></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-icon"></div>
+            <div class="skeleton-card-title"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-launch-btn"></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-icon"></div>
+            <div class="skeleton-card-title"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-launch-btn"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skeleton Category Section 2 -->
+      <div class="skeleton-section">
+        <div class="skeleton-section-title"></div>
+        <div class="card-grid">
+          <div class="skeleton-card">
+            <div class="skeleton-icon"></div>
+            <div class="skeleton-card-title"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-launch-btn"></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-icon"></div>
+            <div class="skeleton-card-title"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-launch-btn"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div id="content" style="display: none;">
+      <?
+        // Get the link data passed from Code.gs
+        var links = linkData;
+
+        // Check if we have any links to display
+        if (links && links.length > 0) {
+
+          // Group links by category for organized display
+          var categories = {};
+          for (var i = 0; i < links.length; i++) {
+            var link = links[i];
+            var category = link.CATEGORY || 'Other';
+
+            if (!categories[category]) {
+              categories[category] = [];
+            }
+            categories[category].push(link);
+          }
+      ?>
+
+          <!-- Category Navigation -->
+          <div class="category-nav">
+            <div class="category-nav-header">
+              <h3>Jump to Category</h3>
+              <button onclick="openAddLinkDialog()" class="add-link-btn">
+                <span class="material-icons">add_circle</span>
+                Add New Link
+              </button>
+            </div>
+            <div class="category-nav-links">
+              <?
+                // Create navigation links for each category
+                for (var catName in categories) {
+                  // Create a URL-friendly ID from the category name
+                  var categoryId = catName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+              ?>
+                <a href="#<?= categoryId ?>" class="category-link"><?= catName ?></a>
+              <? } ?>
+            </div>
+          </div>
+
+      <?
+          // Display each category section
+          for (var categoryName in categories) {
+            var categoryLinks = categories[categoryName];
+            // Create a URL-friendly ID from the category name
+            var categoryId = categoryName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      ?>
+            <div class="category-section" id="<?= categoryId ?>">
+              <h2 class="category-title"><?= categoryName ?></h2>
+              <div class="card-grid">
+                <?
+                  // Display each link card within the category
+                  for (var j = 0; j < categoryLinks.length; j++) {
+                    var link = categoryLinks[j];
+                    var iconClass = link.ICON_CLASS || 'link'; // Default icon if none specified
+                ?>
+                  <div class="link-card"
+                       draggable="true"
+                       data-toolname="<?= link.TOOL_NAME ?>"
+                       data-url="<?= link.TOOL_URL ?>"
+                       data-description="<?= link.DESCRIPTION ?>"
+                       data-iconclass="<?= iconClass ?>"
+                       data-imageurl="<?= link.IMAGE_URL || '' ?>"
+                       data-category="<?= categoryName ?>">
+
+                    <!-- Drag Handle -->
+                    <div class="drag-handle" title="Drag to reorder">
+                      <span class="material-icons">drag_indicator</span>
+                    </div>
+
+                    <!-- Icon Circle -->
+                    <div class="card-icon">
+                      <? if (link.IMAGE_URL && link.IMAGE_URL !== '') { ?>
+                        <img src="<?= link.IMAGE_URL ?>"
+                             alt="<?= link.TOOL_NAME ?>"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                        <span class="material-icons" style="display:none;"><?= iconClass ?></span>
+                      <? } else { ?>
+                        <span class="material-icons"><?= iconClass ?></span>
+                      <? } ?>
+                    </div>
+
+                    <!-- Card Content -->
+                    <h3 class="card-title"><?= link.TOOL_NAME ?></h3>
+                    <p class="card-description"><?= link.DESCRIPTION ?></p>
+
+                    <!-- Launch Button -->
+                    <a href="<?= link.TOOL_URL ?>"
+                       class="launch-button"
+                       target="_blank"
+                       rel="noopener noreferrer">
+                      <span>Launch</span>
+                      <span class="material-icons">open_in_new</span>
+                    </a>
+                  </div>
+                <? } // End link loop ?>
+              </div>
+            </div>
+      <?
+          } // End category loop
+        } else {
+          // Display empty state if no links are found
+      ?>
+          <div class="empty-state">
+            <span class="material-icons">link_off</span>
+            <h2>No Links Available</h2>
+            <p>Please add links to the 'Tech Dept Link Directory' spreadsheet.</p>
+          </div>
+      <? } // End if-else ?>
+    </div>
+  </div>
+
+  <script>
+    // Hide loading overlay and skeleton, show content once page is fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      const skeletonLoader = document.getElementById('skeletonLoader');
+      const content = document.getElementById('content');
+
+      loadingOverlay.classList.add('hidden');
+
+      // Hide skeleton and show actual content
+      setTimeout(function() {
+        skeletonLoader.classList.add('hidden');
+        content.style.display = 'block';
+
+        // Remove skeleton from DOM after transition
+        setTimeout(function() {
+          skeletonLoader.style.display = 'none';
+        }, 300);
+      }, 100);
+
+      // Remove loading overlay from DOM after transition
+      setTimeout(function() {
+        loadingOverlay.style.display = 'none';
+      }, 300);
+
+      // Initialize drag and drop for all link cards
+      var cards = document.querySelectorAll('.link-card');
+      cards.forEach(function(card) {
+        setupDragListeners(card);
+        // Populate allLinks array from card data
+        allLinks.push({
+          toolName: card.dataset.toolname,
+          url: card.dataset.url,
+          description: card.dataset.description,
+          iconClass: card.dataset.iconclass,
+          imageUrl: card.dataset.imageurl,
+          category: card.dataset.category
+        });
+      });
+    });
+
+    // Open Add Link Dialog
+    function openAddLinkDialog() {
+      const modal = document.getElementById('addLinkModal');
+      modal.classList.add('show');
+
+      // Load categories
+      google.script.run
+        .withSuccessHandler(populateCategories)
+        .getCategories('Links');
+    }
+
+    function closeAddLinkModal() {
+      const modal = document.getElementById('addLinkModal');
+      modal.classList.remove('show');
+      document.getElementById('addLinkForm').reset();
+      document.getElementById('newCategoryInput').style.display = 'none';
+      showFormMessage('', '');
+    }
+
+    function populateCategories(categories) {
+      const select = document.getElementById('category');
+      const newCategoryOption = select.querySelector('option[value="__NEW__"]');
+
+      // Clear existing options except first two
+      while (select.options.length > 2) {
+        select.remove(2);
+      }
+
+      // Add categories
+      categories.forEach(function(category) {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        select.insertBefore(option, newCategoryOption);
+      });
+    }
+
+    // Handle category change
+    document.addEventListener('DOMContentLoaded', function() {
+      const categorySelect = document.getElementById('category');
+      if (categorySelect) {
+        categorySelect.addEventListener('change', function() {
+          const newCategoryInput = document.getElementById('newCategoryInput');
+          const newCategory = document.getElementById('newCategory');
+
+          if (this.value === '__NEW__') {
+            newCategoryInput.style.display = 'block';
+            newCategory.required = true;
+          } else {
+            newCategoryInput.style.display = 'none';
+            newCategory.required = false;
+            newCategory.value = '';
+          }
+        });
+      }
+    });
+
+    function submitAddLink(event) {
+      event.preventDefault();
+
+      const categorySelect = document.getElementById('category');
+      let category = categorySelect.value;
+
+      if (category === '__NEW__') {
+        category = document.getElementById('newCategory').value.trim();
+        if (!category) {
+          showFormMessage('error', 'Please enter a new category name.');
+          return;
+        }
+      }
+
+      const linkData = {
+        toolName: document.getElementById('toolName').value.trim(),
+        toolUrl: document.getElementById('toolUrl').value.trim(),
+        description: document.getElementById('description').value.trim(),
+        iconClass: document.getElementById('iconClass').value,
+        imageUrl: document.getElementById('imageUrl').value.trim(),
+        category: category
+      };
+
+      const submitBtn = document.getElementById('submitBtn');
+      const loading = document.getElementById('formLoading');
+
+      submitBtn.disabled = true;
+      loading.style.display = 'block';
+      showFormMessage('', '');
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          submitBtn.disabled = false;
+          loading.style.display = 'none';
+
+          if (result.success) {
+            showFormMessage('success', result.message);
+            setTimeout(function() {
+              closeAddLinkModal();
+              // Reload page to show new link
+              window.location.reload();
+            }, 1500);
+          } else {
+            showFormMessage('error', result.message);
+          }
+        })
+        .withFailureHandler(function(error) {
+          submitBtn.disabled = false;
+          loading.style.display = 'none';
+          showFormMessage('error', 'Error: ' + error.message);
+        })
+        .addLinkToSheet(linkData);
+    }
+
+    function showFormMessage(type, message) {
+      const messageDiv = document.getElementById('formMessage');
+      if (type && message) {
+        messageDiv.className = 'form-message ' + type + ' show';
+        messageDiv.textContent = message;
+      } else {
+        messageDiv.className = 'form-message';
+        messageDiv.textContent = '';
+      }
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+      const modal = document.getElementById('addLinkModal');
+      if (event.target === modal) {
+        closeAddLinkModal();
+      }
+    });
+
+    // Drag and drop functionality
+    var draggedCard = null;
+    var allLinks = [];
+
+    function setupDragListeners(card) {
+      card.addEventListener('dragstart', function(e) {
+        draggedCard = this;
+        this.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', this.innerHTML);
+      });
+
+      card.addEventListener('dragend', function(e) {
+        this.classList.remove('dragging');
+        // Remove all drag-over classes
+        document.querySelectorAll('.drag-over').forEach(function(el) {
+          el.classList.remove('drag-over');
+        });
+        draggedCard = null;
+      });
+
+      card.addEventListener('dragover', function(e) {
+        if (e.preventDefault) {
+          e.preventDefault();
+        }
+        e.dataTransfer.dropEffect = 'move';
+
+        if (this === draggedCard) {
+          return;
+        }
+
+        this.classList.add('drag-over');
+        return false;
+      });
+
+      card.addEventListener('dragleave', function(e) {
+        this.classList.remove('drag-over');
+      });
+
+      card.addEventListener('drop', function(e) {
+        if (e.stopPropagation) {
+          e.stopPropagation();
+        }
+
+        if (draggedCard !== this) {
+          // Get the category of both cards
+          var draggedCategory = draggedCard.dataset.category;
+          var targetCategory = this.dataset.category;
+
+          // Only allow reordering within the same category
+          if (draggedCategory === targetCategory) {
+            // Swap positions in the DOM
+            var parent = this.parentNode;
+            var draggedIndex = Array.from(parent.children).indexOf(draggedCard);
+            var targetIndex = Array.from(parent.children).indexOf(this);
+
+            if (draggedIndex < targetIndex) {
+              parent.insertBefore(draggedCard, this.nextSibling);
+            } else {
+              parent.insertBefore(draggedCard, this);
+            }
+
+            // Update the allLinks array order
+            reorderLinksInArray(draggedCategory);
+          } else {
+            alert('You can only reorder links within the same category.');
+          }
+        }
+
+        this.classList.remove('drag-over');
+        return false;
+      });
+    }
+
+    function reorderLinksInArray(category) {
+      // Get all cards in this category section
+      var categorySection = document.getElementById(category.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''));
+      if (!categorySection) return;
+
+      var grid = categorySection.querySelector('.card-grid');
+      if (!grid) return;
+
+      var cards = Array.from(grid.querySelectorAll('.link-card'));
+      var newOrder = cards.map(function(card) {
+        return {
+          toolName: card.dataset.toolname,
+          url: card.dataset.url,
+          description: card.dataset.description,
+          iconClass: card.dataset.iconclass,
+          imageUrl: card.dataset.imageurl,
+          category: card.dataset.category
+        };
+      });
+
+      // Update allLinks array with new order for this category
+      var otherLinks = allLinks.filter(function(link) {
+        return (link.category || 'Other') !== category;
+      });
+
+      allLinks = otherLinks.concat(newOrder);
+
+      // Save the new order to the sheet
+      saveLinkOrder();
+    }
+
+    function saveLinkOrder() {
+      // Send the new order to the backend
+      google.script.run
+        .withSuccessHandler(function(result) {
+          console.log('Link order saved successfully');
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error saving link order:', error);
+          alert('Failed to save new order. Please try again.');
+        })
+        .saveLinkOrder(allLinks);
+    }
+  </script>
+
+  <?!= include('AddLinkForm') ?>
+  <?!= include('AddImageModal') ?>
+  <?!= include('SiteFooter', {userEmail: userEmail, baseUrl: baseUrl}) ?>
+</body>
+</html>

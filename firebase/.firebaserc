@@ -1,0 +1,18 @@
+{
+  "projects": {
+    "default": "ops-tech-ed432"
+  },
+  "targets": {
+    "ops-tech-ed432": {
+      "hosting": {
+        "main": [
+          "ops-tech"
+        ],
+        "legacy": [
+          "ops-tech-ed432"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

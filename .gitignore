@@ -1,0 +1,42 @@
+# Node modules
+node_modules/
+
+# Clasp credentials (optional - keep Script ID private if needed)
+# Uncomment the line below if you don't want to share your Script ID
+# .clasp.json
+
+# OS specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+
+# Environment variables (if you add any)
+.env
+.env.local
+
+# Firebase local cache / debug logs
+firebase/.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# Service account keys — never commit
+*service-account*.json
+*sa-key*.json
+
+# Claude Code local settings
+.claude/settings.local.json

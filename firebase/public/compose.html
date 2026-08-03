@@ -1,0 +1,3315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compose Email</title>
+
+  <!-- Preconnect to external resources -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Material Icons CDN -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" rel="stylesheet">
+
+  <!-- Google Fonts - Lexend and Roboto -->
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Quill Rich Text Editor -->
+  <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+
+  <!-- Shared site header/footer styles -->
+  <link href="css/site.css" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Lexend', sans-serif;
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      padding: 20px;
+      padding-top: 70px;
+      padding-bottom: 40px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* ========== HERO HEADER ========== */
+    .page-header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+      padding: 40px 20px 0;
+    }
+
+    .page-header h1 {
+      font-size: 2.5em;
+      font-weight: 500;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .page-header p {
+      font-size: 1.1em;
+      font-weight: 300;
+      opacity: 0.95;
+    }
+
+    .page-header .nav-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 22px;
+      flex-wrap: wrap;
+    }
+
+    /* ========== ACTION PILLS (style B) ========== */
+    .action-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ad2122;
+      color: white;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 999px;
+      font-family: 'Lexend', sans-serif;
+      font-weight: 600;
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-decoration: none;
+    }
+
+    .action-pill:hover {
+      background: #7a1718;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(173, 33, 34, 0.4);
+    }
+
+    .action-pill:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .action-pill .material-icons {
+      font-size: 18px;
+    }
+
+    .action-pill.navy {
+      background: #2d3f69;
+    }
+
+    .action-pill.navy:hover {
+      background: #1d2a5d;
+      box-shadow: 0 6px 16px rgba(29, 42, 93, 0.4);
+    }
+
+    .action-pill.outline {
+      background: white;
+      color: #2d3f69;
+      border: 2px solid #d8dbe4;
+      padding: 8px 20px;
+    }
+
+    .action-pill.outline:hover {
+      background: #eef1f8;
+      border-color: #2d3f69;
+      box-shadow: none;
+    }
+
+    /* Hero variants (dark background) */
+    .page-header .action-pill.ghost {
+      background: rgba(255, 255, 255, 0.08);
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      padding: 8px 20px;
+    }
+
+    .page-header .action-pill.ghost:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: white;
+      box-shadow: none;
+    }
+
+    .page-header .action-pill.secondary {
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: 8px 20px;
+    }
+
+    .page-header .action-pill.secondary:hover {
+      background: rgba(255, 255, 255, 0.28);
+      box-shadow: none;
+    }
+
+    /* ========== TWO COLUMN LAYOUT ========== */
+    .compose-layout {
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+      align-items: start;
+    }
+
+    @media (max-width: 1200px) {
+      .compose-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ========== WORKSPACE CARD ========== */
+    .workspace-card {
+      background: white;
+      border-radius: 12px;
+      padding: 26px 30px 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      height: fit-content;
+    }
+
+    /* ========== TABS ========== */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      border-bottom: 2px solid #edeef4;
+      margin-bottom: 22px;
+    }
+
+    .tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 11px 18px;
+      background: none;
+      border: none;
+      border-radius: 10px 10px 0 0;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.95em;
+      font-weight: 600;
+      color: #6a7288;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .tab-btn .material-icons {
+      font-size: 19px;
+    }
+
+    .tab-btn:hover {
+      color: #2d3f69;
+      background: #f5f7fb;
+    }
+
+    .tab-btn.active {
+      color: #ad2122;
+      box-shadow: inset 0 -3px 0 #ad2122;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* ========== SECTION HEADERS (style G) ========== */
+    .sec-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 16px;
+      position: relative;
+      padding-bottom: 11px;
+    }
+
+    .sec-head::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 52px;
+      height: 3px;
+      background: #ad2122;
+      border-radius: 2px;
+    }
+
+    .sec-head .sec-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, rgba(173,33,34,0.14), rgba(173,33,34,0.05));
+      color: #ad2122;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sec-head .sec-icon .material-icons {
+      font-size: 20px;
+    }
+
+    .sec-head h3 {
+      color: #2d3f69;
+      font-size: 1.05em;
+      font-weight: 700;
+    }
+
+    .sec-head small {
+      color: #8b93a9;
+      font-weight: 400;
+      font-size: 0.8em;
+      margin-left: auto;
+    }
+
+    .form-section {
+      margin-bottom: 28px;
+    }
+
+    .form-section:last-child {
+      margin-bottom: 0;
+    }
+
+    /* ========== FORM FIELDS ========== */
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #2d3f69;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 0.9em;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #e4e6ee;
+      border-radius: 8px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.9em;
+      transition: border-color 0.3s;
+      background: #fbfbfd;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #2d3f69;
+      background: white;
+    }
+
+    .form-group small {
+      display: block;
+      color: #666;
+      font-size: 0.8em;
+      margin-top: 4px;
+    }
+
+    /* ========== SEGMENTED BUTTONS ========== */
+    .seg-grid {
+      display: grid;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .seg-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .seg-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+    .seg-grid.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+    .seg-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 6px;
+      background: #f8f9fc;
+      border: 2px solid #e4e6ee;
+      border-radius: 9px;
+      cursor: pointer;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.85em;
+      font-weight: 600;
+      color: #555;
+      transition: all 0.2s;
+    }
+
+    .seg-btn small {
+      font-weight: 400;
+      font-size: 0.82em;
+      color: #8b93a9;
+    }
+
+    .seg-btn .material-icons {
+      font-size: 20px;
+    }
+
+    .seg-btn:hover {
+      border-color: #2d3f69;
+      color: #2d3f69;
+      background: #eef1f8;
+    }
+
+    .seg-btn.active {
+      border-color: #2d3f69;
+      background: #2d3f69;
+      color: white;
+    }
+
+    .seg-btn.active small {
+      color: rgba(255,255,255,0.75);
+    }
+
+    .seg-btn.active[data-color="red"] {
+      border-color: #ad2122;
+      background: #ad2122;
+    }
+
+    .seg-btn .color-swatch {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.6);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.15);
+    }
+
+    .seg-btn.row {
+      flex-direction: row;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* ========== RECIPIENT FIELDS ========== */
+    .recipient-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .recipient-row select {
+      width: 84px;
+      padding: 9px 8px;
+      border: 2px solid #e4e6ee;
+      border-radius: 8px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.88em;
+      background: #fbfbfd;
+    }
+
+    .recipient-row input {
+      width: 100%;
+      padding: 9px 12px;
+      border: 2px solid #e4e6ee;
+      border-radius: 8px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.88em;
+      background: #fbfbfd;
+    }
+
+    .recipient-row input:focus,
+    .recipient-row select:focus {
+      outline: none;
+      border-color: #2d3f69;
+      background: white;
+    }
+
+    .recipient-row button {
+      padding: 8px;
+      background: none;
+      color: #ad2122;
+      border: 2px solid rgba(173,33,34,0.35);
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .recipient-row button:hover {
+      background: #ad2122;
+      border-color: #ad2122;
+      color: white;
+    }
+
+    .recipient-row .material-icons {
+      font-size: 18px;
+    }
+
+    /* ========== CHECKBOX GROUP ========== */
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 14px;
+      background: #f8f9fc;
+      border: 1.5px solid #e8eaf1;
+      border-radius: 10px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .checkbox-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #ad2122;
+    }
+
+    .checkbox-item label {
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9em;
+      margin: 0;
+      color: #333;
+    }
+
+    /* ========== TOPIC CARDS ========== */
+    #topicFields {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .topic-card {
+      background: #f8f9fc;
+      border: 1.5px solid #e8eaf1;
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+
+    .topic-card h4 {
+      color: #2d3f69;
+      font-size: 1em;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: flex-start;
+    }
+
+    .topic-card h4 .topic-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(173,33,34,0.14), rgba(173,33,34,0.05));
+      color: #ad2122;
+    }
+
+    .topic-card h4 .topic-chip .material-icons {
+      font-size: 16px;
+    }
+
+    /* Quill editor styling */
+    .quill-container {
+      border: 2px solid #e4e6ee;
+      border-radius: 8px;
+      background: white;
+      overflow: hidden;
+    }
+
+    .quill-container .ql-toolbar {
+      border: none;
+      border-bottom: 2px solid #e8eaf1;
+      background: #f8f9fc;
+    }
+
+    .quill-container .ql-container {
+      border: none;
+      min-height: 110px;
+      font-family: 'Lexend', Arial, sans-serif;
+      font-size: 14px;
+    }
+
+    /* ========== SNIPPET BAR ========== */
+    .snippet-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .snippet-bar .material-icons.snip-glyph {
+      font-size: 17px;
+      color: #8b93a9;
+    }
+
+    .snippet-bar select {
+      flex: 1;
+      min-width: 140px;
+      max-width: 240px;
+      padding: 7px 10px;
+      border: 1.5px solid #e4e6ee;
+      border-radius: 999px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.82em;
+      color: #2d3f69;
+      background: white;
+      cursor: pointer;
+    }
+
+    .snip-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1.5px solid #d8dbe4;
+      background: white;
+      color: #2d3f69;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.8em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .snip-btn:hover {
+      background: #eef1f8;
+      border-color: #2d3f69;
+    }
+
+    .snip-btn.danger {
+      color: #ad2122;
+    }
+
+    .snip-btn.danger:hover {
+      background: rgba(173,33,34,0.08);
+      border-color: #ad2122;
+    }
+
+    .snip-btn .material-icons {
+      font-size: 15px;
+    }
+
+    /* ========== INTRO / OUTRO ========== */
+    .intro-outro-group {
+      margin-bottom: 20px;
+      padding: 14px 16px;
+      background: #f4f7ff;
+      border: 1.5px solid #dbe3f5;
+      border-radius: 12px;
+    }
+
+    .intro-outro-group > label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #2d3f69;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.9em;
+    }
+
+    .intro-outro-group > label .material-icons {
+      font-size: 16px;
+    }
+
+    .intro-outro-group small.hint {
+      display: block;
+      color: #666;
+      font-size: 0.8em;
+      margin-top: 6px;
+    }
+
+    /* ========== ADD / REMOVE TOPIC ========== */
+    .add-topic-btn {
+      padding: 11px 16px;
+      background: #2d3f69;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.88em;
+      font-weight: 600;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.25s;
+      width: 100%;
+      margin-top: 14px;
+    }
+
+    .add-topic-btn:hover {
+      background: #1d2a5d;
+      transform: translateY(-1px);
+    }
+
+    .add-topic-btn .material-icons {
+      font-size: 18px;
+    }
+
+    .remove-topic-btn {
+      padding: 4px 12px;
+      background: transparent;
+      color: #ad2122;
+      border: 1.5px solid rgba(173,33,34,0.4);
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.75em;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.2s;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    .remove-topic-btn:hover {
+      background: #ad2122;
+      border-color: #ad2122;
+      color: white;
+    }
+
+    .remove-topic-btn .material-icons {
+      font-size: 14px;
+    }
+
+    /* ========== IMAGE CONTROLS ========== */
+    .image-size-control {
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: white;
+      border-radius: 8px;
+      border: 1.5px solid #e8eaf1;
+    }
+
+    .image-size-control label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 0.85em;
+      color: #2d3f69;
+      font-weight: 600;
+    }
+
+    .image-size-control input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #e4e6ee;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .image-size-control input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ad2122;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .image-size-control input[type="range"]::-webkit-slider-thumb:hover {
+      background: #7a1718;
+      transform: scale(1.15);
+    }
+
+    .image-size-control input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ad2122;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .size-value {
+      font-weight: 700;
+      color: #ad2122;
+    }
+
+    .image-align-control {
+      margin-top: 10px;
+    }
+
+    .image-align-control label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 0.85em;
+      color: #2d3f69;
+      font-weight: 600;
+    }
+
+    .image-align-control select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1.5px solid #e4e6ee;
+      border-radius: 8px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.88em;
+      background: white;
+      cursor: pointer;
+    }
+
+    .image-bg-control {
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: white;
+      border-radius: 8px;
+      border: 1.5px solid #e8eaf1;
+    }
+
+    .image-bg-control > label:first-child {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.85em;
+      color: #2d3f69;
+      font-weight: 600;
+    }
+
+    .image-bg-control input[type="color"] {
+      width: 46px;
+      height: 34px;
+      border: 1.5px solid #e4e6ee;
+      border-radius: 6px;
+      cursor: pointer;
+      vertical-align: middle;
+      background: white;
+      padding: 2px;
+    }
+
+    .image-bg-control input[type="checkbox"] {
+      width: 17px;
+      height: 17px;
+      cursor: pointer;
+      margin: 0;
+      accent-color: #ad2122;
+    }
+
+    .image-bg-control .checkbox-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .image-bg-control .checkbox-wrapper label {
+      margin: 0;
+      cursor: pointer;
+      font-size: 0.85em;
+      color: #333;
+    }
+
+    /* ========== BUTTON/LINK CONTROL ========== */
+    .button-link-control {
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: linear-gradient(135deg, rgba(173, 33, 34, 0.04) 0%, rgba(173, 33, 34, 0.07) 100%);
+      border-radius: 10px;
+      border: 1.5px solid rgba(173, 33, 34, 0.2);
+    }
+
+    .button-link-control label:first-child {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.85em;
+      color: #ad2122;
+      font-weight: 700;
+    }
+
+    .button-link-control input[type="text"],
+    .button-link-control input[type="url"] {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1.5px solid rgba(173, 33, 34, 0.3);
+      border-radius: 8px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.88em;
+      margin-bottom: 8px;
+      background: white;
+    }
+
+    .button-link-control input:focus {
+      outline: none;
+      border-color: #ad2122;
+      box-shadow: 0 0 0 2px rgba(173, 33, 34, 0.1);
+    }
+
+    .button-link-control small {
+      display: block;
+      color: #ad2122;
+      font-size: 0.75em;
+      margin-top: 2px;
+      opacity: 0.8;
+    }
+
+    /* ========== DIVIDER CONTROL ========== */
+    .divider-control {
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: white;
+      border-radius: 8px;
+      border: 1.5px solid #e8eaf1;
+    }
+
+    .divider-control label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .divider-control input[type="checkbox"] {
+      width: 17px;
+      height: 17px;
+      cursor: pointer;
+      margin: 0;
+      flex-shrink: 0;
+      accent-color: #ad2122;
+    }
+
+    .divider-control span {
+      font-size: 0.85em;
+      color: #2d3f69;
+      font-weight: 500;
+    }
+
+    /* ========== SEND AREA ========== */
+    .send-area {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 2px solid #edeef4;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .button-group + .button-group {
+      margin-top: 10px;
+    }
+
+    /* Placeholder shown on the Content tab before a layout is chosen */
+    .content-placeholder {
+      text-align: center;
+      padding: 46px 20px;
+      color: #8b93a9;
+    }
+
+    .content-placeholder .material-icons {
+      font-size: 52px;
+      color: #d8dbe4;
+      margin-bottom: 12px;
+    }
+
+    .content-placeholder p {
+      font-size: 0.95em;
+    }
+
+    .content-placeholder button {
+      margin-top: 16px;
+    }
+
+    /* ========== STATUS MESSAGE ========== */
+    .status-message {
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-top: 15px;
+      font-size: 0.9em;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-message.show {
+      display: flex;
+    }
+
+    .status-message.success {
+      background: #e5f4e9;
+      color: #155724;
+      border: 1.5px solid #c3e6cb;
+    }
+
+    .status-message.error {
+      background: #fbe9ea;
+      color: #721c24;
+      border: 1.5px solid #f5c6cb;
+    }
+
+    .status-message .material-icons {
+      font-size: 20px;
+    }
+
+    /* ========== DRAFT STATUS ========== */
+    .draft-status {
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: #e7f1f8;
+      border: 1.5px solid #cfe4f0;
+      border-radius: 10px;
+      color: #0c5460;
+      font-size: 0.85em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .draft-status .material-icons {
+      font-size: 18px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ========== WORKFLOW INSTRUCTIONS ========== */
+    .workflow-instructions {
+      margin-top: 18px;
+      padding: 15px 16px;
+      background: #f8f9fc;
+      border-radius: 10px;
+      border-left: 4px solid #2d3f69;
+    }
+
+    .workflow-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      transition: opacity 0.3s ease;
+    }
+
+    .workflow-step:last-child {
+      margin-bottom: 0;
+    }
+
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: #2d3f69;
+      color: white;
+      border-radius: 50%;
+      font-weight: 700;
+      font-size: 0.9em;
+      flex-shrink: 0;
+    }
+
+    .step-text {
+      color: #2d3f69;
+      font-size: 0.9em;
+      line-height: 1.4;
+    }
+
+    .workflow-step.completed .step-number {
+      background: #28a745;
+    }
+
+    .workflow-step.active {
+      opacity: 1 !important;
+    }
+
+    /* ========== PREVIEW CARD ========== */
+    .preview-card {
+      background: white;
+      border-radius: 12px;
+      padding: 26px 30px 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      position: sticky;
+      top: 80px;
+      max-height: calc(100vh - 100px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .preview-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      position: relative;
+      padding-bottom: 11px;
+      flex-shrink: 0;
+    }
+
+    .preview-head::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 52px;
+      height: 3px;
+      background: #ad2122;
+      border-radius: 2px;
+    }
+
+    .preview-head .sec-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, rgba(173,33,34,0.14), rgba(173,33,34,0.05));
+      color: #ad2122;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .preview-head h2 {
+      color: #2d3f69;
+      font-size: 1.15em;
+      font-weight: 700;
+    }
+
+    .preview-head .live-dot {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78em;
+      font-weight: 700;
+      color: #28a745;
+    }
+
+    .preview-head .live-dot::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #28a745;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    #emailPreview {
+      border: 2px solid #e8eaf1;
+      border-radius: 10px;
+      padding: 16px;
+      background: #f8f9fc;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* ========== MODALS ========== */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(20, 27, 51, 0.72);
+      overflow-y: auto;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.show {
+      display: flex !important;
+    }
+
+    .modal-card {
+      background: white;
+      border-radius: 14px;
+      padding: 0;
+      max-width: 800px;
+      width: 90%;
+      max-height: 90vh;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      position: relative;
+      margin: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-card.small {
+      max-width: 440px;
+    }
+
+    .modal-head {
+      background: #2d3f69;
+      color: white;
+      padding: 18px 26px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-head h2 {
+      margin: 0;
+      font-size: 1.3em;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .modal-head .material-icons {
+      font-size: 22px;
+    }
+
+    .modal-close {
+      color: white;
+      font-size: 30px;
+      font-weight: 300;
+      cursor: pointer;
+      line-height: 1;
+      transition: transform 0.2s;
+      background: none;
+      border: none;
+    }
+
+    .modal-close:hover {
+      transform: scale(1.1);
+    }
+
+    .modal-body {
+      padding: 26px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 0 26px 22px;
+    }
+
+    /* ========== IMAGE LIBRARY GRID ========== */
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .image-item {
+      background-color: #f8f9fc;
+      padding: 12px;
+      border-radius: 10px;
+      border: 2px solid #e8eaf1;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    .image-item:hover {
+      border-color: #2d3f69;
+      box-shadow: 0 4px 12px rgba(45, 63, 105, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .image-item img {
+      width: 100%;
+      height: 120px;
+      object-fit: contain;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .image-item-description {
+      color: #2d3f69;
+      font-weight: 600;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .loading-spinner {
+      text-align: center;
+      color: #2d3f69;
+      padding: 40px;
+    }
+
+    /* ========== SCHEDULE MODAL ========== */
+    .schedule-field label {
+      display: block;
+      color: #2d3f69;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 0.9em;
+    }
+
+    .schedule-field input[type="datetime-local"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #e4e6ee;
+      border-radius: 8px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.95em;
+    }
+
+    .schedule-field input:focus {
+      outline: none;
+      border-color: #2d3f69;
+    }
+
+    .schedule-hint {
+      color: #666;
+      font-size: 0.82em;
+      margin-top: 10px;
+      line-height: 1.5;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .schedule-hint .material-icons {
+      font-size: 17px;
+      color: #8b93a9;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 700px) {
+      .tabs { overflow-x: auto; }
+      .tab-btn { padding: 10px 12px; font-size: 0.85em; }
+      .seg-grid.cols-4 { grid-template-columns: 1fr 1fr; }
+      .seg-grid.cols-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Hero Header -->
+    <div class="page-header">
+      <h1>
+        <span class="material-icons" style="font-size: 1em;">forward_to_inbox</span>
+        Compose Email
+      </h1>
+      <p>Create and send tech tips and announcements</p>
+      <div class="nav-actions">
+        <a href="communications.html" class="action-pill ghost">
+          <span class="material-icons">arrow_back</span>
+          Communications
+        </a>
+        <a href="communications.html?drafts=1" class="action-pill secondary">
+          <span class="material-icons">drafts</span>
+          Drafts
+        </a>
+      </div>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="compose-layout">
+      <!-- LEFT: Tabbed Workspace -->
+      <div class="workspace-card">
+        <div class="tabs" role="tablist">
+          <button type="button" class="tab-btn active" data-tab="setup" onclick="setTab('setup')">
+            <span class="material-icons">tune</span> Setup
+          </button>
+          <button type="button" class="tab-btn" data-tab="content" onclick="setTab('content')">
+            <span class="material-icons">article</span> Content
+          </button>
+          <button type="button" class="tab-btn" data-tab="recipients" onclick="setTab('recipients')">
+            <span class="material-icons">people</span> Recipients
+          </button>
+        </div>
+
+        <form id="composeForm">
+          <!-- ============ SETUP TAB ============ -->
+          <div class="tab-panel active" id="panel-setup">
+            <!-- Layout template -->
+            <div class="form-section">
+              <div class="sec-head">
+                <span class="sec-icon"><span class="material-icons">view_quilt</span></span>
+                <h3>Layout</h3>
+              </div>
+              <!-- Hidden select keeps draft-loading + existing logic intact -->
+              <select id="template" name="template" style="display: none;">
+                <option value="">Select a template...</option>
+                <option value="hero">Hero Layout</option>
+                <option value="stacked">Stacked Layout</option>
+                <option value="offset">Offset Layout</option>
+                <option value="split">Split Layout</option>
+                <option value="showcase">Showcase Layout</option>
+                <option value="grid">Grid Layout</option>
+                <option value="digest">Digest Layout</option>
+              </select>
+              <div class="seg-grid cols-3" id="layoutButtons">
+                <button type="button" class="seg-btn" data-template="hero" onclick="chooseTemplate('hero')">
+                  <span class="material-icons">looks_one</span>
+                  Hero
+                  <small>Big first topic, two below</small>
+                </button>
+                <button type="button" class="seg-btn" data-template="stacked" onclick="chooseTemplate('stacked')">
+                  <span class="material-icons">view_agenda</span>
+                  Stacked
+                  <small>Full-width, top to bottom</small>
+                </button>
+                <button type="button" class="seg-btn" data-template="offset" onclick="chooseTemplate('offset')">
+                  <span class="material-icons">view_sidebar</span>
+                  Offset
+                  <small>Alternating image sides</small>
+                </button>
+                <button type="button" class="seg-btn" data-template="split" onclick="chooseTemplate('split')">
+                  <span class="material-icons">vertical_split</span>
+                  Split
+                  <small>Image beside text — pick side per topic</small>
+                </button>
+                <button type="button" class="seg-btn" data-template="showcase" onclick="chooseTemplate('showcase')">
+                  <span class="material-icons">wysiwyg</span>
+                  Showcase
+                  <small>Text first, image below</small>
+                </button>
+                <button type="button" class="seg-btn" data-template="grid" onclick="chooseTemplate('grid')">
+                  <span class="material-icons">grid_view</span>
+                  Grid
+                  <small>Two-column topic cards</small>
+                </button>
+                <button type="button" class="seg-btn" data-template="digest" onclick="chooseTemplate('digest')">
+                  <span class="material-icons">list_alt</span>
+                  Digest
+                  <small>Compact list with thumbnails</small>
+                </button>
+              </div>
+            </div>
+
+            <!-- Subject & heading -->
+            <div class="form-section">
+              <div class="sec-head">
+                <span class="sec-icon"><span class="material-icons">subject</span></span>
+                <h3>Subject &amp; Heading</h3>
+              </div>
+              <div class="form-group">
+                <label for="subject">Email Subject</label>
+                <input type="text" id="subject" name="subject" placeholder="Enter subject line..." required>
+              </div>
+              <div class="form-group">
+                <label for="subheading">Subheading</label>
+                <input type="text" id="subheading" name="subheading" placeholder="Optional subheading text...">
+                <small>Appears below the main title in the email</small>
+              </div>
+            </div>
+
+            <!-- Banner -->
+            <div class="form-section">
+              <div class="sec-head">
+                <span class="sec-icon"><span class="material-icons">palette</span></span>
+                <h3>Banner</h3>
+              </div>
+              <div class="form-group">
+                <label>Banner Color</label>
+                <div class="seg-grid cols-2">
+                  <button type="button" class="seg-btn row active" data-color="blue" onclick="setBannerColor('blue')">
+                    <span class="color-swatch" style="background:#2d3f69;"></span>
+                    Orono Blue
+                  </button>
+                  <button type="button" class="seg-btn row" data-color="red" onclick="setBannerColor('red')">
+                    <span class="color-swatch" style="background:#ad2122;"></span>
+                    Orono Red
+                  </button>
+                </div>
+                <input type="hidden" id="bannerColor" value="blue">
+              </div>
+
+              <div class="form-group" style="margin-top: 14px;">
+                <label>Header Icon <span style="font-weight:300;color:#888;">(optional)</span></label>
+                <input type="url" id="headerIcon_url" name="headerIcon_url" placeholder="https://example.com/icon.png" oninput="updatePreview()">
+                <small>Paste a URL, browse the library, or upload an image</small>
+              </div>
+              <div class="form-group" id="headerIconControls">
+                <label>Icon Position</label>
+                <div class="seg-grid cols-4" id="iconPosButtons">
+                  <button type="button" class="seg-btn" data-pos="above" onclick="setIconPosition('above')">
+                    <span class="material-icons">vertical_align_top</span>Above
+                  </button>
+                  <button type="button" class="seg-btn" data-pos="left" onclick="setIconPosition('left')">
+                    <span class="material-icons">align_horizontal_left</span>Left
+                  </button>
+                  <button type="button" class="seg-btn active" data-pos="right" onclick="setIconPosition('right')">
+                    <span class="material-icons">align_horizontal_right</span>Right
+                  </button>
+                  <button type="button" class="seg-btn" data-pos="below" onclick="setIconPosition('below')">
+                    <span class="material-icons">vertical_align_bottom</span>Below
+                  </button>
+                </div>
+                <input type="hidden" id="headerIcon_position" value="right">
+                <div class="image-size-control" style="margin-top:12px;">
+                  <label>
+                    <span>Icon Size</span>
+                    <span class="size-value" id="headerIcon_size_value">60px</span>
+                  </label>
+                  <input type="range" id="headerIcon_size" min="20" max="200" value="60" oninput="updateHeaderIconSize()">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============ CONTENT TAB ============ -->
+          <div class="tab-panel" id="panel-content">
+            <div class="content-placeholder" id="contentPlaceholder">
+              <span class="material-icons">view_quilt</span>
+              <p>Choose a layout on the Setup tab to start adding content.</p>
+              <button type="button" class="action-pill navy" onclick="setTab('setup')">
+                <span class="material-icons">tune</span>
+                Go to Setup
+              </button>
+            </div>
+
+            <div id="contentSection" style="display: none;">
+              <!-- Intro Text -->
+              <div class="intro-outro-group">
+                <label><span class="material-icons">format_quote</span>Intro Text <span style="font-weight:300; color:#888;">(optional)</span></label>
+                <div id="intro_container" class="quill-container"></div>
+                <div class="snippet-bar">
+                  <span class="material-icons snip-glyph">bookmarks</span>
+                  <select id="introSnippets"><option value="">Snippets…</option></select>
+                  <button type="button" class="snip-btn" onclick="insertSnippet('intro')">
+                    <span class="material-icons">input</span>Insert
+                  </button>
+                  <button type="button" class="snip-btn" onclick="saveSnippetFrom('intro')" title="Save the current intro text as a reusable snippet">
+                    <span class="material-icons">bookmark_add</span>Save
+                  </button>
+                  <button type="button" class="snip-btn danger" onclick="deleteSelectedSnippet('intro')" title="Delete the selected snippet">
+                    <span class="material-icons">delete</span>
+                  </button>
+                </div>
+                <small class="hint">Appears at the top of the email body, before all topics</small>
+              </div>
+
+              <!-- Topics -->
+              <div id="topicFields"></div>
+
+              <!-- Add Topic Button -->
+              <button type="button" class="add-topic-btn" id="addTopicBtn" onclick="addTopic()">
+                <span class="material-icons">add</span>
+                Add Topic
+              </button>
+
+              <!-- Outro Text -->
+              <div class="intro-outro-group" style="margin-top: 20px;">
+                <label><span class="material-icons">format_quote</span>Outro Text <span style="font-weight:300; color:#888;">(optional)</span></label>
+                <div id="outro_container" class="quill-container"></div>
+                <div class="snippet-bar">
+                  <span class="material-icons snip-glyph">bookmarks</span>
+                  <select id="outroSnippets"><option value="">Snippets…</option></select>
+                  <button type="button" class="snip-btn" onclick="insertSnippet('outro')">
+                    <span class="material-icons">input</span>Insert
+                  </button>
+                  <button type="button" class="snip-btn" onclick="saveSnippetFrom('outro')" title="Save the current outro text as a reusable snippet">
+                    <span class="material-icons">bookmark_add</span>Save
+                  </button>
+                  <button type="button" class="snip-btn danger" onclick="deleteSelectedSnippet('outro')" title="Delete the selected snippet">
+                    <span class="material-icons">delete</span>
+                  </button>
+                </div>
+                <small class="hint">Appears at the bottom of the email, after all topics — great for a standard signature</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============ RECIPIENTS TAB ============ -->
+          <div class="tab-panel" id="panel-recipients">
+            <div class="form-section">
+              <div class="sec-head">
+                <span class="sec-icon"><span class="material-icons">person_add</span></span>
+                <h3>Individual Recipients</h3>
+              </div>
+              <div class="form-group">
+                <div id="recipientsList"></div>
+                <button type="button" class="action-pill navy" style="padding: 8px 18px; font-size: 0.85em; margin-top: 6px;" onclick="addRecipientRow()">
+                  <span class="material-icons">add</span>
+                  Add Recipient
+                </button>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <div class="sec-head">
+                <span class="sec-icon"><span class="material-icons">groups</span></span>
+                <h3>Email Groups</h3>
+              </div>
+              <div class="form-group">
+                <div class="checkbox-group" id="groupCheckboxes">
+                  <div style="color: #666; font-size: 0.85em;">Loading groups...</div>
+                </div>
+                <small>Select one or more groups to send to</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============ SEND AREA (always visible) ============ -->
+          <div class="send-area">
+            <div class="button-group">
+              <button type="button" class="action-pill" onclick="sendPreview(this)">
+                <span class="material-icons">preview</span>
+                Send Preview to Me
+              </button>
+              <button type="button" class="action-pill outline" id="copyGmailBtn" onclick="copyForGmail()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:18px;height:18px;flex-shrink:0;"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z" fill="#d93025"/></svg>
+                Copy for Gmail
+              </button>
+              <button type="button" class="action-pill outline" onclick="manualSaveDraft()">
+                <span class="material-icons">save</span>
+                <span id="saveDraftText">Save Draft</span>
+              </button>
+              <button type="button" class="action-pill outline" onclick="resetForm()">
+                <span class="material-icons">refresh</span>
+                Reset
+              </button>
+            </div>
+            <div class="button-group">
+              <button type="submit" class="action-pill" style="display: none;" id="sendFinalBtn">
+                <span class="material-icons">send</span>
+                Send to Recipients
+              </button>
+              <button type="button" class="action-pill navy" style="display: none;" id="scheduleBtn" onclick="openScheduleModal()">
+                <span class="material-icons">schedule_send</span>
+                Schedule Send
+              </button>
+              <button type="button" class="action-pill navy" style="display: none;" id="archiveBtn" onclick="archiveSentEmail()">
+                <span class="material-icons">archive</span>
+                Mark as Sent &amp; Archive
+              </button>
+            </div>
+
+            <!-- Draft Status Indicator -->
+            <div id="draftStatus" class="draft-status" style="display: none;">
+              <span class="material-icons">check_circle</span>
+              <span id="draftStatusText">Draft saved</span>
+            </div>
+
+            <!-- Workflow Instructions -->
+            <div id="workflowInstructions" class="workflow-instructions">
+              <div class="workflow-step">
+                <span class="step-number">1</span>
+                <span class="step-text">Send a preview to yourself first to review the email</span>
+              </div>
+              <div class="workflow-step" style="opacity: 0.4;">
+                <span class="step-number">2</span>
+                <span class="step-text">Then choose: Send to Recipients, Schedule Send, or send manually from Gmail and Archive</span>
+              </div>
+            </div>
+
+            <!-- Status Message -->
+            <div id="statusMessage" class="status-message"></div>
+          </div>
+        </form>
+      </div>
+
+      <!-- RIGHT: Preview -->
+      <div class="preview-card">
+        <div class="preview-head">
+          <span class="sec-icon"><span class="material-icons">visibility</span></span>
+          <h2>Live Preview</h2>
+          <span class="live-dot">LIVE</span>
+        </div>
+        <div id="emailPreview">
+          <p style="color: #666; text-align: center; padding: 40px 20px;">
+            Select a layout to see your email preview
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden off-screen container used to render HTML for clipboard copy -->
+  <div id="gmailCopyContainer" style="position:fixed;left:-9999px;top:0;width:820px;pointer-events:none;z-index:-1;background:white;"></div>
+
+  <!-- Image Library Modal -->
+  <div id="imageModal" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2><span class="material-icons">photo_library</span>Select Image</h2>
+        <button type="button" class="modal-close" onclick="closeImageLibrary()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="imageLoadingSpinner" class="loading-spinner">Loading images...</div>
+        <div id="imageGrid" class="image-grid" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule Send Modal -->
+  <div id="scheduleModal" class="modal">
+    <div class="modal-card small">
+      <div class="modal-head">
+        <h2><span class="material-icons">schedule_send</span>Schedule Send</h2>
+        <button type="button" class="modal-close" onclick="closeScheduleModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="schedule-field">
+          <label for="scheduleTime">Send at</label>
+          <input type="datetime-local" id="scheduleTime">
+        </div>
+        <div class="schedule-hint">
+          <span class="material-icons">info</span>
+          <span>The email is sent within about 5 minutes of the chosen time. You can
+          cancel a scheduled email from the Communications page until it goes out.</span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="action-pill outline" onclick="closeScheduleModal()">Cancel</button>
+        <button type="button" class="action-pill" id="confirmScheduleBtn" onclick="confirmSchedule()">
+          <span class="material-icons">schedule_send</span>
+          Schedule
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { renderLayout } from './js/layout.js';
+    import { authReady, requirePerm } from './js/auth.js';
+    import {
+      getEmailGroups, getImages, archiveManualEmail,
+      loadDraft, saveDraft, deleteDraft,
+      getSnippets, saveSnippet, deleteSnippet, scheduleEmail
+    } from './js/data.js';
+    import { EMAIL_TEMPLATES } from './js/templates.js';
+    import { attachImageUpload } from './js/upload.js';
+    import { functions } from './js/firebase-init.js';
+    import { httpsCallable } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-functions.js';
+
+    renderLayout('compose');
+    requirePerm('communications');
+
+    // Firebase callables (Cloud Functions) — replace google.script.run send calls.
+    const sendEmailFn = httpsCallable(functions, 'sendEmail');
+    const sendPreviewEmailFn = httpsCallable(functions, 'sendPreviewEmail');
+
+    // Initialize
+    var currentUser = null; // Firebase user (resolved from authReady)
+    var recipientCounter = 0;
+    var quillInstances = {};
+    var nextTopicId = 0; // Tracks the highest topic ID created (IDs never reuse)
+    var formData = {}; // Store form data when switching templates
+    var currentTargetField = null; // Track which field to populate with image URL
+    // Track current draft ID for updates (from ?draftId= URL param)
+    var currentDraftId = new URLSearchParams(window.location.search).get('draftId') || '';
+
+    var EMPTY_CONTENT = /^(<p>(<br>|&nbsp;|\s)*<\/p>\s*)*$/;
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text == null ? '' : String(text);
+      return div.innerHTML;
+    }
+
+    // Static layout templates (kept for reference/parity with the old
+    // getEmailTemplates() server call; the live preview is built client-side).
+    var emailTemplates = EMAIL_TEMPLATES;
+
+    // ========== TABS ==========
+    function setTab(name) {
+      document.querySelectorAll('.tab-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.tab === name);
+      });
+      document.querySelectorAll('.tab-panel').forEach(function(panel) {
+        panel.classList.toggle('active', panel.id === 'panel-' + name);
+      });
+    }
+
+    // ========== IMAGE FIELD HELPERS ==========
+    // attachImageUpload adds an "Upload from computer" row right after the
+    // field; we then prepend a "Browse Library" button into that same row so
+    // both image sources sit side by side.
+    function attachImageTools(field, targetFieldId) {
+      attachImageUpload(field);
+      var row = field.nextElementSibling;
+      if (row && row.classList.contains('upload-row')) {
+        var browse = document.createElement('button');
+        browse.type = 'button';
+        browse.className = 'upload-btn';
+        browse.innerHTML = '<span class="material-icons">photo_library</span> Browse Library';
+        browse.addEventListener('click', function() { openImageLibrary(targetFieldId); });
+        row.insertBefore(browse, row.firstChild);
+      }
+    }
+
+    // ========== EMAIL GROUPS (Firestore) ==========
+    // Checkbox VALUE is the emailGroups doc id (the sendEmail callable
+    // expects doc ids, not group names).
+    var emailGroups = [];
+
+    async function loadEmailGroups() {
+      var container = document.getElementById('groupCheckboxes');
+      try {
+        emailGroups = await getEmailGroups();
+        if (!emailGroups.length) {
+          container.innerHTML = '<div style="color: #666; font-size: 0.85em;">No email groups found.</div>';
+          return;
+        }
+        container.innerHTML = emailGroups.map(function(group, i) {
+          return '<div class="checkbox-item">' +
+            '<input type="checkbox" id="group_' + i + '" name="groups" value="' + escapeHtml(group.id) + '">' +
+            '<label for="group_' + i + '" title="' + escapeHtml(group.description || '') + '">' + escapeHtml(group.name) + '</label>' +
+            '</div>';
+        }).join('');
+      } catch (error) {
+        console.error('Failed to load email groups:', error);
+        container.innerHTML = '<div style="color: #721c24; font-size: 0.85em;">Error loading groups: ' + escapeHtml(error.message) + '</div>';
+      }
+    }
+
+    // ========== SNIPPETS (shared reusable blocks) ==========
+    var snippets = [];
+
+    async function loadSnippets() {
+      try {
+        snippets = await getSnippets();
+      } catch (error) {
+        console.error('Failed to load snippets:', error);
+        snippets = [];
+      }
+      ['intro', 'outro'].forEach(function(target) {
+        var sel = document.getElementById(target + 'Snippets');
+        if (!sel) return;
+        var current = sel.value;
+        sel.innerHTML = '<option value="">Snippets…</option>' + snippets.map(function(s) {
+          return '<option value="' + escapeHtml(s.id) + '">' + escapeHtml(s.name) + '</option>';
+        }).join('');
+        sel.value = current;
+      });
+    }
+
+    function insertSnippet(target) {
+      var sel = document.getElementById(target + 'Snippets');
+      var snip = snippets.find(function(s) { return s.id === sel.value; });
+      if (!snip) {
+        showStatus('error', 'Choose a snippet from the dropdown first.');
+        return;
+      }
+      var quill = quillInstances[target];
+      if (!quill) {
+        showStatus('error', 'Select a layout first.');
+        return;
+      }
+      quill.root.innerHTML = EMPTY_CONTENT.test(quill.root.innerHTML)
+        ? snip.html
+        : quill.root.innerHTML + snip.html;
+      updatePreview();
+    }
+
+    async function saveSnippetFrom(target) {
+      var quill = quillInstances[target];
+      if (!quill || EMPTY_CONTENT.test(quill.root.innerHTML)) {
+        showStatus('error', 'Write some ' + target + ' text first, then save it as a snippet.');
+        return;
+      }
+      var name = prompt('Name this snippet (e.g. "Standard signature"):');
+      if (!name || !name.trim()) return;
+      try {
+        await saveSnippet(name.trim(), quill.root.innerHTML, currentUser.email);
+        await loadSnippets();
+        showStatus('success', 'Snippet "' + name.trim() + '" saved.');
+      } catch (error) {
+        showStatus('error', 'Failed to save snippet: ' + error.message);
+      }
+    }
+
+    async function deleteSelectedSnippet(target) {
+      var sel = document.getElementById(target + 'Snippets');
+      var snip = snippets.find(function(s) { return s.id === sel.value; });
+      if (!snip) {
+        showStatus('error', 'Choose the snippet to delete from the dropdown first.');
+        return;
+      }
+      if (!confirm('Delete the snippet "' + snip.name + '" for everyone?')) return;
+      try {
+        await deleteSnippet(snip.id);
+        await loadSnippets();
+        showStatus('success', 'Snippet deleted.');
+      } catch (error) {
+        showStatus('error', 'Failed to delete snippet: ' + error.message);
+      }
+    }
+
+    // ========== TOPIC CARD HELPERS ==========
+
+    // Create a single topic card and its Quill instances
+    function createTopicCard(id, container) {
+      var topicCard = document.createElement('div');
+      topicCard.className = 'topic-card';
+      topicCard.id = 'topicCard_' + id;
+      topicCard.innerHTML = `
+        <h4>
+          <span class="topic-chip"><span class="material-icons">topic</span></span>
+          Topic ${id}
+          <button type="button" class="remove-topic-btn" onclick="removeTopic(${id})">
+            <span class="material-icons">close</span>
+            Remove
+          </button>
+        </h4>
+        <div class="form-group">
+          <label for="topic${id}_title">Title</label>
+          <div id="topic${id}_title_container" class="quill-container"></div>
+        </div>
+        <div class="form-group">
+          <label for="topic${id}_description">Description</label>
+          <div id="topic${id}_description_container" class="quill-container"></div>
+        </div>
+        <div class="form-group">
+          <label for="topic${id}_image">Image URL</label>
+          <input type="url" id="topic${id}_image" name="topic${id}_image" placeholder="https://example.com/image.jpg">
+          <div class="image-size-control">
+            <label>
+              <span>Image Size</span>
+              <span class="size-value" id="topic${id}_size_value">100%</span>
+            </label>
+            <input type="range" id="topic${id}_size" name="topic${id}_size" min="10" max="100" value="100" oninput="updateImageSize(${id})">
+          </div>
+          <div class="image-align-control">
+            <label for="topic${id}_align">Alignment</label>
+            <select id="topic${id}_align" name="topic${id}_align" onchange="updatePreview()">
+              <option value="center">Center</option>
+              <option value="left">Left</option>
+              <option value="right">Right</option>
+            </select>
+          </div>
+          <div class="image-bg-control">
+            <label for="topic${id}_bg">Background Color (optional)</label>
+            <input type="color" id="topic${id}_bg" name="topic${id}_bg" value="#ffffff" onchange="updatePreview()">
+            <div class="checkbox-wrapper">
+              <input type="checkbox" id="topic${id}_bg_enable" name="topic${id}_bg_enable" onchange="updatePreview()">
+              <label for="topic${id}_bg_enable">Enable background</label>
+            </div>
+          </div>
+          <small>Optional: Add an image to this topic</small>
+        </div>
+        <div class="button-link-control">
+          <label for="topic${id}_button_text">Button/Link (optional)</label>
+          <input type="text" id="topic${id}_button_text" name="topic${id}_button_text" placeholder="Button text (e.g., Learn More)" onchange="updatePreview()">
+          <input type="url" id="topic${id}_button_url" name="topic${id}_button_url" placeholder="Button URL (e.g., https://example.com)" onchange="updatePreview()">
+          <small>Add a clickable button or link to this topic</small>
+        </div>
+        <div class="divider-control">
+          <label for="topic${id}_divider">
+            <input type="checkbox" id="topic${id}_divider" name="topic${id}_divider" onchange="updatePreview()">
+            <span>Show divider after this topic</span>
+          </label>
+        </div>
+      `;
+      container.appendChild(topicCard);
+
+      // Browse-library + upload-from-computer row under the image URL field
+      attachImageTools(document.getElementById('topic' + id + '_image'), 'topic' + id + '_image');
+
+      // Initialize Quill for title field
+      var titleQuill = new Quill('#topic' + id + '_title_container', {
+        theme: 'snow',
+        placeholder: 'Enter topic title...',
+        modules: {
+          toolbar: [
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'header': [1, 2, 3, false] }],
+            ['link'],
+            ['clean']
+          ]
+        }
+      });
+      quillInstances['topic' + id + '_title'] = titleQuill;
+      titleQuill.on('text-change', updatePreviewDebounced);
+
+      // Initialize Quill for description field
+      var descQuill = new Quill('#topic' + id + '_description_container', {
+        theme: 'snow',
+        placeholder: 'Enter topic description...',
+        modules: {
+          toolbar: [
+            ['bold', 'italic', 'underline', 'strike'],
+            ['blockquote', 'code-block'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'header': [1, 2, 3, false] }],
+            ['link'],
+            ['clean']
+          ]
+        }
+      });
+      quillInstances['topic' + id + '_description'] = descQuill;
+      descQuill.on('text-change', updatePreviewDebounced);
+
+      // Input listeners for non-Quill fields
+      topicCard.querySelectorAll('input').forEach(function(field) {
+        field.addEventListener('input', updatePreview);
+      });
+    }
+
+    // Add a new topic card
+    function addTopic() {
+      nextTopicId++;
+      createTopicCard(nextTopicId, document.getElementById('topicFields'));
+      updatePreview();
+    }
+
+    // Remove a topic card by its ID
+    function removeTopic(id) {
+      var card = document.getElementById('topicCard_' + id);
+      if (card) card.remove();
+      delete quillInstances['topic' + id + '_title'];
+      delete quillInstances['topic' + id + '_description'];
+      updatePreview();
+    }
+
+    // Collect all topics in DOM order
+    function collectTopics() {
+      var topics = [];
+      document.querySelectorAll('.topic-card').forEach(function(card) {
+        var id = card.id.replace('topicCard_', '');
+        var imageField    = document.getElementById('topic' + id + '_image');
+        var sizeField     = document.getElementById('topic' + id + '_size');
+        var alignField    = document.getElementById('topic' + id + '_align');
+        var bgColorField  = document.getElementById('topic' + id + '_bg');
+        var bgEnableField = document.getElementById('topic' + id + '_bg_enable');
+        var btnTextField  = document.getElementById('topic' + id + '_button_text');
+        var btnUrlField   = document.getElementById('topic' + id + '_button_url');
+        var dividerField  = document.getElementById('topic' + id + '_divider');
+        var titleQuill    = quillInstances['topic' + id + '_title'];
+        var descQuill     = quillInstances['topic' + id + '_description'];
+
+        topics.push({
+          title:      titleQuill    ? titleQuill.root.innerHTML   : '',
+          description:descQuill     ? descQuill.root.innerHTML    : '',
+          image:      imageField    ? imageField.value            : '',
+          imageSize:  sizeField     ? parseInt(sizeField.value)   : 100,
+          imageAlign: alignField    ? alignField.value            : 'center',
+          bgColor:    bgColorField  ? bgColorField.value          : '#ffffff',
+          bgEnabled:  bgEnableField ? bgEnableField.checked       : false,
+          buttonText: btnTextField  ? btnTextField.value          : '',
+          buttonUrl:  btnUrlField   ? btnUrlField.value           : '',
+          showDivider:dividerField  ? dividerField.checked        : false
+        });
+      });
+      return topics;
+    }
+
+    // Visible layout buttons drive the hidden select (which draft-loading
+    // also drives directly via a synthetic change event).
+    function chooseTemplate(template) {
+      var select = document.getElementById('template');
+      select.value = template;
+      select.dispatchEvent(new Event('change'));
+    }
+
+    function syncLayoutButtons(template) {
+      document.querySelectorAll('#layoutButtons .seg-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.template === template);
+      });
+    }
+
+    // Quill (snow theme) inserts its toolbar as a sibling BEFORE the container,
+    // so clearing the container alone leaves old toolbars behind on re-init.
+    function resetQuillMount(id) {
+      var el = document.getElementById(id);
+      el.innerHTML = '';
+      el.className = 'quill-container';
+      var sib = el.previousElementSibling;
+      while (sib && sib.classList.contains('ql-toolbar')) {
+        var stale = sib;
+        sib = sib.previousElementSibling;
+        stale.remove();
+      }
+    }
+
+    // Template selection handler
+    document.getElementById('template').addEventListener('change', function() {
+      var template = this.value;
+      var contentSection = document.getElementById('contentSection');
+      var topicFields = document.getElementById('topicFields');
+
+      syncLayoutButtons(template);
+
+      if (!template) {
+        contentSection.style.display = 'none';
+        document.getElementById('contentPlaceholder').style.display = 'block';
+        updatePreview();
+        return;
+      }
+
+      // Save current form data before switching
+      saveFormData();
+
+      contentSection.style.display = 'block';
+      document.getElementById('contentPlaceholder').style.display = 'none';
+      topicFields.innerHTML = '';
+
+      // Reset Quill instances and topic counter
+      quillInstances = {};
+      nextTopicId = 0;
+
+      // Reset and init intro Quill
+      resetQuillMount('intro_container');
+      var introQuill = new Quill('#intro_container', {
+        theme: 'snow',
+        placeholder: 'Optional intro text that appears above all topics...',
+        modules: { toolbar: [['bold','italic','underline'],[{'list':'ordered'},{'list':'bullet'}],['link'],['clean']] }
+      });
+      quillInstances['intro'] = introQuill;
+      introQuill.on('text-change', updatePreviewDebounced);
+
+      // Define topic counts per template
+      var topicCounts = { 'hero': 3, 'stacked': 3, 'offset': 3, 'split': 3, 'showcase': 3, 'grid': 4, 'digest': 4 };
+      var topicCount = topicCounts[template] || 3;
+
+      // Create initial topic cards
+      for (var i = 1; i <= topicCount; i++) {
+        nextTopicId = i;
+        createTopicCard(i, topicFields);
+      }
+
+      // Show the Add Topic button
+      document.getElementById('addTopicBtn').style.display = 'flex';
+
+      // Reset and init outro Quill
+      resetQuillMount('outro_container');
+      var outroQuill = new Quill('#outro_container', {
+        theme: 'snow',
+        placeholder: 'Optional outro text that appears below all topics...',
+        modules: { toolbar: [['bold','italic','underline'],[{'list':'ordered'},{'list':'bullet'}],['link'],['clean']] }
+      });
+      quillInstances['outro'] = outroQuill;
+      outroQuill.on('text-change', updatePreviewDebounced);
+
+      // Restore saved form data
+      restoreFormData();
+
+      updatePreview();
+    });
+
+    // Save form data (used when switching templates)
+    function saveFormData() {
+      formData = {
+        subject:    document.getElementById('subject').value,
+        subheading: document.getElementById('subheading').value,
+        intro:      quillInstances['intro'] ? quillInstances['intro'].root.innerHTML : '',
+        outro:      quillInstances['outro'] ? quillInstances['outro'].root.innerHTML : '',
+        headerIcon: collectHeaderIcon(),
+        topics:     collectTopics()
+      };
+    }
+
+    // Restore header icon fields from saved data
+    function restoreHeaderIcon(iconData) {
+      if (!iconData) return;
+      var urlField = document.getElementById('headerIcon_url');
+      urlField.value = iconData.url || '';
+      document.getElementById('headerIcon_size').value = iconData.size || 60;
+      document.getElementById('headerIcon_size_value').textContent = (iconData.size || 60) + 'px';
+      setIconPosition(iconData.position || 'right');
+      setBannerColor(iconData.bannerColor || 'blue');
+    }
+
+    // Restore form data after template switch
+    function restoreFormData() {
+      if (!formData.topics || formData.topics.length === 0) return;
+
+      if (formData.intro && quillInstances['intro']) {
+        quillInstances['intro'].root.innerHTML = formData.intro;
+      }
+      if (formData.outro && quillInstances['outro']) {
+        quillInstances['outro'].root.innerHTML = formData.outro;
+      }
+
+      restoreHeaderIcon(formData.headerIcon);
+
+      var topicCards = document.querySelectorAll('.topic-card');
+      var topicsToRestore = Math.min(formData.topics.length, topicCards.length);
+
+      for (var i = 0; i < topicsToRestore; i++) {
+        var id = topicCards[i].id.replace('topicCard_', '');
+        var topic = formData.topics[i];
+
+        var imageField    = document.getElementById('topic' + id + '_image');
+        var sizeField     = document.getElementById('topic' + id + '_size');
+        var alignField    = document.getElementById('topic' + id + '_align');
+        var bgColorField  = document.getElementById('topic' + id + '_bg');
+        var bgEnableField = document.getElementById('topic' + id + '_bg_enable');
+        var btnTextField  = document.getElementById('topic' + id + '_button_text');
+        var btnUrlField   = document.getElementById('topic' + id + '_button_url');
+        var dividerField  = document.getElementById('topic' + id + '_divider');
+        var titleQuill    = quillInstances['topic' + id + '_title'];
+        var descQuill     = quillInstances['topic' + id + '_description'];
+
+        if (titleQuill) titleQuill.root.innerHTML = topic.title || '';
+        if (imageField) imageField.value = topic.image || '';
+        if (sizeField) { sizeField.value = topic.imageSize || 100; updateImageSize(id); }
+        if (alignField) alignField.value = topic.imageAlign || 'center';
+        if (bgColorField) bgColorField.value = topic.bgColor || '#ffffff';
+        if (bgEnableField) bgEnableField.checked = topic.bgEnabled || false;
+        if (btnTextField) btnTextField.value = topic.buttonText || '';
+        if (btnUrlField) btnUrlField.value = topic.buttonUrl || '';
+        if (dividerField) dividerField.checked = topic.showDivider || false;
+        if (descQuill) descQuill.root.innerHTML = topic.description || '';
+      }
+    }
+
+    // Debounce function for better performance
+    var updatePreviewTimeout = null;
+
+    function updatePreviewDebounced() {
+      if (updatePreviewTimeout) {
+        clearTimeout(updatePreviewTimeout);
+      }
+
+      updatePreviewTimeout = setTimeout(function() {
+        updatePreview();
+      }, 300); // Wait 300ms after last change
+    }
+
+    // Subject and subheading change handlers with debounce
+    document.getElementById('subject').addEventListener('input', updatePreviewDebounced);
+    document.getElementById('subheading').addEventListener('input', updatePreviewDebounced);
+
+    // Header icon URL — trigger preview (controls remain visible at all times)
+    document.getElementById('headerIcon_url').addEventListener('input', updatePreviewDebounced);
+
+    // Set banner color (button toggle)
+    function setBannerColor(color) {
+      document.getElementById('bannerColor').value = color;
+      document.querySelectorAll('.seg-btn[data-color]').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.color === color);
+      });
+      updatePreview();
+    }
+
+    // Set header icon position (button grid)
+    function setIconPosition(pos) {
+      document.getElementById('headerIcon_position').value = pos;
+      document.querySelectorAll('.seg-btn[data-pos]').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.pos === pos);
+      });
+      updatePreview();
+    }
+
+    // Update header icon size display
+    function updateHeaderIconSize() {
+      var slider = document.getElementById('headerIcon_size');
+      document.getElementById('headerIcon_size_value').textContent = slider.value + 'px';
+      updatePreview();
+    }
+
+    // Collect header icon fields
+    function collectHeaderIcon() {
+      return {
+        url:         document.getElementById('headerIcon_url').value || '',
+        size:        parseInt(document.getElementById('headerIcon_size').value) || 60,
+        position:    document.getElementById('headerIcon_position').value || 'right',
+        bannerColor: document.getElementById('bannerColor').value || 'blue'
+      };
+    }
+
+    // Update image size display and preview
+    function updateImageSize(topicNum) {
+      var slider = document.getElementById('topic' + topicNum + '_size');
+      var valueDisplay = document.getElementById('topic' + topicNum + '_size_value');
+      if (slider && valueDisplay) {
+        valueDisplay.textContent = slider.value + '%';
+        updatePreview();
+      }
+    }
+
+    // Add recipient row
+    function addRecipientRow() {
+      recipientCounter++;
+      var recipientsList = document.getElementById('recipientsList');
+      var row = document.createElement('div');
+      row.className = 'recipient-row';
+      row.id = 'recipient_' + recipientCounter;
+      row.innerHTML = `
+        <select name="recipient_type_${recipientCounter}">
+          <option value="to">To</option>
+          <option value="cc">Cc</option>
+          <option value="bcc">Bcc</option>
+        </select>
+        <input type="email" name="recipient_email_${recipientCounter}" placeholder="email@example.com">
+        <button type="button" onclick="removeRecipient(${recipientCounter})">
+          <span class="material-icons">delete</span>
+        </button>
+      `;
+      recipientsList.appendChild(row);
+    }
+
+    // Remove recipient row
+    function removeRecipient(id) {
+      var row = document.getElementById('recipient_' + id);
+      if (row) {
+        row.remove();
+      }
+    }
+
+    // ========== IMAGE LIBRARY ==========
+    var cachedImages = null;
+
+    async function openImageLibrary(targetFieldId) {
+      currentTargetField = targetFieldId;
+      var modal = document.getElementById('imageModal');
+      modal.classList.add('show');
+
+      var spinner = document.getElementById('imageLoadingSpinner');
+      var grid = document.getElementById('imageGrid');
+
+      // Check frontend cache first
+      if (cachedImages) {
+        renderImageGrid(cachedImages, grid, spinner);
+        return;
+      }
+
+      // Load images from Firestore
+      spinner.style.display = 'block';
+      grid.style.display = 'none';
+      grid.innerHTML = '';
+
+      try {
+        var images = await getImages();
+        cachedImages = images; // Cache for next time
+        renderImageGrid(images, grid, spinner);
+      } catch (error) {
+        spinner.innerHTML = 'Error loading images: ' + escapeHtml(error.message);
+      }
+    }
+
+    // Render image grid (used for both cached and fresh data)
+    function renderImageGrid(images, grid, spinner) {
+      spinner.style.display = 'none';
+
+      if (!images || images.length === 0) {
+        grid.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">No images found in library.</p>';
+        grid.style.display = 'block';
+        return;
+      }
+
+      grid.innerHTML = '';
+
+      images.forEach(function(image) {
+        var imageItem = document.createElement('div');
+        imageItem.className = 'image-item';
+        imageItem.onclick = function() {
+          selectImage(image.url);
+        };
+        imageItem.innerHTML = `
+          <img src="${escapeHtml(image.url)}" alt="${escapeHtml(image.description)}" onerror="this.style.display='none';">
+          <div class="image-item-description">${escapeHtml(image.description)}</div>
+        `;
+        grid.appendChild(imageItem);
+      });
+
+      grid.style.display = 'grid';
+    }
+
+    // Close image library
+    function closeImageLibrary() {
+      document.getElementById('imageModal').classList.remove('show');
+      currentTargetField = null;
+    }
+
+    // Select image from library
+    function selectImage(url) {
+      if (currentTargetField) {
+        var field = document.getElementById(currentTargetField);
+        if (field) {
+          field.value = url;
+          updatePreview();
+        }
+      }
+      closeImageLibrary();
+    }
+
+    // Update preview
+    function updatePreview() {
+      var template = document.getElementById('template').value;
+      var subject = document.getElementById('subject').value;
+      var subheading = document.getElementById('subheading').value;
+      var preview = document.getElementById('emailPreview');
+
+      if (!template) {
+        preview.innerHTML = '<p style="color: #666; text-align: center; padding: 40px 20px;">Select a layout to see your email preview</p>';
+        return;
+      }
+
+      var topics = collectTopics();
+      var intro      = quillInstances['intro'] ? quillInstances['intro'].root.innerHTML : '';
+      var outro      = quillInstances['outro'] ? quillInstances['outro'].root.innerHTML : '';
+      var headerIcon = collectHeaderIcon();
+
+      preview.innerHTML = generateEmailHTML(template, subject, subheading, topics, intro, outro, headerIcon);
+    }
+
+    // Generate email HTML based on template
+    function generateEmailHTML(template, subject, subheading, topics, intro, outro, headerIcon) {
+      var BRAND_COLORS = {
+        primaryBlue: '#2d3f69',
+        primaryRed: '#ad2122',
+        primaryGray: '#4a4a4a'
+      };
+
+      var EMPTY_CONTENT = /^(<p>(<br>|&nbsp;|\s)*<\/p>\s*)+$/;
+
+      var html = '<div style="font-family: Arial, Helvetica, sans-serif; max-width: 800px; margin: 0 auto; background: #f0f2f5; padding: 20px;">';
+
+      // ── Header ──
+      var titleHtml = '<h1 style="margin: 0; font-size: 28px; font-weight: 700;">' + (subject || 'Newsletter Title') + '</h1>';
+      var subHtml   = subheading ? '<p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">' + subheading + '</p>' : '';
+      var textBlock = '<div>' + titleHtml + subHtml + '</div>';
+
+      var headerInner = '';
+      if (headerIcon && headerIcon.url) {
+        var sz  = headerIcon.size || 60;
+        var pos = headerIcon.position || 'right';
+        var iconImg = '<img src="' + headerIcon.url + '" style="width:' + sz + 'px;height:' + sz + 'px;object-fit:contain;" alt="">';
+
+        if (pos === 'above') {
+          // Stack icon above, text below — both centered
+          headerInner = '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">'
+            + '<tr><td style="text-align:center;padding-bottom:12px;">' + iconImg + '</td></tr>'
+            + '<tr><td style="text-align:center;">' + titleHtml + subHtml + '</td></tr>'
+            + '</table>';
+        } else if (pos === 'below') {
+          // Text above, icon below — both centered
+          headerInner = '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">'
+            + '<tr><td style="text-align:center;">' + titleHtml + subHtml + '</td></tr>'
+            + '<tr><td style="text-align:center;padding-top:12px;">' + iconImg + '</td></tr>'
+            + '</table>';
+        } else if (pos === 'left') {
+          // 3-column: icon | centered text | spacer (spacer mirrors icon width to keep text truly centered)
+          headerInner = '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">'
+            + '<tr>'
+            + '<td style="width:' + sz + 'px;vertical-align:middle;text-align:left;">' + iconImg + '</td>'
+            + '<td style="text-align:center;vertical-align:middle;">' + titleHtml + subHtml + '</td>'
+            + '<td style="width:' + sz + 'px;"></td>'
+            + '</tr></table>';
+        } else {
+          // right — 3-column: spacer | centered text | icon
+          headerInner = '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">'
+            + '<tr>'
+            + '<td style="width:' + sz + 'px;"></td>'
+            + '<td style="text-align:center;vertical-align:middle;">' + titleHtml + subHtml + '</td>'
+            + '<td style="width:' + sz + 'px;vertical-align:middle;text-align:right;">' + iconImg + '</td>'
+            + '</tr></table>';
+        }
+      } else {
+        headerInner = titleHtml + subHtml;
+      }
+
+      var bannerBg = (headerIcon && headerIcon.bannerColor === 'red') ? BRAND_COLORS.primaryRed : BRAND_COLORS.primaryBlue;
+      html += '<div style="background: ' + bannerBg + '; color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">';
+      html += headerInner;
+      html += '</div>';
+
+      // Content body
+      html += '<div style="background: white; padding: 30px; border-radius: 0 0 8px 8px;">';
+
+      // Intro text
+      if (intro && !EMPTY_CONTENT.test(intro)) {
+        html += '<div style="color: ' + BRAND_COLORS.primaryGray + '; margin-bottom: 28px; padding-bottom: 22px; border-bottom: 2px solid #e8ecf4;">' + processQuillHTML(intro) + '</div>';
+      }
+
+      if (template === 'hero') {
+        // Hero: Large first topic, two side-by-side, extra topics stacked below
+        if (topics[0]) {
+          html += generateTopicHTML(topics[0], 'full', BRAND_COLORS);
+        }
+        if (topics[1] || topics[2]) {
+          html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">';
+          if (topics[1]) html += '<div>' + generateTopicHTML(topics[1], 'half', BRAND_COLORS) + '</div>';
+          if (topics[2]) html += '<div>' + generateTopicHTML(topics[2], 'half', BRAND_COLORS) + '</div>';
+          html += '</div>';
+        }
+        // Extra topics (4+) rendered full-width below
+        for (var h = 3; h < topics.length; h++) {
+          html += '<div style="margin-top: 30px;">' + generateTopicHTML(topics[h], 'full', BRAND_COLORS) + '</div>';
+        }
+
+      } else if (template === 'stacked') {
+        // Stacked: All topics full-width, stacked vertically
+        topics.forEach(function(topic, index) {
+          if (index > 0) html += '<div style="margin-top: 30px;"></div>';
+          html += generateTopicHTML(topic, 'full', BRAND_COLORS);
+        });
+
+      } else if (template === 'offset') {
+        // Offset: Alternating image-left and image-right
+        topics.forEach(function(topic, index) {
+          if (index > 0) html += '<div style="margin-top: 30px;"></div>';
+          var align = (index % 2 === 0) ? 'left' : 'right';
+          html += generateTopicHTML(topic, 'offset-' + align, BRAND_COLORS);
+        });
+
+      } else if (template === 'split') {
+        // Split: image beside text; each topic's Alignment control picks the side
+        topics.forEach(function(topic, index) {
+          if (index > 0) html += '<div style="margin-top: 30px;"></div>';
+          var side = topic.imageAlign === 'right' ? 'right' : 'left';
+          html += generateTopicHTML(topic, 'offset-' + side, BRAND_COLORS);
+        });
+
+      } else if (template === 'showcase') {
+        // Showcase: text first, image below it
+        topics.forEach(function(topic, index) {
+          if (index > 0) html += '<div style="margin-top: 30px;"></div>';
+          html += generateTopicHTML(topic, 'textfirst', BRAND_COLORS);
+        });
+
+      } else if (template === 'grid') {
+        // Grid: topics two per row; an odd last topic goes full width
+        for (var g = 0; g < topics.length; g += 2) {
+          var rowStyle = g > 0 ? 'margin-top: 26px;' : '';
+          if (topics[g + 1]) {
+            html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; ' + rowStyle + '">';
+            html += '<div>' + generateTopicHTML(topics[g], 'half', BRAND_COLORS) + '</div>';
+            html += '<div>' + generateTopicHTML(topics[g + 1], 'half', BRAND_COLORS) + '</div>';
+            html += '</div>';
+          } else {
+            html += '<div style="' + rowStyle + '">' + generateTopicHTML(topics[g], 'full', BRAND_COLORS) + '</div>';
+          }
+        }
+
+      } else if (template === 'digest') {
+        // Digest: compact thumbnail rows with automatic separators
+        topics.forEach(function(topic, index) {
+          if (index > 0) html += '<div style="margin: 18px 0; border-bottom: 1px solid #e8ecf4;"></div>';
+          html += generateTopicHTML(topic, 'digest', BRAND_COLORS);
+        });
+      }
+
+      // Outro text
+      if (outro && !EMPTY_CONTENT.test(outro)) {
+        html += '<div style="color: ' + BRAND_COLORS.primaryGray + '; margin-top: 28px; padding-top: 22px; border-top: 2px solid #e8ecf4;">' + processQuillHTML(outro) + '</div>';
+      }
+
+      html += '</div></div>';
+      return html;
+    }
+
+    // Clean up Quill-generated HTML for email rendering:
+    // - Collapses multiple consecutive empty paragraphs into one
+    // - Adds consistent inline margin/line-height to <p>, <ul>, <ol>, <li>
+    function processQuillHTML(html) {
+      if (!html) return html;
+
+      // Collapse 2+ consecutive empty paragraphs into one
+      html = html.replace(/(<p[^>]*>\s*(<br\s*\/?>\s*)?<\/p>\s*){2,}/gi, '<p style="margin:0 0 6px 0;line-height:1.65;"><br></p>');
+
+      // Strip leading/trailing empty paragraphs from the whole block
+      html = html.replace(/^(\s*<p[^>]*>\s*(<br\s*\/?>\s*)?<\/p>\s*)+/i, '');
+      html = html.replace(/(\s*<p[^>]*>\s*(<br\s*\/?>\s*)?<\/p>\s*)+$/i, '');
+
+      // <p> — no existing style
+      html = html.replace(/<p>/gi, '<p style="margin:0 0 10px 0;line-height:1.65;">');
+      // <p ...> with attributes but no style
+      html = html.replace(/<p ((?!style=)[^>]+)>/gi, '<p style="margin:0 0 10px 0;line-height:1.65;" $1>');
+
+      // <ul> — unordered lists
+      html = html.replace(/<ul>/gi, '<ul style="margin:0 0 10px 0;padding-left:24px;line-height:1.65;">');
+      html = html.replace(/<ul ((?!style=)[^>]+)>/gi, '<ul style="margin:0 0 10px 0;padding-left:24px;line-height:1.65;" $1>');
+
+      // <ol> — ordered lists
+      html = html.replace(/<ol>/gi, '<ol style="margin:0 0 10px 0;padding-left:24px;line-height:1.65;">');
+      html = html.replace(/<ol ((?!style=)[^>]+)>/gi, '<ol style="margin:0 0 10px 0;padding-left:24px;line-height:1.65;" $1>');
+
+      // <li> — list items (same bottom spacing as paragraphs, no double gap)
+      html = html.replace(/<li>/gi, '<li style="margin:0 0 4px 0;line-height:1.65;">');
+      html = html.replace(/<li ((?!style=)[^>]+)>/gi, '<li style="margin:0 0 4px 0;line-height:1.65;" $1>');
+
+      return html;
+    }
+
+    // Generate individual topic HTML
+    function generateTopicHTML(topic, layout, colors) {
+      if (!topic.title && !topic.description) return '';
+
+      var html = '';
+
+      var imageSize = topic.imageSize || 100;
+      var imageAlign = topic.imageAlign || 'center';
+      var bgEnabled = topic.bgEnabled || false;
+      var bgColor = topic.bgColor || '#ffffff';
+
+      // Helper function to build image tag with alignment and background
+      function buildImageTag(src, width, maxHeight, additionalStyles) {
+        var baseStyle = 'object-fit: contain; border-radius: 8px;';
+        var displayStyle = 'display: block;';
+        var marginStyle = '';
+
+        // Apply alignment
+        if (imageAlign === 'center') {
+          marginStyle = 'margin-left: auto; margin-right: auto;';
+        } else if (imageAlign === 'left') {
+          marginStyle = 'margin-left: 0; margin-right: auto;';
+        } else if (imageAlign === 'right') {
+          marginStyle = 'margin-left: auto; margin-right: 0;';
+        }
+
+        // Apply background if enabled
+        var bgStyle = '';
+        if (bgEnabled && bgColor) {
+          bgStyle = 'background-color: ' + bgColor + '; padding: 15px;';
+        }
+
+        var fullStyle = baseStyle + displayStyle + marginStyle + bgStyle + (additionalStyles || '');
+        return '<img src="' + src + '" style="' + fullStyle + '" alt="' + topic.title + '">';
+      }
+
+      // Helper function to build button HTML
+      function buildButton(text, url) {
+        if (!text || !url) return '';
+        return '<div style="margin-top: 20px;"><a href="' + url + '" style="display: inline-block; padding: 12px 24px; background: ' + colors.primaryBlue + '; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: background 0.3s;">' + text + '</a></div>';
+      }
+
+      var titleHTML = processQuillHTML(topic.title);
+      var descHTML  = processQuillHTML(topic.description);
+
+      if (layout === 'full') {
+        if (topic.image) {
+          html += buildImageTag(topic.image, imageSize + '%', '400px', 'width: ' + imageSize + '%; max-height: 400px; margin-bottom: 20px;');
+        }
+        html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 12px 0; font-size: 24px; font-weight: 600;">' + titleHTML + '</div>';
+        html += '<div style="color: ' + colors.primaryGray + '; margin: 0;">' + descHTML + '</div>';
+        html += buildButton(topic.buttonText, topic.buttonUrl);
+        if (topic.showDivider) {
+          html += '<div style="margin: 30px 0; border-bottom: 2px solid #e0e0e0;"></div>';
+        }
+
+      } else if (layout === 'half') {
+        if (topic.image) {
+          html += buildImageTag(topic.image, imageSize + '%', '220px', 'width: ' + imageSize + '%; max-height: 220px; margin-bottom: 15px;');
+        }
+        html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: 18px; font-weight: 600;">' + titleHTML + '</div>';
+        html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: 14px;">' + descHTML + '</div>';
+        html += buildButton(topic.buttonText, topic.buttonUrl);
+        if (topic.showDivider) {
+          html += '<div style="margin: 20px 0; border-bottom: 2px solid #e0e0e0;"></div>';
+        }
+
+      } else if (layout.startsWith('offset-')) {
+        var offsetAlign = layout.split('-')[1];
+        if (topic.image) {
+          var offsetImageWidth = Math.round(200 * (imageSize / 100));
+          var imgStyle = 'width: ' + offsetImageWidth + 'px; max-height: 220px; object-fit: contain; border-radius: 8px; flex-shrink: 0;';
+          if (bgEnabled && bgColor) {
+            imgStyle += ' background-color: ' + bgColor + '; padding: 15px;';
+          }
+
+          if (offsetAlign === 'left') {
+            html += '<div style="display: flex; gap: 20px; align-items: flex-start;">';
+            html += '<img src="' + topic.image + '" style="' + imgStyle + '" alt="' + topic.title + '">';
+            html += '<div>';
+            html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: 20px; font-weight: 600;">' + titleHTML + '</div>';
+            html += '<div style="color: ' + colors.primaryGray + '; margin: 0;">' + descHTML + '</div>';
+            html += buildButton(topic.buttonText, topic.buttonUrl);
+            html += '</div></div>';
+          } else {
+            html += '<div style="display: flex; gap: 20px; align-items: flex-start;">';
+            html += '<div>';
+            html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: 20px; font-weight: 600;">' + titleHTML + '</div>';
+            html += '<div style="color: ' + colors.primaryGray + '; margin: 0;">' + descHTML + '</div>';
+            html += buildButton(topic.buttonText, topic.buttonUrl);
+            html += '</div>';
+            html += '<img src="' + topic.image + '" style="' + imgStyle + '" alt="' + topic.title + '">';
+            html += '</div>';
+          }
+        } else {
+          html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: 20px; font-weight: 600;">' + titleHTML + '</div>';
+          html += '<div style="color: ' + colors.primaryGray + '; margin: 0;">' + descHTML + '</div>';
+          html += buildButton(topic.buttonText, topic.buttonUrl);
+        }
+        if (topic.showDivider) {
+          html += '<div style="margin: 30px 0; border-bottom: 2px solid #e0e0e0;"></div>';
+        }
+
+      } else if (layout === 'textfirst') {
+        // Showcase: title + description first, image underneath, button last
+        html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 12px 0; font-size: 24px; font-weight: 600;">' + titleHTML + '</div>';
+        html += '<div style="color: ' + colors.primaryGray + '; margin: 0;">' + descHTML + '</div>';
+        if (topic.image) {
+          html += buildImageTag(topic.image, imageSize + '%', '400px', 'width: ' + imageSize + '%; max-height: 400px; margin-top: 18px;');
+        }
+        html += buildButton(topic.buttonText, topic.buttonUrl);
+        if (topic.showDivider) {
+          html += '<div style="margin: 30px 0; border-bottom: 2px solid #e0e0e0;"></div>';
+        }
+
+      } else if (layout === 'digest') {
+        // Digest: small fixed thumbnail beside compact text; text link instead
+        // of a button. Separators come from the template loop, and the size
+        // slider is ignored (thumbnails stay uniform).
+        var thumb = '';
+        if (topic.image) {
+          var thumbStyle = 'width: 90px; height: 90px; object-fit: contain; border-radius: 8px; flex-shrink: 0;';
+          if (bgEnabled && bgColor) {
+            thumbStyle += ' background-color: ' + bgColor + '; padding: 8px;';
+          }
+          thumb = '<img src="' + topic.image + '" style="' + thumbStyle + '" alt="' + topic.title + '">';
+        }
+        html += '<div style="display: flex; gap: 16px; align-items: flex-start;">';
+        html += thumb;
+        html += '<div style="flex: 1;">';
+        html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 6px 0; font-size: 18px; font-weight: 600;">' + titleHTML + '</div>';
+        html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: 14px;">' + descHTML + '</div>';
+        if (topic.buttonText && topic.buttonUrl) {
+          html += '<div style="margin-top: 8px;"><a href="' + topic.buttonUrl + '" style="color: ' + colors.primaryRed + '; font-weight: 600; text-decoration: none; font-size: 14px;">' + topic.buttonText + ' &rarr;</a></div>';
+        }
+        html += '</div></div>';
+      }
+
+      return html;
+    }
+
+    // Copy composed email as rich HTML for pasting into Gmail compose
+    function copyForGmail() {
+      var template = document.getElementById('template').value;
+      var subject  = document.getElementById('subject').value;
+
+      if (!template) {
+        showStatus('error', 'Please select a layout first');
+        setTab('setup');
+        return;
+      }
+      if (!subject) {
+        showStatus('error', 'Please enter a subject line first');
+        setTab('setup');
+        return;
+      }
+
+      var subheading = document.getElementById('subheading').value;
+      var topics = collectTopics();
+      var intro  = quillInstances['intro'] ? quillInstances['intro'].root.innerHTML : '';
+      var outro  = quillInstances['outro'] ? quillInstances['outro'].root.innerHTML : '';
+      var html   = generateEmailHTML(template, subject, subheading, topics, intro, outro, collectHeaderIcon());
+
+      var btn = document.getElementById('copyGmailBtn');
+
+      // ── Try modern Clipboard API first (Chrome 86+, Edge 86+) ──
+      if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+        var blob = new Blob([html], { type: 'text/html' });
+        navigator.clipboard.write([new ClipboardItem({ 'text/html': blob })])
+          .then(function() {
+            btn.innerHTML = '<span class="material-icons" style="font-size:18px;color:#34a853;">check_circle</span> Copied!';
+            setTimeout(function() {
+              btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:18px;height:18px;flex-shrink:0;"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z" fill="#d93025"/></svg> Copy for Gmail';
+            }, 2500);
+            showStatus('success', 'Copied! Open Gmail → Compose → paste with Ctrl+V (or Cmd+V on Mac).');
+          })
+          .catch(function() { fallbackCopy(html, btn); });
+        return;
+      }
+
+      // ── Fallback: select rendered DOM node and execCommand('copy') ──
+      fallbackCopy(html, btn);
+    }
+
+    function fallbackCopy(html, btn) {
+      var container = document.getElementById('gmailCopyContainer');
+      container.innerHTML = html;
+
+      var range = document.createRange();
+      range.selectNodeContents(container);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+
+      var success = false;
+      try {
+        success = document.execCommand('copy');
+      } catch (e) { }
+
+      sel.removeAllRanges();
+      container.innerHTML = '';
+
+      if (success) {
+        btn.innerHTML = '<span class="material-icons" style="font-size:18px;color:#34a853;">check_circle</span> Copied!';
+        setTimeout(function() {
+          btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:18px;height:18px;flex-shrink:0;"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z" fill="#d93025"/></svg> Copy for Gmail';
+        }, 2500);
+        showStatus('success', 'Copied! Open Gmail → Compose → paste with Ctrl+V (or Cmd+V on Mac).');
+      } else {
+        showStatus('error', 'Copy failed — try using Chrome or Edge for best results.');
+      }
+    }
+
+    // Reset form
+    function resetForm() {
+      if (confirm('Are you sure you want to reset the form? All unsaved changes will be lost.')) {
+        document.getElementById('composeForm').reset();
+        document.getElementById('recipientsList').innerHTML = '';
+        document.getElementById('contentSection').style.display = 'none';
+        document.getElementById('contentPlaceholder').style.display = 'block';
+        document.getElementById('template').value = '';
+        syncLayoutButtons('');
+        setBannerColor('blue');
+        setIconPosition('right');
+        formData = {};
+        quillInstances = {};
+        addRecipientRow();
+        setTab('setup');
+        updatePreview();
+      }
+    }
+
+    // Collect the full send payload (shared by Send / Schedule).
+    // Returns null (after showing an error) if validation fails.
+    function collectSendPayload() {
+      var template = document.getElementById('template').value;
+      var subject = document.getElementById('subject').value;
+
+      if (!subject) {
+        showStatus('error', 'Please enter a subject line');
+        setTab('setup');
+        return null;
+      }
+
+      var subheading = document.getElementById('subheading').value;
+      var topics = collectTopics();
+      var intro = quillInstances['intro'] ? quillInstances['intro'].root.innerHTML : '';
+      var outro = quillInstances['outro'] ? quillInstances['outro'].root.innerHTML : '';
+
+      // Collect recipients
+      var recipients = { to: [], cc: [], bcc: [] };
+      document.querySelectorAll('.recipient-row').forEach(function(row) {
+        var typeSelect = row.querySelector('select');
+        var emailInput = row.querySelector('input[type="email"]');
+        if (typeSelect && emailInput && emailInput.value) {
+          recipients[typeSelect.value].push(emailInput.value);
+        }
+      });
+
+      // Collect selected groups (checkbox values are emailGroups doc ids)
+      var groupIds = [];
+      document.querySelectorAll('input[name="groups"]:checked').forEach(function(checkbox) {
+        groupIds.push(checkbox.value);
+      });
+
+      var hasRecipients = recipients.to.length > 0 || recipients.cc.length > 0 ||
+                          recipients.bcc.length > 0 || groupIds.length > 0;
+      if (!hasRecipients) {
+        showStatus('error', 'Please add at least one recipient or select a group');
+        setTab('recipients');
+        return null;
+      }
+
+      return {
+        subject: subject,
+        bodyHtml: generateEmailHTML(template, subject, subheading, topics, intro, outro, collectHeaderIcon()),
+        groupIds: groupIds,
+        individualRecipients: recipients,
+        templateUsed: template + ' Layout'
+      };
+    }
+
+    // Archive email that was sent manually from Gmail
+    async function archiveSentEmail() {
+      var statusMessage = document.getElementById('statusMessage');
+      statusMessage.style.display = 'none';
+
+      // Collect form data
+      var template = document.getElementById('template').value;
+      var subject = document.getElementById('subject').value;
+      var subheading = document.getElementById('subheading').value;
+
+      if (!subject) {
+        showStatus('error', 'Please enter a subject line');
+        setTab('setup');
+        return;
+      }
+
+      // Collect topics, intro, outro
+      var topics = collectTopics();
+      var intro = quillInstances['intro'] ? quillInstances['intro'].root.innerHTML : '';
+      var outro = quillInstances['outro'] ? quillInstances['outro'].root.innerHTML : '';
+
+      // Generate final HTML
+      var bodyHtml = generateEmailHTML(template, subject, subheading, topics, intro, outro, collectHeaderIcon());
+
+      // Disable archive button
+      var archiveBtn = document.getElementById('archiveBtn');
+      archiveBtn.disabled = true;
+      archiveBtn.innerHTML = '<span class="material-icons">hourglass_empty</span> Archiving...';
+
+      // Archive to Firestore (communications collection)
+      try {
+        await archiveManualEmail(subject, bodyHtml, template + ' Layout');
+
+        archiveBtn.disabled = false;
+        archiveBtn.innerHTML = '<span class="material-icons">archive</span> Mark as Sent & Archive';
+
+        showStatus('success', 'Email archived successfully!');
+        // Clear draft and reset form after archiving
+        clearDraft();
+        setTimeout(function() {
+          if (confirm('Email archived! Would you like to compose another email?')) {
+            resetForm();
+          }
+        }, 1500);
+      } catch (error) {
+        archiveBtn.disabled = false;
+        archiveBtn.innerHTML = '<span class="material-icons">archive</span> Mark as Sent & Archive';
+        showStatus('error', 'Error: ' + error.message);
+      }
+    }
+
+    // Send preview to current user
+    async function sendPreview(previewBtn) {
+      var statusMessage = document.getElementById('statusMessage');
+      statusMessage.style.display = 'none';
+
+      // Collect form data
+      var template = document.getElementById('template').value;
+      var subject = document.getElementById('subject').value;
+      var subheading = document.getElementById('subheading').value;
+
+      if (!subject) {
+        showStatus('error', 'Please enter a subject line');
+        setTab('setup');
+        return;
+      }
+
+      // Collect topics, intro, outro
+      var topics = collectTopics();
+      var intro = quillInstances['intro'] ? quillInstances['intro'].root.innerHTML : '';
+      var outro = quillInstances['outro'] ? quillInstances['outro'].root.innerHTML : '';
+
+      // Generate final HTML
+      var bodyHtml = generateEmailHTML(template, subject, subheading, topics, intro, outro, collectHeaderIcon());
+
+      // Disable preview button
+      previewBtn.disabled = true;
+      previewBtn.innerHTML = '<span class="material-icons">hourglass_empty</span> Sending Preview...';
+
+      // Send preview email via Cloud Function (goes to the signed-in user only)
+      try {
+        var result = (await sendPreviewEmailFn({
+          subject: '[PREVIEW] ' + subject,
+          bodyHtml: bodyHtml,
+          templateUsed: template + ' Layout'
+        })).data;
+
+        previewBtn.disabled = false;
+        previewBtn.innerHTML = '<span class="material-icons">preview</span> Send Preview to Me';
+
+        if (result.success) {
+          showStatus('success', result.message + ' Check your inbox to review it!');
+          // Show all sending options after preview is sent
+          document.getElementById('sendFinalBtn').style.display = 'inline-flex';
+          document.getElementById('scheduleBtn').style.display = 'inline-flex';
+          document.getElementById('archiveBtn').style.display = 'inline-flex';
+
+          // Update workflow instructions
+          var steps = document.querySelectorAll('.workflow-step');
+          steps[0].classList.add('completed');
+          steps[1].classList.add('active');
+          steps[1].style.opacity = '1';
+        } else {
+          showStatus('error', result.message);
+        }
+      } catch (error) {
+        previewBtn.disabled = false;
+        previewBtn.innerHTML = '<span class="material-icons">preview</span> Send Preview to Me';
+        showStatus('error', 'Error: ' + error.message);
+      }
+    }
+
+    // Form submission (send to actual recipients)
+    document.getElementById('composeForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      var statusMessage = document.getElementById('statusMessage');
+      statusMessage.style.display = 'none';
+
+      var payload = collectSendPayload();
+      if (!payload) return;
+
+      // Disable submit button
+      var submitBtn = this.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="material-icons">hourglass_empty</span> Sending...';
+
+      // Send email via Cloud Function
+      try {
+        var result = (await sendEmailFn(payload)).data;
+
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="material-icons">send</span> Send to Recipients';
+
+        if (result.success) {
+          showStatus('success', result.message);
+          // Clear draft and optionally reset form after successful send
+          clearDraft();
+          setTimeout(function() {
+            if (confirm('Email sent successfully! Would you like to compose another email?')) {
+              resetForm();
+            }
+          }, 1500);
+        } else {
+          showStatus('error', result.message);
+        }
+      } catch (error) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="material-icons">send</span> Send to Recipients';
+        showStatus('error', 'Error: ' + error.message);
+      }
+    });
+
+    // ========== SCHEDULE SEND ==========
+    function toLocalInputValue(date) {
+      var pad = function(n) { return String(n).padStart(2, '0'); };
+      return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
+        + 'T' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+    }
+
+    function openScheduleModal() {
+      // Validate the payload up front so problems surface before picking a time
+      if (!collectSendPayload()) return;
+
+      var input = document.getElementById('scheduleTime');
+      var soon = new Date(Date.now() + 60 * 60 * 1000); // default: one hour out
+      input.min = toLocalInputValue(new Date(Date.now() + 5 * 60 * 1000));
+      if (!input.value) input.value = toLocalInputValue(soon);
+      document.getElementById('scheduleModal').classList.add('show');
+    }
+
+    function closeScheduleModal() {
+      document.getElementById('scheduleModal').classList.remove('show');
+    }
+
+    async function confirmSchedule() {
+      var input = document.getElementById('scheduleTime');
+      if (!input.value) {
+        showStatus('error', 'Pick a date and time first.');
+        return;
+      }
+      var when = new Date(input.value);
+      if (isNaN(when.getTime()) || when.getTime() < Date.now() + 2 * 60 * 1000) {
+        showStatus('error', 'Pick a time at least a few minutes in the future.');
+        return;
+      }
+
+      var payload = collectSendPayload();
+      if (!payload) {
+        closeScheduleModal();
+        return;
+      }
+
+      var btn = document.getElementById('confirmScheduleBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="material-icons">hourglass_empty</span> Scheduling...';
+
+      try {
+        await scheduleEmail(payload, when, currentUser.email);
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-icons">schedule_send</span> Schedule';
+        closeScheduleModal();
+        showStatus('success', 'Scheduled for ' + when.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) + '. You can cancel it from the Communications page.');
+        clearDraft();
+      } catch (error) {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-icons">schedule_send</span> Schedule';
+        showStatus('error', 'Failed to schedule: ' + error.message);
+      }
+    }
+
+    // Show status message
+    function showStatus(type, message) {
+      var statusDiv = document.getElementById('statusMessage');
+      statusDiv.className = 'status-message ' + type + ' show';
+
+      var icon = type === 'success' ? 'check_circle' : 'error';
+      statusDiv.innerHTML = '<span class="material-icons">' + icon + '</span>' + message;
+
+      // Auto-hide after 5 seconds
+      setTimeout(function() {
+        statusDiv.classList.remove('show');
+      }, 5000);
+    }
+
+    // Add one recipient row on page load
+    addRecipientRow();
+
+    // Header icon: browse-library + upload row
+    attachImageTools(document.getElementById('headerIcon_url'), 'headerIcon_url');
+
+    // Close modals when clicking outside
+    window.onclick = function(event) {
+      if (event.target == document.getElementById('imageModal')) closeImageLibrary();
+      if (event.target == document.getElementById('scheduleModal')) closeScheduleModal();
+    }
+
+    // ========== DRAFT MANAGEMENT (Firestore per-user drafts) ==========
+    var autoSaveInterval = null;
+    var draftSaving = false;
+
+    // Auto-save draft every 30 seconds
+    function startAutoSave() {
+      autoSaveInterval = setInterval(function() {
+        if (!draftSaving && document.getElementById('template').value) {
+          saveDraftAutomatically();
+        }
+      }, 30000); // 30 seconds
+    }
+
+    // Manual save draft
+    function manualSaveDraft() {
+      saveDraftData(true);
+    }
+
+    // Auto save draft (silent)
+    function saveDraftAutomatically() {
+      saveDraftData(false);
+    }
+
+    // Common save function
+    async function saveDraftData(showFeedback) {
+      var template = document.getElementById('template').value;
+      if (!template) {
+        if (showFeedback) {
+          showDraftStatus('Please select a layout first', 'error');
+        }
+        return;
+      }
+
+      draftSaving = true;
+
+      // Collect all form data
+      var subject = document.getElementById('subject').value;
+      var draftData = {
+        template:   template,
+        subject:    subject,
+        subheading: document.getElementById('subheading').value,
+        intro:      quillInstances['intro'] ? quillInstances['intro'].root.innerHTML : '',
+        outro:      quillInstances['outro'] ? quillInstances['outro'].root.innerHTML : '',
+        headerIcon: collectHeaderIcon(),
+        topics:     collectTopics(),
+        preview:    subject || 'Untitled Draft'
+      };
+
+      try {
+        var draftId = await saveDraft(currentUser.uid, draftData, currentDraftId || null);
+        draftSaving = false;
+        // Update current draft ID if this is a new draft
+        if (draftId) {
+          currentDraftId = draftId;
+        }
+        if (showFeedback) {
+          showDraftStatus('Draft saved successfully', 'success');
+        } else {
+          showDraftStatus('Auto-saved', 'success');
+        }
+      } catch (error) {
+        draftSaving = false;
+        console.error('Failed to save draft:', error);
+        if (showFeedback) {
+          showDraftStatus('Failed to save draft', 'error');
+        }
+      }
+    }
+
+    // Load draft on page load
+    async function loadDraftOnInit() {
+      // If we have a draftId from URL, load that specific draft
+      if (currentDraftId) {
+        try {
+          var draft = await loadDraft(currentUser.uid, currentDraftId);
+          if (draft) {
+            loadDraftData(draft);
+            showDraftStatus('Draft loaded from library', 'success');
+          } else {
+            showDraftStatus('Draft not found', 'error');
+          }
+        } catch (error) {
+          console.log('Failed to load draft:', error);
+          showDraftStatus('Failed to load draft', 'error');
+        }
+      }
+    }
+
+    // Load draft data into form
+    function loadDraftData(draft) {
+      if (!draft) return;
+
+      // Set template first (triggers template change handler)
+      document.getElementById('template').value = draft.template;
+      document.getElementById('template').dispatchEvent(new Event('change'));
+
+      // Wait for template to initialise, then populate data
+      setTimeout(function() {
+        document.getElementById('subject').value = draft.subject || '';
+        document.getElementById('subheading').value = draft.subheading || '';
+
+        // Restore header icon
+        restoreHeaderIcon(draft.headerIcon);
+
+        // Load intro / outro
+        if (draft.intro && quillInstances['intro']) {
+          quillInstances['intro'].root.innerHTML = draft.intro;
+        }
+        if (draft.outro && quillInstances['outro']) {
+          quillInstances['outro'].root.innerHTML = draft.outro;
+        }
+
+        // Ensure we have enough topic cards (draft may have more than the default 3)
+        if (draft.topics && draft.topics.length > 0) {
+          var topicCards = document.querySelectorAll('.topic-card');
+          while (topicCards.length < draft.topics.length) {
+            nextTopicId++;
+            createTopicCard(nextTopicId, document.getElementById('topicFields'));
+            topicCards = document.querySelectorAll('.topic-card');
+          }
+
+          // Populate topics in DOM order
+          topicCards = document.querySelectorAll('.topic-card');
+          for (var i = 0; i < draft.topics.length; i++) {
+            var id = topicCards[i].id.replace('topicCard_', '');
+            var topic = draft.topics[i];
+
+            var titleQuill    = quillInstances['topic' + id + '_title'];
+            var descQuill     = quillInstances['topic' + id + '_description'];
+            var imageField    = document.getElementById('topic' + id + '_image');
+            var sizeField     = document.getElementById('topic' + id + '_size');
+            var alignField    = document.getElementById('topic' + id + '_align');
+            var bgColorField  = document.getElementById('topic' + id + '_bg');
+            var bgEnableField = document.getElementById('topic' + id + '_bg_enable');
+            var btnTextField  = document.getElementById('topic' + id + '_button_text');
+            var btnUrlField   = document.getElementById('topic' + id + '_button_url');
+            var dividerField  = document.getElementById('topic' + id + '_divider');
+
+            if (titleQuill) titleQuill.root.innerHTML = topic.title || '';
+            if (descQuill)  descQuill.root.innerHTML  = topic.description || '';
+            if (imageField) imageField.value = topic.image || '';
+            if (sizeField)  { sizeField.value = topic.imageSize || 100; updateImageSize(id); }
+            if (alignField) alignField.value = topic.imageAlign || 'center';
+            if (bgColorField)  bgColorField.value  = topic.bgColor  || '#ffffff';
+            if (bgEnableField) bgEnableField.checked = topic.bgEnabled || false;
+            if (btnTextField)  btnTextField.value  = topic.buttonText || '';
+            if (btnUrlField)   btnUrlField.value   = topic.buttonUrl  || '';
+            if (dividerField)  dividerField.checked = topic.showDivider || false;
+          }
+        }
+
+        updatePreview();
+        showDraftStatus('Draft loaded', 'success');
+      }, 500);
+    }
+
+    // Show draft status message
+    function showDraftStatus(message, type) {
+      var statusDiv = document.getElementById('draftStatus');
+      var statusText = document.getElementById('draftStatusText');
+
+      statusText.textContent = message;
+      statusDiv.style.display = 'flex';
+
+      if (type === 'error') {
+        statusDiv.style.background = '#fbe9ea';
+        statusDiv.style.borderColor = '#f5c6cb';
+        statusDiv.style.color = '#721c24';
+      } else {
+        statusDiv.style.background = '#e7f1f8';
+        statusDiv.style.borderColor = '#cfe4f0';
+        statusDiv.style.color = '#0c5460';
+      }
+
+      // Auto-hide after 3 seconds
+      setTimeout(function() {
+        statusDiv.style.display = 'none';
+      }, 3000);
+    }
+
+    // Clear draft after successful send
+    function clearDraft() {
+      if (currentDraftId) {
+        deleteDraft(currentUser.uid, currentDraftId).catch(function(error) {
+          console.error('Failed to delete draft:', error);
+        });
+        currentDraftId = ''; // Reset current draft ID
+      }
+    }
+
+    // ========== EXPOSE INLINE HANDLERS ==========
+    // Module scripts don't create globals; the markup uses inline onclick/
+    // oninput handlers, so surface those functions on window.
+    window.setTab = setTab;
+    window.chooseTemplate = chooseTemplate;
+    window.setBannerColor = setBannerColor;
+    window.setIconPosition = setIconPosition;
+    window.updateHeaderIconSize = updateHeaderIconSize;
+    window.updatePreview = updatePreview;
+    window.updateImageSize = updateImageSize;
+    window.addTopic = addTopic;
+    window.removeTopic = removeTopic;
+    window.addRecipientRow = addRecipientRow;
+    window.removeRecipient = removeRecipient;
+    window.openImageLibrary = openImageLibrary;
+    window.closeImageLibrary = closeImageLibrary;
+    window.sendPreview = sendPreview;
+    window.copyForGmail = copyForGmail;
+    window.archiveSentEmail = archiveSentEmail;
+    window.manualSaveDraft = manualSaveDraft;
+    window.resetForm = resetForm;
+    window.insertSnippet = insertSnippet;
+    window.saveSnippetFrom = saveSnippetFrom;
+    window.deleteSelectedSnippet = deleteSelectedSnippet;
+    window.openScheduleModal = openScheduleModal;
+    window.closeScheduleModal = closeScheduleModal;
+    window.confirmSchedule = confirmSchedule;
+
+    // ========== INIT ==========
+    async function init() {
+      // authReady resolves with the signed-in, domain-checked Firebase user;
+      // drafts live under users/{uid}/drafts so we need currentUser.uid.
+      currentUser = await authReady;
+
+      // Load email groups + snippets from Firestore
+      loadEmailGroups();
+      loadSnippets();
+
+      // Start auto-save once we know who the user is
+      startAutoSave();
+
+      // Load draft when page loads (?draftId= from the drafts library)
+      setTimeout(function() {
+        loadDraftOnInit();
+      }, 1000);
+    }
+
+    init();
+  </script>
+</body>
+</html>

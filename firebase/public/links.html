@@ -1,0 +1,1918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Department Links</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://lh3.googleusercontent.com">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="css/site.css" rel="stylesheet">
+
+  <style>
+    /* ========== GLOBAL STYLES ========== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Lexend', sans-serif;
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      padding: 20px;
+      padding-top: 70px;
+      padding-bottom: 40px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* ========== HEADER ========== */
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+      padding: 40px 20px 20px 20px;
+    }
+
+    .header h1 {
+      font-size: 2.5em;
+      font-weight: 500;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .header p {
+      font-size: 1.1em;
+      font-weight: 300;
+      opacity: 0.95;
+    }
+
+    /* ========== BACK TO HOME BUTTON ========== */
+    .back-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.95em;
+      transition: all 0.3s ease;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      margin-top: 15px;
+    }
+
+    .back-home:hover {
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: translateX(-3px);
+    }
+
+    .back-home .material-icons {
+      font-size: 18px;
+    }
+
+    /* ========== CATEGORY NAVIGATION ========== */
+    .category-nav {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 20px 30px;
+      margin-bottom: 40px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .category-nav h3 {
+      color: #1d2a5d;
+      font-size: 1em;
+      font-weight: 700;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .category-nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .category-link {
+      display: inline-block;
+      padding: 8px 16px;
+      background: #2d3f69;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 0.9em;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+      box-shadow: 0 2px 4px rgba(45, 63, 105, 0.2);
+    }
+
+    .category-link:hover {
+      background: #ad2122;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(173, 33, 34, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      .category-nav-links {
+        flex-direction: column;
+      }
+
+      .category-link {
+        text-align: center;
+      }
+    }
+
+    /* ========== ADD LINK BUTTON (style B: solid red pill) ========== */
+    .add-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ad2122;
+      color: white;
+      text-decoration: none;
+      padding: 10px 22px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.9em;
+      transition: all 0.25s ease;
+      border: none;
+      cursor: pointer;
+      margin-left: auto;
+    }
+
+    .add-link-btn:hover {
+      background: #7a1718;
+      transform: translateY(-2px);
+    }
+
+    /* keep the icon small even inside .empty-state (which styles its own
+       80px icon) */
+    .add-link-btn .material-icons,
+    .empty-state .add-link-btn .material-icons {
+      font-size: 18px;
+      color: white;
+      margin-bottom: 0;
+    }
+
+    .category-nav-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .add-link-btn {
+        width: 100%;
+        justify-content: center;
+        margin-left: 0;
+      }
+    }
+
+    /* ========== MODAL STYLES ========== */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      overflow-y: auto;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.show {
+      display: flex !important;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      position: relative;
+      margin: 20px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .modal-header h2 {
+      color: #2d3f69;
+      font-size: 1.5em;
+      margin: 0;
+    }
+
+    .close-modal {
+      font-size: 28px;
+      font-weight: bold;
+      color: #999;
+      cursor: pointer;
+      transition: color 0.2s;
+      line-height: 1;
+    }
+
+    .close-modal:hover {
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #2d3f69;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.95em;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.95em;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #2d3f69;
+    }
+
+    .form-group small {
+      display: block;
+      color: #666;
+      font-size: 0.85em;
+      margin-top: 5px;
+    }
+
+    .new-category-input {
+      margin-top: 10px;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.95em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #1d2a5d 0%, #2d3f69 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(45, 63, 105, 0.3);
+    }
+
+    .btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background-color: #f5f5f5;
+      color: #2d3f69;
+      border: 2px solid #e0e0e0;
+    }
+
+    .btn-secondary:hover {
+      background-color: #e0e0e0;
+    }
+
+    .form-message {
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 0.9em;
+      display: none;
+    }
+
+    .form-message.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .form-message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .form-message.show {
+      display: block;
+    }
+
+    .form-loading {
+      text-align: center;
+      color: #2d3f69;
+      padding: 20px;
+      font-weight: 500;
+    }
+
+    .spinner-small {
+      width: 30px;
+      height: 30px;
+      border: 3px solid rgba(45, 63, 105, 0.2);
+      border-top: 3px solid #2d3f69;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+
+    /* ========== CATEGORY SECTIONS ========== */
+    .category-section {
+      margin-bottom: 50px;
+    }
+
+    .category-title {
+      color: white;
+      font-size: 1.8em;
+      font-weight: 500;
+      margin-bottom: 20px;
+      padding-left: 10px;
+      border-left: 5px solid #ad2122;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+    }
+
+    /* ========== CARD GRID ========== */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+
+    /* ========== INDIVIDUAL CARD (style G: ghost minimal) ========== */
+    .link-card {
+      background: rgba(255, 255, 255, 0.97);
+      border-radius: 16px;
+      padding: 28px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.22s ease, box-shadow 0.22s ease;
+    }
+
+    .link-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ========== GHOSTED WATERMARK ICON ========== */
+    .card-ghost {
+      position: absolute;
+      right: -22px;
+      bottom: -22px;
+      opacity: 0.08;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .link-card:hover .card-ghost {
+      opacity: 0.14;
+      transform: rotate(-6deg);
+    }
+
+    .card-ghost .material-icons {
+      font-size: 120px;
+      color: #2d3f69;
+    }
+
+    .link-card.dragging {
+      opacity: 0.5;
+      cursor: grabbing;
+      transform: scale(1.05);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .link-card.drag-over {
+      border: 3px dashed #ad2122;
+      background: #fff5f5;
+    }
+
+    .drag-handle {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      transition: all 0.3s;
+    }
+
+    .drag-handle:hover {
+      background: white;
+      transform: scale(1.1);
+    }
+
+    .drag-handle .material-icons {
+      font-size: 18px;
+      color: #2d3f69;
+    }
+
+    /* ========== CARD EDIT BUTTON ========== */
+    .card-edit-btn {
+      position: absolute;
+      top: 10px;
+      right: 50px;
+      background: rgba(45, 63, 105, 0.08);
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #2d3f69;
+      opacity: 0;
+      transition: all 0.2s ease;
+      z-index: 10;
+    }
+
+    .link-card:hover .card-edit-btn { opacity: 1; }
+
+    .card-edit-btn:hover { background: rgba(45, 63, 105, 0.2); }
+
+    .card-edit-btn .material-icons { font-size: 18px; }
+
+    .btn-delete {
+      background: none;
+      border: 2px solid #ad2122;
+      color: #ad2122;
+      border-radius: 6px;
+      padding: 12px 20px;
+      font-family: 'Lexend', sans-serif;
+      font-size: 0.95em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-delete:hover { background: #fbeaea; }
+
+    /* ========== SMALL DUOTONE ICON ========== */
+    .card-badge {
+      position: relative;
+    }
+
+    .card-badge .material-icons {
+      font-size: 32px;
+      color: #ad2122;
+    }
+
+    .card-badge img {
+      width: 34px;
+      height: 34px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    /* ========== CARD CONTENT ========== */
+    .card-title {
+      font-size: 1.15em;
+      font-weight: 700;
+      color: #1d2a5d;
+      margin: 0;
+      line-height: 1.3;
+      position: relative;
+      border-bottom: 2px solid transparent;
+      align-self: flex-start;
+      transition: border-color 0.2s ease;
+    }
+
+    .link-card:hover .card-title {
+      border-color: #ad2122;
+    }
+
+    .card-description {
+      font-size: 0.85em;
+      color: #666666;
+      line-height: 1.5;
+      margin: 0;
+      flex-grow: 1;
+      position: relative;
+    }
+
+    /* ========== LAUNCH BUTTON ========== */
+    .launch-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #ad2122;
+      color: white;
+      text-decoration: none;
+      padding: 10px 22px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.9em;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(173, 33, 34, 0.3);
+      align-self: flex-start;
+      position: relative;
+      margin-top: 6px;
+    }
+
+    .launch-button:hover {
+      background: #7a1718;
+      box-shadow: 0 6px 20px rgba(173, 33, 34, 0.5);
+      transform: translateX(3px);
+    }
+
+    .launch-button .material-icons {
+      font-size: 18px;
+    }
+
+    /* ========== RESPONSIVE DESIGN ========== */
+    @media (max-width: 768px) {
+      .card-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 2em;
+      }
+
+      .category-title {
+        font-size: 1.5em;
+      }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .card-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* ========== EMPTY STATE ========== */
+    .empty-state {
+      background: white;
+      border-radius: 12px;
+      padding: 60px 40px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .empty-state .material-icons {
+      font-size: 80px;
+      color: #bdc3c7;
+      margin-bottom: 20px;
+    }
+
+    .empty-state h2 {
+      color: #1d2a5d;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .empty-state p {
+      color: #666666;
+    }
+
+    /* ========== LOADING INDICATOR ========== */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #2d3f69 0%, #1d2a5d 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.3s ease;
+    }
+
+    .loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(255, 255, 255, 0.2);
+      border-top: 5px solid #ad2122;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: white;
+      margin-top: 20px;
+      font-size: 1.1em;
+      font-weight: 500;
+    }
+
+    /* ========== SKELETON LOADERS ========== */
+    .skeleton-nav {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 20px 30px;
+      margin-bottom: 40px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .skeleton-nav-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .skeleton-title {
+      height: 16px;
+      width: 150px;
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+    }
+
+    .skeleton-button {
+      height: 40px;
+      width: 140px;
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+    }
+
+    .skeleton-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .skeleton-link {
+      height: 36px;
+      width: 100px;
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+    }
+
+    .skeleton-section {
+      margin-bottom: 50px;
+    }
+
+    .skeleton-section-title {
+      height: 32px;
+      width: 200px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.3) 25%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0.3) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      padding-left: 10px;
+      border-left: 5px solid rgba(173, 33, 34, 0.5);
+    }
+
+    .skeleton-card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .skeleton-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    .skeleton-icon {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 50%;
+      margin-bottom: 20px;
+    }
+
+    .skeleton-card-title {
+      height: 24px;
+      width: 80%;
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+
+    .skeleton-card-desc {
+      height: 16px;
+      width: 100%;
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    .skeleton-card-desc:last-of-type {
+      width: 60%;
+      margin-bottom: 25px;
+    }
+
+    .skeleton-launch-btn {
+      height: 40px;
+      width: 120px;
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -200% 0;
+      }
+      100% {
+        background-position: 200% 0;
+      }
+    }
+
+    .skeleton-container {
+      transition: opacity 0.3s ease;
+    }
+
+    .skeleton-container.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text">Loading...</div>
+  </div>
+
+  <div class="container">
+    <!-- Header Section -->
+    <div class="header">
+      <h1>Tech Department Links</h1>
+      <p>Quick access to all your essential tools and resources</p>
+      <a href="index.html" class="back-home">
+        <span class="material-icons">arrow_back</span>
+        <span>Back to Home</span>
+      </a>
+    </div>
+
+    <!-- Skeleton Loader -->
+    <div id="skeletonLoader" class="skeleton-container">
+      <!-- Skeleton Category Navigation -->
+      <div class="skeleton-nav">
+        <div class="skeleton-nav-header">
+          <div class="skeleton-title"></div>
+          <div class="skeleton-button"></div>
+        </div>
+        <div class="skeleton-links">
+          <div class="skeleton-link"></div>
+          <div class="skeleton-link"></div>
+          <div class="skeleton-link"></div>
+          <div class="skeleton-link"></div>
+        </div>
+      </div>
+
+      <!-- Skeleton Category Section 1 -->
+      <div class="skeleton-section">
+        <div class="skeleton-section-title"></div>
+        <div class="card-grid">
+          <div class="skeleton-card">
+            <div class="skeleton-icon"></div>
+            <div class="skeleton-card-title"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-launch-btn"></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-icon"></div>
+            <div class="skeleton-card-title"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-launch-btn"></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-icon"></div>
+            <div class="skeleton-card-title"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-launch-btn"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skeleton Category Section 2 -->
+      <div class="skeleton-section">
+        <div class="skeleton-section-title"></div>
+        <div class="card-grid">
+          <div class="skeleton-card">
+            <div class="skeleton-icon"></div>
+            <div class="skeleton-card-title"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-launch-btn"></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-icon"></div>
+            <div class="skeleton-card-title"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-card-desc"></div>
+            <div class="skeleton-launch-btn"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div id="content" style="display: none;"></div>
+  </div>
+
+  <!-- Embedded Add Link Form (shown in modal) -->
+  <div id="addLinkModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="linkModalTitle">Add New Link</h2>
+        <span class="close-modal" onclick="closeAddLinkModal()">&times;</span>
+      </div>
+
+      <div id="formMessage" class="form-message"></div>
+
+      <form id="addLinkForm" onsubmit="submitAddLink(event)">
+        <div class="form-group">
+          <label for="toolName">Tool Name *</label>
+          <input type="text" id="toolName" name="toolName" placeholder="e.g., Google Classroom" required>
+        </div>
+
+        <div class="form-group">
+          <label for="toolUrl">Tool URL *</label>
+          <input type="url" id="toolUrl" name="toolUrl" placeholder="https://..." required>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description *</label>
+          <input type="text" id="description" name="description" placeholder="Brief description" required>
+        </div>
+
+        <div class="form-group">
+          <label for="category">Category *</label>
+          <select id="category" name="category" required>
+            <option value="">-- Select a category --</option>
+            <option value="__NEW__">+ Add New Category</option>
+          </select>
+          <div id="newCategoryInput" class="new-category-input" style="display: none; margin-top: 10px;">
+            <input type="text" id="newCategory" placeholder="Enter new category name">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="iconClass">Icon *</label>
+          <select id="iconClass" name="iconClass" required>
+            <option value="">-- Select an icon --</option>
+            <option value="link">link</option>
+            <option value="description">description</option>
+            <option value="school">school</option>
+            <option value="computer">computer</option>
+            <option value="apps">apps</option>
+            <option value="dashboard">dashboard</option>
+            <option value="cloud">cloud</option>
+            <option value="storage">storage</option>
+            <option value="code">code</option>
+            <option value="settings">settings</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="imageUrl">Custom Image URL (Optional)</label>
+          <input type="url" id="imageUrl" name="imageUrl" placeholder="https://... (or upload below)">
+          <small>Leave blank to use Material Icon — or paste a URL / upload your own image</small>
+        </div>
+
+        <div class="button-group">
+          <button type="button" class="btn-delete" id="deleteLinkBtn" style="display: none;" onclick="deleteCurrentLink()">Delete</button>
+          <button type="button" class="btn-secondary" onclick="closeAddLinkModal()">Cancel</button>
+          <button type="submit" class="btn-primary" id="submitBtn">Add Link</button>
+        </div>
+      </form>
+
+      <div id="formLoading" class="form-loading" style="display: none;">
+        <div class="spinner-small"></div>
+        Saving link...
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Image Modal (formerly opened from the site header) -->
+  <div id="addImageModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Add New Image</h2>
+        <span class="close-modal" onclick="closeAddImageModal()">&times;</span>
+      </div>
+
+      <div id="imageFormMessage" class="form-message"></div>
+
+      <!-- Mode Toggle -->
+      <div class="mode-toggle" style="display: flex; gap: 10px; margin-bottom: 20px; padding: 10px; background: #f8f9fa; border-radius: 6px;">
+        <button type="button" class="mode-btn active" onclick="switchToSingleMode()" id="singleModeBtn" style="flex: 1; padding: 10px; border: 2px solid #2d3f69; background: #2d3f69; color: white; border-radius: 6px; cursor: pointer; font-family: 'Lexend', sans-serif; font-weight: 600; transition: all 0.3s;">Single Image</button>
+        <button type="button" class="mode-btn" onclick="switchToBulkMode()" id="bulkModeBtn" style="flex: 1; padding: 10px; border: 2px solid #e0e0e0; background: white; color: #2d3f69; border-radius: 6px; cursor: pointer; font-family: 'Lexend', sans-serif; font-weight: 600; transition: all 0.3s;">Bulk Add</button>
+      </div>
+
+      <form id="addImageForm" onsubmit="submitAddImage(event)">
+        <div class="form-group">
+          <label for="imageDescription">Image Description *</label>
+          <input type="text" id="imageDescription" name="imageDescription"
+                 placeholder="e.g., Orono Tech Logo, Student Handbook Cover" required>
+          <small>A clear description to help identify this image later</small>
+        </div>
+
+        <div class="form-group">
+          <label for="imageUrlInput">Image URL *</label>
+          <input type="text" id="imageUrlInput" name="imageUrlInput"
+                 placeholder="Google Drive URL or any direct image URL" required>
+          <small>
+            Examples:<br>
+            • Google Drive: https://drive.google.com/file/d/FILE_ID/view<br>
+            • Direct URL: https://example.com/image.png<br>
+            • Google User Content: https://lh3.googleusercontent.com/...
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="imageCategory">Category *</label>
+          <select id="imageCategory" name="imageCategory" onchange="toggleNewCategoryInput()" required>
+            <option value="">Select a category...</option>
+            <option value="Icons">Icons</option>
+            <option value="Branding">Branding</option>
+            <option value="Photos">Photos</option>
+            <option value="Graphics">Graphics</option>
+            <option value="Backgrounds">Backgrounds</option>
+            <option value="new">+ Add New Category</option>
+          </select>
+          <small>Choose an existing category or create a new one</small>
+          <div id="imageNewCategoryInput" class="new-category-input" style="display: none;">
+            <input type="text" id="newCategoryName" placeholder="Enter new category name">
+          </div>
+        </div>
+
+        <div id="imageUrlPreview" class="url-preview" style="display: none; margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 0.9em;">
+          <strong>Final URL:</strong> <span id="previewUrl"></span>
+        </div>
+
+        <div class="button-group">
+          <button type="button" class="btn-secondary" onclick="closeAddImageModal()">Cancel</button>
+          <button type="submit" class="btn-primary" id="imageSubmitBtn">Add Image</button>
+        </div>
+      </form>
+
+      <!-- Bulk Add Form -->
+      <form id="bulkAddImageForm" onsubmit="submitBulkAddImages(event)" style="display: none;">
+        <div class="form-group">
+          <label for="bulkCategory">Category for All Images *</label>
+          <select id="bulkCategory" name="bulkCategory" onchange="toggleBulkNewCategoryInput()" required>
+            <option value="">Select a category...</option>
+            <option value="Icons">Icons</option>
+            <option value="Branding">Branding</option>
+            <option value="Photos">Photos</option>
+            <option value="Graphics">Graphics</option>
+            <option value="Backgrounds">Backgrounds</option>
+            <option value="new">+ Add New Category</option>
+          </select>
+          <small>All images will be added to this category</small>
+          <div id="bulkNewCategoryInput" class="new-category-input" style="display: none;">
+            <input type="text" id="bulkNewCategoryName" placeholder="Enter new category name">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="bulkImageData">Image Data *</label>
+          <textarea id="bulkImageData" name="bulkImageData"
+                    placeholder="Enter one image per line in format:&#10;Description | URL&#10;&#10;Example:&#10;Orono Tech Logo | https://drive.google.com/file/d/FILE_ID/view&#10;Student Handbook | https://example.com/image.png&#10;Calendar Icon | https://lh3.googleusercontent.com/..."
+                    required
+                    style="min-height: 300px; font-family: 'Courier New', monospace; font-size: 0.9em;"></textarea>
+          <small>
+            Format: <strong>Description | URL</strong> (one per line)<br>
+            Use the pipe character ( | ) to separate description from URL
+          </small>
+        </div>
+
+        <div id="bulkPreview" style="display: none; margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 6px; max-height: 200px; overflow-y: auto;">
+          <strong>Preview:</strong>
+          <div id="bulkPreviewContent" style="margin-top: 10px; font-size: 0.9em;"></div>
+        </div>
+
+        <div class="button-group">
+          <button type="button" class="btn-secondary" onclick="closeAddImageModal()">Cancel</button>
+          <button type="button" class="btn-secondary" onclick="previewBulkImages()" style="background: #666;">Preview</button>
+          <button type="submit" class="btn-primary" id="bulkSubmitBtn">Add All Images</button>
+        </div>
+      </form>
+
+      <div id="imageFormLoading" class="form-loading" style="display: none;">
+        <div class="spinner-small"></div>
+        <span id="loadingText">Adding image...</span>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { renderLayout } from './js/layout.js';
+    import { authReady } from './js/auth.js';
+    import { getLinks, categoriesOf, addItem, updateItem, deleteItem, saveOrder } from './js/data.js';
+    import { attachIconPicker } from './js/icon-picker.js';
+    import { attachImageUpload } from './js/upload.js';
+    import { gateEditing } from './js/auth.js';
+
+    attachIconPicker(document.getElementById('iconClass'));
+    // "Upload from computer" buttons for the link's custom icon image and
+    // the Add Image modal's URL field.
+    attachImageUpload(document.getElementById('imageUrl'));
+    attachImageUpload(document.getElementById('imageUrlInput'), {
+      onUploaded: function({ file }) {
+        const desc = document.getElementById('imageDescription');
+        if (desc && !desc.value.trim()) {
+          desc.value = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
+        }
+      }
+    });
+    gateEditing('links');
+
+    renderLayout('links');
+
+    // Local cache of all links, in display (sortKey) order.
+    let allLinks = [];
+    let draggedCard = null;
+    let editingId = null;
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text == null ? '' : String(text);
+      return div.innerHTML;
+    }
+
+    function categoryIdOf(catName) {
+      return catName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    }
+
+    // ---------- Rendering ----------
+
+    function renderLinks() {
+      const content = document.getElementById('content');
+
+      if (!allLinks.length) {
+        content.innerHTML = `
+          <div class="empty-state">
+            <span class="material-icons">link_off</span>
+            <h2>No Links Available</h2>
+            <p>No links have been added yet.</p>
+            <button onclick="openAddLinkDialog()" class="add-link-btn" style="margin: 20px auto 0;">
+              <span class="material-icons">add_circle</span>
+              Add New Link
+            </button>
+          </div>`;
+        return;
+      }
+
+      // Group links by category for organized display (insertion order,
+      // matching the old server-side template).
+      const categories = {};
+      allLinks.forEach(link => {
+        const category = link.category || 'Other';
+        if (!categories[category]) categories[category] = [];
+        categories[category].push(link);
+      });
+
+      // Category navigation
+      let html = `
+        <div class="category-nav">
+          <div class="category-nav-header">
+            <h3>Jump to Category</h3>
+            <button onclick="openAddLinkDialog()" class="add-link-btn">
+              <span class="material-icons">add_circle</span>
+              Add New Link
+            </button>
+          </div>
+          <div class="category-nav-links">` +
+        Object.keys(categories).map(catName =>
+          `<a href="#${categoryIdOf(catName)}" class="category-link">${escapeHtml(catName)}</a>`
+        ).join('') + `
+          </div>
+        </div>`;
+
+      // Category sections
+      for (const categoryName in categories) {
+        const cards = categories[categoryName].map(link => {
+          const iconClass = escapeHtml(link.iconClass || 'link');
+          const icon = link.imageUrl
+            ? `<img src="${escapeHtml(link.imageUrl)}"
+                    alt="${escapeHtml(link.name)}"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+               <span class="material-icons" style="display:none;">${iconClass}</span>`
+            : `<span class="material-icons">${iconClass}</span>`;
+
+          return `
+            <div class="link-card"
+                 draggable="true"
+                 data-id="${escapeHtml(link.id)}"
+                 data-category="${escapeHtml(categoryName)}">
+
+              <!-- Drag Handle -->
+              <div class="drag-handle" title="Drag to reorder">
+                <span class="material-icons">drag_indicator</span>
+              </div>
+
+              <!-- Edit Button -->
+              <button class="card-edit-btn" data-edit="${escapeHtml(link.id)}" title="Edit link" type="button">
+                <span class="material-icons">edit</span>
+              </button>
+
+              <!-- Ghosted Watermark Icon -->
+              <div class="card-ghost"><span class="material-icons">${iconClass}</span></div>
+
+              <!-- Small Duotone Icon -->
+              <div class="card-badge">${icon}</div>
+
+              <!-- Card Content -->
+              <h3 class="card-title">${escapeHtml(link.name)}</h3>
+              <p class="card-description">${escapeHtml(link.description)}</p>
+
+              <!-- Launch Button -->
+              <a href="${escapeHtml(link.url)}"
+                 class="launch-button"
+                 target="_blank"
+                 rel="noopener noreferrer">
+                <span>Launch</span>
+                <span class="material-icons">open_in_new</span>
+              </a>
+            </div>`;
+        }).join('');
+
+        html += `
+          <div class="category-section" id="${categoryIdOf(categoryName)}">
+            <h2 class="category-title">${escapeHtml(categoryName)}</h2>
+            <div class="card-grid">${cards}</div>
+          </div>`;
+      }
+
+      content.innerHTML = html;
+
+      // Initialize drag and drop for all link cards
+      content.querySelectorAll('.link-card').forEach(setupDragListeners);
+
+      // Wire up edit buttons (must not trigger the card's launch link)
+      content.querySelectorAll('.card-edit-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          const link = allLinks.find(function(l) { return l.id === btn.dataset.edit; });
+          if (link) openAddLinkDialog(link);
+        });
+      });
+    }
+
+    // ---------- Add Link modal ----------
+
+    function openAddLinkDialog(link) {
+      const modal = document.getElementById('addLinkModal');
+
+      editingId = link ? link.id : null;
+      document.getElementById('linkModalTitle').textContent = link ? 'Edit Link' : 'Add New Link';
+      document.getElementById('submitBtn').textContent = link ? 'Save Changes' : 'Add Link';
+      document.getElementById('deleteLinkBtn').style.display = link ? 'block' : 'none';
+
+      // Load categories from the already-loaded links (was getCategories('Links'))
+      populateCategories(categoriesOf(allLinks));
+
+      if (link) {
+        document.getElementById('toolName').value = link.name || '';
+        document.getElementById('toolUrl').value = link.url || '';
+        document.getElementById('description').value = link.description || '';
+        document.getElementById('iconClass').value = link.iconClass || '';
+        document.getElementById('imageUrl').value = link.imageUrl || '';
+
+        // Select the link's category; if it's somehow missing from the
+        // dropdown, fall back to the new-category flow with it prefilled.
+        const categorySelect = document.getElementById('category');
+        categorySelect.value = link.category || '';
+        if (link.category && categorySelect.value !== link.category) {
+          categorySelect.value = '__NEW__';
+          const newCategory = document.getElementById('newCategory');
+          document.getElementById('newCategoryInput').style.display = 'block';
+          newCategory.required = true;
+          newCategory.value = link.category;
+        }
+      }
+
+      modal.classList.add('show');
+    }
+
+    function closeAddLinkModal() {
+      const modal = document.getElementById('addLinkModal');
+      modal.classList.remove('show');
+      document.getElementById('addLinkForm').reset();
+      document.getElementById('newCategoryInput').style.display = 'none';
+      editingId = null;
+      showFormMessage('', '');
+    }
+
+    function populateCategories(categories) {
+      const select = document.getElementById('category');
+      const newCategoryOption = select.querySelector('option[value="__NEW__"]');
+
+      // Clear existing options except first two
+      while (select.options.length > 2) {
+        select.remove(2);
+      }
+
+      // Add categories
+      categories.forEach(function(category) {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        select.insertBefore(option, newCategoryOption);
+      });
+    }
+
+    // Handle category change (show new-category input)
+    document.getElementById('category').addEventListener('change', function() {
+      const newCategoryInput = document.getElementById('newCategoryInput');
+      const newCategory = document.getElementById('newCategory');
+
+      if (this.value === '__NEW__') {
+        newCategoryInput.style.display = 'block';
+        newCategory.required = true;
+      } else {
+        newCategoryInput.style.display = 'none';
+        newCategory.required = false;
+        newCategory.value = '';
+      }
+    });
+
+    async function submitAddLink(event) {
+      event.preventDefault();
+
+      const categorySelect = document.getElementById('category');
+      let category = categorySelect.value;
+
+      if (category === '__NEW__') {
+        category = document.getElementById('newCategory').value.trim();
+        if (!category) {
+          showFormMessage('error', 'Please enter a new category name.');
+          return;
+        }
+      }
+
+      const linkData = {
+        name: document.getElementById('toolName').value.trim(),
+        url: document.getElementById('toolUrl').value.trim(),
+        description: document.getElementById('description').value.trim(),
+        iconClass: document.getElementById('iconClass').value,
+        imageUrl: document.getElementById('imageUrl').value.trim(),
+        category: category
+      };
+
+      const submitBtn = document.getElementById('submitBtn');
+      const loading = document.getElementById('formLoading');
+
+      submitBtn.disabled = true;
+      loading.style.display = 'block';
+      showFormMessage('', '');
+
+      try {
+        if (editingId) {
+          await updateItem('links', editingId, linkData);
+
+          // Update local array and re-render (no full reload needed)
+          const index = allLinks.findIndex(function(l) { return l.id === editingId; });
+          if (index !== -1) {
+            allLinks[index] = { ...allLinks[index], ...linkData };
+          }
+          showFormMessage('success', 'Link updated successfully!');
+        } else {
+          const id = await addItem('links', linkData);
+
+          // Update local array and re-render (no full reload needed)
+          allLinks.push({ id: id, ...linkData });
+          showFormMessage('success', 'Link added successfully!');
+        }
+
+        submitBtn.disabled = false;
+        loading.style.display = 'none';
+        setTimeout(function() {
+          closeAddLinkModal();
+          renderLinks();
+        }, 1500);
+      } catch (error) {
+        submitBtn.disabled = false;
+        loading.style.display = 'none';
+        showFormMessage('error', 'Error: ' + (error.message || error));
+      }
+    }
+
+    async function deleteCurrentLink() {
+      if (!editingId) return;
+
+      const name = document.getElementById('toolName').value || 'this link';
+      if (!confirm('Delete "' + name + '"? This cannot be undone.')) return;
+
+      try {
+        await deleteItem('links', editingId);
+
+        // Update local array and re-render (no full reload needed)
+        allLinks = allLinks.filter(function(l) { return l.id !== editingId; });
+        closeAddLinkModal();
+        renderLinks();
+      } catch (error) {
+        showFormMessage('error', 'Delete failed: ' + (error.message || error));
+      }
+    }
+
+    function showFormMessage(type, message) {
+      const messageDiv = document.getElementById('formMessage');
+      if (type && message) {
+        messageDiv.className = 'form-message ' + type + ' show';
+        messageDiv.textContent = message;
+      } else {
+        messageDiv.className = 'form-message';
+        messageDiv.textContent = '';
+      }
+    }
+
+    // Close modals when clicking outside
+    window.addEventListener('click', function(event) {
+      if (event.target === document.getElementById('addLinkModal')) {
+        closeAddLinkModal();
+      }
+      if (event.target === document.getElementById('addImageModal')) {
+        closeAddImageModal();
+      }
+    });
+
+    // ---------- Drag and drop reordering ----------
+
+    function setupDragListeners(card) {
+      card.addEventListener('dragstart', function(e) {
+        draggedCard = this;
+        this.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', this.innerHTML);
+      });
+
+      card.addEventListener('dragend', function() {
+        this.classList.remove('dragging');
+        // Remove all drag-over classes
+        document.querySelectorAll('.drag-over').forEach(function(el) {
+          el.classList.remove('drag-over');
+        });
+        draggedCard = null;
+      });
+
+      card.addEventListener('dragover', function(e) {
+        if (e.preventDefault) {
+          e.preventDefault();
+        }
+        e.dataTransfer.dropEffect = 'move';
+
+        if (this === draggedCard) {
+          return;
+        }
+
+        this.classList.add('drag-over');
+        return false;
+      });
+
+      card.addEventListener('dragleave', function() {
+        this.classList.remove('drag-over');
+      });
+
+      card.addEventListener('drop', function(e) {
+        if (e.stopPropagation) {
+          e.stopPropagation();
+        }
+
+        if (draggedCard !== this) {
+          // Get the category of both cards
+          const draggedCategory = draggedCard.dataset.category;
+          const targetCategory = this.dataset.category;
+
+          // Only allow reordering within the same category
+          if (draggedCategory === targetCategory) {
+            // Swap positions in the DOM
+            const parent = this.parentNode;
+            const draggedIndex = Array.from(parent.children).indexOf(draggedCard);
+            const targetIndex = Array.from(parent.children).indexOf(this);
+
+            if (draggedIndex < targetIndex) {
+              parent.insertBefore(draggedCard, this.nextSibling);
+            } else {
+              parent.insertBefore(draggedCard, this);
+            }
+
+            // Update the allLinks array order and persist it
+            reorderLinksInArray(draggedCategory);
+          } else {
+            alert('You can only reorder links within the same category.');
+          }
+        }
+
+        this.classList.remove('drag-over');
+        return false;
+      });
+    }
+
+    function reorderLinksInArray(category) {
+      // Get all cards in this category section
+      const categorySection = document.getElementById(categoryIdOf(category));
+      if (!categorySection) return;
+
+      const grid = categorySection.querySelector('.card-grid');
+      if (!grid) return;
+
+      const byId = {};
+      allLinks.forEach(function(link) { byId[link.id] = link; });
+
+      const cards = Array.from(grid.querySelectorAll('.link-card'));
+      const newOrder = cards.map(function(card) {
+        return byId[card.dataset.id];
+      }).filter(Boolean);
+
+      // Update allLinks array with new order for this category
+      // (same semantics as the old page: reordered category moves after the rest)
+      const otherLinks = allLinks.filter(function(link) {
+        return (link.category || 'Other') !== category;
+      });
+
+      allLinks = otherLinks.concat(newOrder);
+
+      // Save the new order to Firestore
+      saveLinkOrder();
+    }
+
+    async function saveLinkOrder() {
+      try {
+        await saveOrder('links', allLinks.map(function(link) { return link.id; }));
+        console.log('Link order saved successfully');
+      } catch (error) {
+        console.error('Error saving link order:', error);
+        alert('Failed to save new order. Please try again.');
+      }
+    }
+
+    // ---------- Add Image modal (formerly triggered from the site header) ----------
+
+    // Ported from the old server-side extractDriveId(): pulls a Google Drive
+    // file ID out of the common Drive URL formats.
+    function extractDriveId(driveUrl) {
+      try {
+        // Check if already in lh3 format
+        if (driveUrl.includes('lh3.googleusercontent.com/d/')) {
+          const parts = driveUrl.split('/d/');
+          if (parts.length > 1) {
+            return parts[1].split('?')[0].split('/')[0];
+          }
+        }
+
+        // Extract from /file/d/ format
+        if (driveUrl.includes('/file/d/')) {
+          const parts = driveUrl.split('/file/d/');
+          if (parts.length > 1) {
+            return parts[1].split('/')[0];
+          }
+        }
+
+        // Extract from ?id= format
+        if (driveUrl.includes('?id=') || driveUrl.includes('&id=')) {
+          const match = driveUrl.match(/[?&]id=([^&]+)/);
+          if (match && match[1]) {
+            return match[1];
+          }
+        }
+
+        // If it's just the ID itself
+        if (driveUrl.length > 20 && driveUrl.length < 50 && !driveUrl.includes('/') && !driveUrl.includes('?')) {
+          return driveUrl;
+        }
+
+        return '';
+      } catch (error) {
+        return '';
+      }
+    }
+
+    // Converts a Drive URL to lh3 format, validates direct URLs.
+    // Returns { ok, url } or { ok: false, message }.
+    function resolveImageUrl(rawUrl) {
+      const urlTrimmed = rawUrl.trim();
+      const fileId = extractDriveId(urlTrimmed);
+      if (fileId !== '') {
+        return { ok: true, url: 'https://lh3.googleusercontent.com/d/' + fileId };
+      }
+      if (!urlTrimmed.startsWith('http://') && !urlTrimmed.startsWith('https://')) {
+        return { ok: false, message: 'URL must start with http:// or https://, or be a valid Google Drive URL.' };
+      }
+      return { ok: true, url: urlTrimmed };
+    }
+
+    function openAddImageModalFromNav() {
+      const modal = document.getElementById('addImageModal');
+      modal.classList.add('show');
+    }
+
+    function closeAddImageModal() {
+      const modal = document.getElementById('addImageModal');
+      modal.classList.remove('show');
+      document.getElementById('addImageForm').reset();
+      document.getElementById('bulkAddImageForm').reset();
+      document.getElementById('imageUrlPreview').style.display = 'none';
+      document.getElementById('bulkPreview').style.display = 'none';
+      showImageFormMessage('', '');
+      // Reset to single mode
+      switchToSingleMode();
+    }
+
+    function switchToSingleMode() {
+      document.getElementById('singleModeBtn').style.background = '#2d3f69';
+      document.getElementById('singleModeBtn').style.color = 'white';
+      document.getElementById('singleModeBtn').style.borderColor = '#2d3f69';
+      document.getElementById('bulkModeBtn').style.background = 'white';
+      document.getElementById('bulkModeBtn').style.color = '#2d3f69';
+      document.getElementById('bulkModeBtn').style.borderColor = '#e0e0e0';
+
+      document.getElementById('addImageForm').style.display = 'block';
+      document.getElementById('bulkAddImageForm').style.display = 'none';
+      showImageFormMessage('', '');
+    }
+
+    function switchToBulkMode() {
+      document.getElementById('bulkModeBtn').style.background = '#2d3f69';
+      document.getElementById('bulkModeBtn').style.color = 'white';
+      document.getElementById('bulkModeBtn').style.borderColor = '#2d3f69';
+      document.getElementById('singleModeBtn').style.background = 'white';
+      document.getElementById('singleModeBtn').style.color = '#2d3f69';
+      document.getElementById('singleModeBtn').style.borderColor = '#e0e0e0';
+
+      document.getElementById('addImageForm').style.display = 'none';
+      document.getElementById('bulkAddImageForm').style.display = 'block';
+      showImageFormMessage('', '');
+    }
+
+    function toggleNewCategoryInput() {
+      const categorySelect = document.getElementById('imageCategory');
+      const newCategoryInput = document.getElementById('imageNewCategoryInput');
+
+      if (categorySelect.value === 'new') {
+        newCategoryInput.style.display = 'block';
+        document.getElementById('newCategoryName').required = true;
+      } else {
+        newCategoryInput.style.display = 'none';
+        document.getElementById('newCategoryName').required = false;
+      }
+    }
+
+    function toggleBulkNewCategoryInput() {
+      const categorySelect = document.getElementById('bulkCategory');
+      const newCategoryInput = document.getElementById('bulkNewCategoryInput');
+
+      if (categorySelect.value === 'new') {
+        newCategoryInput.style.display = 'block';
+        document.getElementById('bulkNewCategoryName').required = true;
+      } else {
+        newCategoryInput.style.display = 'none';
+        document.getElementById('bulkNewCategoryName').required = false;
+      }
+    }
+
+    function parseBulkImageData(text) {
+      const lines = text.split('\n').filter(line => line.trim() !== '');
+      const images = [];
+      const errors = [];
+
+      lines.forEach((line, index) => {
+        const parts = line.split('|');
+        if (parts.length !== 2) {
+          errors.push(`Line ${index + 1}: Invalid format (must be "Description | URL")`);
+        } else {
+          const description = parts[0].trim();
+          const url = parts[1].trim();
+          if (!description || !url) {
+            errors.push(`Line ${index + 1}: Description and URL cannot be empty`);
+          } else {
+            images.push({ description, url });
+          }
+        }
+      });
+
+      return { images, errors };
+    }
+
+    function previewBulkImages() {
+      const bulkData = document.getElementById('bulkImageData').value;
+      const { images, errors } = parseBulkImageData(bulkData);
+      const previewDiv = document.getElementById('bulkPreview');
+      const previewContent = document.getElementById('bulkPreviewContent');
+
+      if (errors.length > 0) {
+        showImageFormMessage('error', errors.map(escapeHtml).join('<br>'));
+        previewDiv.style.display = 'none';
+        return;
+      }
+
+      if (images.length === 0) {
+        showImageFormMessage('error', 'No images found. Please enter at least one image.');
+        previewDiv.style.display = 'none';
+        return;
+      }
+
+      showImageFormMessage('', '');
+      previewContent.innerHTML = images.map((img, index) =>
+        `<div style="margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px;">
+          <strong>${index + 1}.</strong> ${escapeHtml(img.description)}<br>
+          <span style="color: #666; font-size: 0.85em;">${escapeHtml(img.url)}</span>
+        </div>`
+      ).join('');
+      previewDiv.style.display = 'block';
+    }
+
+    async function submitBulkAddImages(event) {
+      event.preventDefault();
+
+      const bulkData = document.getElementById('bulkImageData').value;
+      const categorySelect = document.getElementById('bulkCategory');
+      let category = categorySelect.value;
+
+      // If "new" category is selected, use the custom category name
+      if (category === 'new') {
+        category = document.getElementById('bulkNewCategoryName').value.trim();
+        if (!category) {
+          showImageFormMessage('error', 'Please enter a category name.');
+          return;
+        }
+      }
+
+      const { images, errors } = parseBulkImageData(bulkData);
+
+      if (errors.length > 0) {
+        showImageFormMessage('error', errors.map(escapeHtml).join('<br>'));
+        return;
+      }
+
+      if (images.length === 0) {
+        showImageFormMessage('error', 'No images found. Please enter at least one image.');
+        return;
+      }
+
+      const submitBtn = document.getElementById('bulkSubmitBtn');
+      const loading = document.getElementById('imageFormLoading');
+      const loadingText = document.getElementById('loadingText');
+
+      submitBtn.disabled = true;
+      loading.style.display = 'block';
+      loadingText.textContent = `Adding ${images.length} image${images.length > 1 ? 's' : ''}...`;
+      showImageFormMessage('', '');
+
+      try {
+        let processedCount = 0;
+        const warnings = [];
+
+        for (let i = 0; i < images.length; i++) {
+          const resolved = resolveImageUrl(images[i].url);
+          if (!resolved.ok) {
+            warnings.push(`Row ${i + 1}: ${resolved.message}`);
+            continue;
+          }
+          await addItem('images', {
+            description: images[i].description,
+            url: resolved.url,
+            category: category || 'Uncategorized'
+          });
+          processedCount++;
+        }
+
+        submitBtn.disabled = false;
+        loading.style.display = 'none';
+
+        let message = 'Successfully added ' + processedCount + ' image' + (processedCount !== 1 ? 's' : '') + '!';
+        if (warnings.length > 0) {
+          message += '<br><br>Warnings:<br>' + warnings.map(escapeHtml).join('<br>');
+        }
+        showImageFormMessage('success', message);
+
+        // Close modal after 2 seconds
+        setTimeout(function() {
+          closeAddImageModal();
+        }, 2000);
+      } catch (error) {
+        submitBtn.disabled = false;
+        loading.style.display = 'none';
+        showImageFormMessage('error', 'Error: ' + escapeHtml(error.message || String(error)));
+      }
+    }
+
+    async function submitAddImage(event) {
+      event.preventDefault();
+
+      const description = document.getElementById('imageDescription').value.trim();
+      const imageUrl = document.getElementById('imageUrlInput').value.trim();
+      const categorySelect = document.getElementById('imageCategory');
+      let category = categorySelect.value;
+
+      // If "new" category is selected, use the custom category name
+      if (category === 'new') {
+        category = document.getElementById('newCategoryName').value.trim();
+        if (!category) {
+          showImageFormMessage('error', 'Please enter a category name.');
+          return;
+        }
+      }
+
+      const resolved = resolveImageUrl(imageUrl);
+      if (!resolved.ok) {
+        showImageFormMessage('error', resolved.message);
+        return;
+      }
+
+      const submitBtn = document.getElementById('imageSubmitBtn');
+      const loading = document.getElementById('imageFormLoading');
+
+      submitBtn.disabled = true;
+      loading.style.display = 'block';
+      showImageFormMessage('', '');
+
+      try {
+        await addItem('images', {
+          description: description,
+          url: resolved.url,
+          category: category || 'Uncategorized'
+        });
+
+        submitBtn.disabled = false;
+        loading.style.display = 'none';
+        showImageFormMessage('success', 'Image added successfully!');
+
+        // Show final URL
+        const urlPreview = document.getElementById('imageUrlPreview');
+        const previewUrl = document.getElementById('previewUrl');
+        previewUrl.textContent = resolved.url;
+        urlPreview.style.display = 'block';
+
+        // Close modal after 2 seconds
+        setTimeout(function() {
+          closeAddImageModal();
+        }, 2000);
+      } catch (error) {
+        submitBtn.disabled = false;
+        loading.style.display = 'none';
+        showImageFormMessage('error', 'Error: ' + escapeHtml(error.message || String(error)));
+      }
+    }
+
+    function showImageFormMessage(type, message) {
+      const messageDiv = document.getElementById('imageFormMessage');
+      if (type && message) {
+        messageDiv.className = 'form-message ' + type + ' show';
+        messageDiv.innerHTML = message;
+      } else {
+        messageDiv.className = 'form-message';
+        messageDiv.innerHTML = '';
+      }
+    }
+
+    // Expose handlers used by inline on* attributes (module scope is not global).
+    window.openAddLinkDialog = openAddLinkDialog;
+    window.closeAddLinkModal = closeAddLinkModal;
+    window.submitAddLink = submitAddLink;
+    window.deleteCurrentLink = deleteCurrentLink;
+    window.openAddImageModalFromNav = openAddImageModalFromNav;
+    window.closeAddImageModal = closeAddImageModal;
+    window.switchToSingleMode = switchToSingleMode;
+    window.switchToBulkMode = switchToBulkMode;
+    window.toggleNewCategoryInput = toggleNewCategoryInput;
+    window.toggleBulkNewCategoryInput = toggleBulkNewCategoryInput;
+    window.previewBulkImages = previewBulkImages;
+    window.submitBulkAddImages = submitBulkAddImages;
+    window.submitAddImage = submitAddImage;
+
+    // ---------- Init ----------
+
+    async function init() {
+      await authReady;
+
+      try {
+        allLinks = await getLinks();
+      } catch (err) {
+        console.error('Failed to load links:', err);
+        allLinks = [];
+      }
+
+      renderLinks();
+
+      // Hide loading overlay and skeleton, show content
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      const skeletonLoader = document.getElementById('skeletonLoader');
+      const content = document.getElementById('content');
+
+      loadingOverlay.classList.add('hidden');
+
+      setTimeout(function() {
+        skeletonLoader.classList.add('hidden');
+        content.style.display = 'block';
+
+        // Remove skeleton from DOM after transition
+        setTimeout(function() {
+          skeletonLoader.style.display = 'none';
+        }, 300);
+      }, 100);
+
+      // Remove loading overlay from DOM after transition
+      setTimeout(function() {
+        loadingOverlay.style.display = 'none';
+      }, 300);
+    }
+
+    init();
+  </script>
+</body>
+</html>

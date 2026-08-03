@@ -1,0 +1,73 @@
+<!-- Embedded Add Link Form (shown in modal on Links page) -->
+<div id="addLinkModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Add New Link</h2>
+      <span class="close-modal" onclick="closeAddLinkModal()">&times;</span>
+    </div>
+
+    <div id="formMessage" class="form-message"></div>
+
+    <form id="addLinkForm" onsubmit="submitAddLink(event)">
+      <div class="form-group">
+        <label for="toolName">Tool Name *</label>
+        <input type="text" id="toolName" name="toolName" placeholder="e.g., Google Classroom" required>
+      </div>
+
+      <div class="form-group">
+        <label for="toolUrl">Tool URL *</label>
+        <input type="url" id="toolUrl" name="toolUrl" placeholder="https://..." required>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description *</label>
+        <input type="text" id="description" name="description" placeholder="Brief description" required>
+      </div>
+
+      <div class="form-group">
+        <label for="category">Category *</label>
+        <select id="category" name="category" required>
+          <option value="">-- Select a category --</option>
+          <option value="__NEW__">+ Add New Category</option>
+        </select>
+        <div id="newCategoryInput" class="new-category-input" style="display: none; margin-top: 10px;">
+          <input type="text" id="newCategory" placeholder="Enter new category name">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="iconClass">Icon *</label>
+        <select id="iconClass" name="iconClass" required>
+          <option value="">-- Select an icon --</option>
+          <option value="link">link</option>
+          <option value="description">description</option>
+          <option value="school">school</option>
+          <option value="computer">computer</option>
+          <option value="apps">apps</option>
+          <option value="dashboard">dashboard</option>
+          <option value="cloud">cloud</option>
+          <option value="storage">storage</option>
+          <option value="code">code</option>
+          <option value="settings">settings</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="imageUrl">Custom Image URL (Optional)</label>
+        <input type="url" id="imageUrl" name="imageUrl" placeholder="https://...">
+        <small>Leave blank to use Material Icon</small>
+      </div>
+
+      <div class="button-group">
+        <button type="button" class="btn-secondary" onclick="closeAddLinkModal()">Cancel</button>
+        <button type="submit" class="btn-primary" id="submitBtn">Add Link</button>
+      </div>
+    </form>
+
+    <div id="formLoading" class="form-loading" style="display: none;">
+      <div class="spinner-small"></div>
+      Adding link to sheet...
+    </div>
+  </div>
+</div>
+

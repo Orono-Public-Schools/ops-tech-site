@@ -1,0 +1,48 @@
+# Ignore files when pushing to Apps Script
+
+# Documentation and guides
+CLASP_SETUP.md
+README.md
+*.md
+
+# Version control
+.git/**
+.gitignore
+
+# Firebase folder (don't push to Apps Script)
+OPSTech-Firebase/**
+firebase/**
+
+# Claude Code local settings
+.claude/**
+
+# Node modules and dependencies
+node_modules/**
+package.json
+package-lock.json
+
+# TypeScript config (clasp handles this automatically)
+tsconfig.json
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Any local test files
+test/
+tests/
+*.test.js
+*.test.ts
