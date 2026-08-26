@@ -779,6 +779,12 @@
     .px-reset .material-icons { font-size: 18px; }
     .px-reset:hover { background: #f3e6e6; color: #ad2122; }
     .typography-group { margin: 6px 0 18px; }
+    .typo-sub {
+      font-size: 0.78em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+      color: #ad2122; margin: 14px 0 8px;
+    }
+    .typo-sub:first-of-type { margin-top: 4px; }
+    .typo-sub span { font-weight: 300; text-transform: none; letter-spacing: 0; color: #888; }
     .typography-group .hint { display: block; margin-top: 10px; }
     .topic-card .type-size-control { margin-top: 2px; }
     .preview-head .live-dot.sample { background: #f3e6c8; color: #7a5a12; margin-left: 8px; }
@@ -1594,24 +1600,58 @@
 
               <!-- Typography defaults -->
               <div class="intro-outro-group typography-group">
-                <label><span class="material-icons">format_size</span>Typography <span style="font-weight:300; color:#888;">(defaults for every topic)</span></label>
+                <label><span class="material-icons">format_size</span>Typography <span style="font-weight:300; color:#888;">(exact pixel sizes — blank = auto)</span></label>
+                <div class="typo-sub">Header</div>
                 <div class="type-size-control">
                   <div class="size-field">
-                    <label for="typo_title">Title size</label>
+                    <label for="typo_subject">Subject (title)</label>
+                    <div class="px-wrap">
+                      <span class="px-input"><input type="number" id="typo_subject" min="8" max="96" step="1" placeholder="auto" oninput="updatePreviewDebounced()"><span class="unit">px</span></span>
+                      <button type="button" class="px-reset" title="Reset to default (28px)" onclick="resetPx('typo_subject')"><span class="material-icons">restart_alt</span></button>
+                    </div>
+                  </div>
+                  <div class="size-field">
+                    <label for="typo_subheading">Subheading</label>
+                    <div class="px-wrap">
+                      <span class="px-input"><input type="number" id="typo_subheading" min="8" max="72" step="1" placeholder="auto" oninput="updatePreviewDebounced()"><span class="unit">px</span></span>
+                      <button type="button" class="px-reset" title="Reset to default (16px)" onclick="resetPx('typo_subheading')"><span class="material-icons">restart_alt</span></button>
+                    </div>
+                  </div>
+                </div>
+                <div class="typo-sub">Intro &amp; Outro</div>
+                <div class="type-size-control">
+                  <div class="size-field">
+                    <label for="typo_intro">Intro text</label>
+                    <div class="px-wrap">
+                      <span class="px-input"><input type="number" id="typo_intro" min="8" max="72" step="1" placeholder="auto" oninput="updatePreviewDebounced()"><span class="unit">px</span></span>
+                      <button type="button" class="px-reset" title="Reset to default (16px)" onclick="resetPx('typo_intro')"><span class="material-icons">restart_alt</span></button>
+                    </div>
+                  </div>
+                  <div class="size-field">
+                    <label for="typo_outro">Outro text</label>
+                    <div class="px-wrap">
+                      <span class="px-input"><input type="number" id="typo_outro" min="8" max="72" step="1" placeholder="auto" oninput="updatePreviewDebounced()"><span class="unit">px</span></span>
+                      <button type="button" class="px-reset" title="Reset to default (16px)" onclick="resetPx('typo_outro')"><span class="material-icons">restart_alt</span></button>
+                    </div>
+                  </div>
+                </div>
+                <div class="typo-sub">Topics <span>(defaults for every topic; each topic can override below)</span></div>
+                <div class="type-size-control">
+                  <div class="size-field">
+                    <label for="typo_title">Topic title</label>
                     <div class="px-wrap">
                       <span class="px-input"><input type="number" id="typo_title" min="8" max="96" step="1" placeholder="auto" oninput="updatePreviewDebounced()"><span class="unit">px</span></span>
                       <button type="button" class="px-reset" title="Reset to layout default" onclick="resetPx('typo_title')"><span class="material-icons">restart_alt</span></button>
                     </div>
                   </div>
                   <div class="size-field">
-                    <label for="typo_desc">Description size</label>
+                    <label for="typo_desc">Topic description</label>
                     <div class="px-wrap">
                       <span class="px-input"><input type="number" id="typo_desc" min="8" max="72" step="1" placeholder="auto" oninput="updatePreviewDebounced()"><span class="unit">px</span></span>
                       <button type="button" class="px-reset" title="Reset to layout default" onclick="resetPx('typo_desc')"><span class="material-icons">restart_alt</span></button>
                     </div>
                   </div>
                 </div>
-                <small class="hint">Exact pixel sizes. Leave blank (auto) to use the layout's built-in size; each topic can override these below.</small>
               </div>
 
               <!-- Topics -->
@@ -2129,13 +2169,21 @@
     // Global typography defaults from the Content tab
     function collectTypography() {
       return {
-        titleSize: pxOrNull(document.getElementById('typo_title')),
-        descSize:  pxOrNull(document.getElementById('typo_desc'))
+        subjectSize:    pxOrNull(document.getElementById('typo_subject')),
+        subheadingSize: pxOrNull(document.getElementById('typo_subheading')),
+        introSize:      pxOrNull(document.getElementById('typo_intro')),
+        outroSize:      pxOrNull(document.getElementById('typo_outro')),
+        titleSize:      pxOrNull(document.getElementById('typo_title')),
+        descSize:       pxOrNull(document.getElementById('typo_desc'))
       };
     }
     function restoreTypography(t) {
-      document.getElementById('typo_title').value = (t && t.titleSize) ? t.titleSize : '';
-      document.getElementById('typo_desc').value  = (t && t.descSize)  ? t.descSize  : '';
+      t = t || {};
+      var map = { typo_subject: 'subjectSize', typo_subheading: 'subheadingSize', typo_intro: 'introSize',
+                  typo_outro: 'outroSize', typo_title: 'titleSize', typo_desc: 'descSize' };
+      Object.keys(map).forEach(function(id) {
+        document.getElementById(id).value = t[map[id]] ? t[map[id]] : '';
+      });
     }
     function setTopicSizes(id, topic) {
       var tf = document.getElementById('topic' + id + '_title_size');
@@ -2588,8 +2636,8 @@
       var html = '<div style="font-family: Arial, Helvetica, sans-serif; max-width: 800px; margin: 0 auto; background: #f0f2f5; padding: 20px;">';
 
       // ── Header ──
-      var titleHtml = '<h1 style="margin: 0; font-size: 28px; font-weight: 700;">' + (subject || 'Newsletter Title') + '</h1>';
-      var subHtml   = subheading ? '<p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">' + subheading + '</p>' : '';
+      var titleHtml = '<h1 style="margin: 0; font-size: ' + (typo.subjectSize || 28) + 'px; font-weight: 700;">' + (subject || 'Newsletter Title') + '</h1>';
+      var subHtml   = subheading ? '<p style="margin: 10px 0 0 0; font-size: ' + (typo.subheadingSize || 16) + 'px; opacity: 0.9;">' + subheading + '</p>' : '';
       var textBlock = '<div>' + titleHtml + subHtml + '</div>';
 
       var headerInner = '';
@@ -2641,7 +2689,7 @@
 
       // Intro text
       if (intro && !EMPTY_CONTENT.test(intro)) {
-        html += '<div style="color: ' + BRAND_COLORS.primaryGray + '; margin-bottom: 28px; padding-bottom: 22px; border-bottom: 2px solid #e8ecf4;">' + processQuillHTML(intro) + '</div>';
+        html += '<div style="color: ' + BRAND_COLORS.primaryGray + '; font-size: ' + (typo.introSize || 16) + 'px; margin-bottom: 28px; padding-bottom: 22px; border-bottom: 2px solid #e8ecf4;">' + processQuillHTML(intro) + '</div>';
       }
 
       if (template === 'hero') {
@@ -2714,7 +2762,7 @@
 
       // Outro text
       if (outro && !EMPTY_CONTENT.test(outro)) {
-        html += '<div style="color: ' + BRAND_COLORS.primaryGray + '; margin-top: 28px; padding-top: 22px; border-top: 2px solid #e8ecf4;">' + processQuillHTML(outro) + '</div>';
+        html += '<div style="color: ' + BRAND_COLORS.primaryGray + '; font-size: ' + (typo.outroSize || 16) + 'px; margin-top: 28px; padding-top: 22px; border-top: 2px solid #e8ecf4;">' + processQuillHTML(outro) + '</div>';
       }
 
       html += '</div></div>';
