@@ -708,28 +708,79 @@
     }
 
     /* ========== IMAGE CONTROLS ========== */
+    /* Compact px size controls (Typography defaults + per-topic overrides) */
     .type-size-control {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 4px;
+      grid-template-columns: repeat(2, minmax(0, 220px));
+      gap: 14px 28px;
     }
-    .type-size-control .size-field label {
-      display: flex; justify-content: space-between; align-items: center;
-      font-size: 0.82em; color: #555; margin-bottom: 4px;
+    .size-field label {
+      display: block;
+      font-size: 0.8em;
+      font-weight: 500;
+      color: #5b6478;
+      margin-bottom: 5px;
     }
-    .type-size-control .size-field .px-wrap {
-      display: flex; align-items: center; gap: 6px;
+    .px-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .type-size-control .size-field input[type="number"] {
-      width: 90px; padding: 7px 10px; border: 1px solid #d6dbe6; border-radius: 8px; font-family: inherit; font-size: 0.9em;
+    .px-input {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #d6dbe6;
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
-    .type-size-control .size-field .unit { font-size: 0.8em; color: #888; }
-    .type-size-control .size-field .reset {
-      border: none; background: none; color: #ad2122; font-family: inherit; font-size: 0.78em; cursor: pointer; padding: 0 4px;
+    .px-input:focus-within {
+      border-color: #2d3f69;
+      box-shadow: 0 0 0 3px rgba(45, 63, 105, 0.12);
     }
+    .px-input input[type="number"] {
+      width: 64px;
+      padding: 7px 8px 7px 10px;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: 0.9em;
+      color: #2d3f69;
+      -moz-appearance: textfield;
+    }
+    .px-input input::-webkit-outer-spin-button,
+    .px-input input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .px-input input::placeholder { color: #9aa3b5; font-weight: 300; }
+    .px-input .unit {
+      font-size: 0.78em;
+      color: #7d8797;
+      padding: 7px 10px 7px 4px;
+      border-left: 1px solid #eef1f6;
+      background: #f7f8fb;
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+    }
+    .px-reset {
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      color: #9aa3b5;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    .px-reset .material-icons { font-size: 18px; }
+    .px-reset:hover { background: #f3e6e6; color: #ad2122; }
     .typography-group { margin: 6px 0 18px; }
-    .typography-group .hint { display: block; margin-top: 6px; }
+    .typography-group .hint { display: block; margin-top: 10px; }
+    .topic-card .type-size-control { margin-top: 2px; }
     .preview-head .live-dot.sample { background: #f3e6c8; color: #7a5a12; margin-left: 8px; }
     .preview-head .live-dot.sample::before { background: #c9962a; }
     .image-size-control {
@@ -1546,23 +1597,21 @@
                 <label><span class="material-icons">format_size</span>Typography <span style="font-weight:300; color:#888;">(defaults for every topic)</span></label>
                 <div class="type-size-control">
                   <div class="size-field">
-                    <label for="typo_title"><span>Title size</span></label>
+                    <label for="typo_title">Title size</label>
                     <div class="px-wrap">
-                      <input type="number" id="typo_title" min="8" max="96" step="1" placeholder="layout default" oninput="updatePreviewDebounced()">
-                      <span class="unit">px</span>
-                      <button type="button" class="reset" onclick="document.getElementById('typo_title').value='';updatePreview()">reset</button>
+                      <span class="px-input"><input type="number" id="typo_title" min="8" max="96" step="1" placeholder="auto" oninput="updatePreviewDebounced()"><span class="unit">px</span></span>
+                      <button type="button" class="px-reset" title="Reset to layout default" onclick="resetPx('typo_title')"><span class="material-icons">restart_alt</span></button>
                     </div>
                   </div>
                   <div class="size-field">
-                    <label for="typo_desc"><span>Description size</span></label>
+                    <label for="typo_desc">Description size</label>
                     <div class="px-wrap">
-                      <input type="number" id="typo_desc" min="8" max="72" step="1" placeholder="layout default" oninput="updatePreviewDebounced()">
-                      <span class="unit">px</span>
-                      <button type="button" class="reset" onclick="document.getElementById('typo_desc').value='';updatePreview()">reset</button>
+                      <span class="px-input"><input type="number" id="typo_desc" min="8" max="72" step="1" placeholder="auto" oninput="updatePreviewDebounced()"><span class="unit">px</span></span>
+                      <button type="button" class="px-reset" title="Reset to layout default" onclick="resetPx('typo_desc')"><span class="material-icons">restart_alt</span></button>
                     </div>
                   </div>
                 </div>
-                <small class="hint">Exact pixel sizes. Leave blank to use the layout's built-in size; each topic can override these below.</small>
+                <small class="hint">Exact pixel sizes. Leave blank (auto) to use the layout's built-in size; each topic can override these below.</small>
               </div>
 
               <!-- Topics -->
@@ -1943,20 +1992,20 @@
           <div id="topic${id}_description_container" class="quill-container"></div>
         </div>
         <div class="form-group">
-          <label>Text Size <span style="font-weight:300; color:#888;">(overrides the Typography defaults for this topic)</span></label>
+          <label>Text Size <span style="font-weight:300; color:#888;">(overrides the defaults above)</span></label>
           <div class="type-size-control">
             <div class="size-field">
-              <label for="topic${id}_title_size"><span>Title</span></label>
+              <label for="topic${id}_title_size">Title</label>
               <div class="px-wrap">
-                <input type="number" id="topic${id}_title_size" name="topic${id}_title_size" min="8" max="96" step="1" placeholder="default">
-                <span class="unit">px</span>
+                <span class="px-input"><input type="number" id="topic${id}_title_size" name="topic${id}_title_size" min="8" max="96" step="1" placeholder="auto"><span class="unit">px</span></span>
+                <button type="button" class="px-reset" title="Reset to default" onclick="resetPx('topic${id}_title_size')"><span class="material-icons">restart_alt</span></button>
               </div>
             </div>
             <div class="size-field">
-              <label for="topic${id}_desc_size"><span>Description</span></label>
+              <label for="topic${id}_desc_size">Description</label>
               <div class="px-wrap">
-                <input type="number" id="topic${id}_desc_size" name="topic${id}_desc_size" min="8" max="72" step="1" placeholder="default">
-                <span class="unit">px</span>
+                <span class="px-input"><input type="number" id="topic${id}_desc_size" name="topic${id}_desc_size" min="8" max="72" step="1" placeholder="auto"><span class="unit">px</span></span>
+                <button type="button" class="px-reset" title="Reset to default" onclick="resetPx('topic${id}_desc_size')"><span class="material-icons">restart_alt</span></button>
               </div>
             </div>
           </div>
@@ -2068,6 +2117,13 @@
       if (!field) return null;
       var n = parseInt(field.value, 10);
       return (isNaN(n) || n <= 0) ? null : n;
+    }
+
+    // Clear a px field back to "auto" and refresh the preview
+    function resetPx(id) {
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+      updatePreview();
     }
 
     // Global typography defaults from the Content tab
@@ -3481,6 +3537,7 @@
     window.sendPreview = sendPreview;
     window.copyForGmail = copyForGmail;
     window.exportHtml = exportHtml;
+    window.resetPx = resetPx;
     window.archiveSentEmail = archiveSentEmail;
     window.manualSaveDraft = manualSaveDraft;
     window.resetForm = resetForm;
