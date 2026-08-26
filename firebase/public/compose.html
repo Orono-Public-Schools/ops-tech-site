@@ -708,6 +708,30 @@
     }
 
     /* ========== IMAGE CONTROLS ========== */
+    .type-size-control {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .type-size-control .size-field label {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.82em; color: #555; margin-bottom: 4px;
+    }
+    .type-size-control .size-field .px-wrap {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .type-size-control .size-field input[type="number"] {
+      width: 90px; padding: 7px 10px; border: 1px solid #d6dbe6; border-radius: 8px; font-family: inherit; font-size: 0.9em;
+    }
+    .type-size-control .size-field .unit { font-size: 0.8em; color: #888; }
+    .type-size-control .size-field .reset {
+      border: none; background: none; color: #ad2122; font-family: inherit; font-size: 0.78em; cursor: pointer; padding: 0 4px;
+    }
+    .typography-group { margin: 6px 0 18px; }
+    .typography-group .hint { display: block; margin-top: 6px; }
+    .preview-head .live-dot.sample { background: #f3e6c8; color: #7a5a12; margin-left: 8px; }
+    .preview-head .live-dot.sample::before { background: #c9962a; }
     .image-size-control {
       margin-top: 10px;
       padding: 10px 12px;
@@ -1517,6 +1541,30 @@
                 <small class="hint">Appears at the top of the email body, before all topics</small>
               </div>
 
+              <!-- Typography defaults -->
+              <div class="intro-outro-group typography-group">
+                <label><span class="material-icons">format_size</span>Typography <span style="font-weight:300; color:#888;">(defaults for every topic)</span></label>
+                <div class="type-size-control">
+                  <div class="size-field">
+                    <label for="typo_title"><span>Title size</span></label>
+                    <div class="px-wrap">
+                      <input type="number" id="typo_title" min="8" max="96" step="1" placeholder="layout default" oninput="updatePreviewDebounced()">
+                      <span class="unit">px</span>
+                      <button type="button" class="reset" onclick="document.getElementById('typo_title').value='';updatePreview()">reset</button>
+                    </div>
+                  </div>
+                  <div class="size-field">
+                    <label for="typo_desc"><span>Description size</span></label>
+                    <div class="px-wrap">
+                      <input type="number" id="typo_desc" min="8" max="72" step="1" placeholder="layout default" oninput="updatePreviewDebounced()">
+                      <span class="unit">px</span>
+                      <button type="button" class="reset" onclick="document.getElementById('typo_desc').value='';updatePreview()">reset</button>
+                    </div>
+                  </div>
+                </div>
+                <small class="hint">Exact pixel sizes. Leave blank to use the layout's built-in size; each topic can override these below.</small>
+              </div>
+
               <!-- Topics -->
               <div id="topicFields"></div>
 
@@ -1589,6 +1637,10 @@
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:18px;height:18px;flex-shrink:0;"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z" fill="#d93025"/></svg>
                 Copy for Gmail
               </button>
+              <button type="button" class="action-pill outline" id="exportHtmlBtn" onclick="exportHtml()" title="Download the email as a standalone .html file">
+                <span class="material-icons">download</span>
+                Export HTML
+              </button>
               <button type="button" class="action-pill outline" onclick="manualSaveDraft()">
                 <span class="material-icons">save</span>
                 <span id="saveDraftText">Save Draft</span>
@@ -1643,6 +1695,7 @@
           <span class="sec-icon"><span class="material-icons">visibility</span></span>
           <h2>Live Preview</h2>
           <span class="live-dot">LIVE</span>
+          <span class="live-dot sample" id="sampleBadge" style="display:none;" title="Topics without content are shown with sample text so you can judge the layout. They disappear as you add your own content.">SAMPLE CONTENT</span>
         </div>
         <div id="emailPreview">
           <p style="color: #666; text-align: center; padding: 40px 20px;">
@@ -1890,6 +1943,25 @@
           <div id="topic${id}_description_container" class="quill-container"></div>
         </div>
         <div class="form-group">
+          <label>Text Size <span style="font-weight:300; color:#888;">(overrides the Typography defaults for this topic)</span></label>
+          <div class="type-size-control">
+            <div class="size-field">
+              <label for="topic${id}_title_size"><span>Title</span></label>
+              <div class="px-wrap">
+                <input type="number" id="topic${id}_title_size" name="topic${id}_title_size" min="8" max="96" step="1" placeholder="default">
+                <span class="unit">px</span>
+              </div>
+            </div>
+            <div class="size-field">
+              <label for="topic${id}_desc_size"><span>Description</span></label>
+              <div class="px-wrap">
+                <input type="number" id="topic${id}_desc_size" name="topic${id}_desc_size" min="8" max="72" step="1" placeholder="default">
+                <span class="unit">px</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
           <label for="topic${id}_image">Image URL</label>
           <input type="url" id="topic${id}_image" name="topic${id}_image" placeholder="https://example.com/image.jpg">
           <div class="image-size-control">
@@ -1991,6 +2063,31 @@
       updatePreview();
     }
 
+    // Parse a px number input; blank/invalid -> null (Firestore rejects undefined)
+    function pxOrNull(field) {
+      if (!field) return null;
+      var n = parseInt(field.value, 10);
+      return (isNaN(n) || n <= 0) ? null : n;
+    }
+
+    // Global typography defaults from the Content tab
+    function collectTypography() {
+      return {
+        titleSize: pxOrNull(document.getElementById('typo_title')),
+        descSize:  pxOrNull(document.getElementById('typo_desc'))
+      };
+    }
+    function restoreTypography(t) {
+      document.getElementById('typo_title').value = (t && t.titleSize) ? t.titleSize : '';
+      document.getElementById('typo_desc').value  = (t && t.descSize)  ? t.descSize  : '';
+    }
+    function setTopicSizes(id, topic) {
+      var tf = document.getElementById('topic' + id + '_title_size');
+      var df = document.getElementById('topic' + id + '_desc_size');
+      if (tf) tf.value = topic.titleSize || '';
+      if (df) df.value = topic.descSize  || '';
+    }
+
     // Collect all topics in DOM order
     function collectTopics() {
       var topics = [];
@@ -2004,10 +2101,14 @@
         var btnTextField  = document.getElementById('topic' + id + '_button_text');
         var btnUrlField   = document.getElementById('topic' + id + '_button_url');
         var dividerField  = document.getElementById('topic' + id + '_divider');
+        var titleSizeField= document.getElementById('topic' + id + '_title_size');
+        var descSizeField = document.getElementById('topic' + id + '_desc_size');
         var titleQuill    = quillInstances['topic' + id + '_title'];
         var descQuill     = quillInstances['topic' + id + '_description'];
 
         topics.push({
+          titleSize:  pxOrNull(titleSizeField),
+          descSize:   pxOrNull(descSizeField),
           title:      titleQuill    ? titleQuill.root.innerHTML   : '',
           description:descQuill     ? descQuill.root.innerHTML    : '',
           image:      imageField    ? imageField.value            : '',
@@ -2124,6 +2225,7 @@
         intro:      quillInstances['intro'] ? quillInstances['intro'].root.innerHTML : '',
         outro:      quillInstances['outro'] ? quillInstances['outro'].root.innerHTML : '',
         headerIcon: collectHeaderIcon(),
+        typography: collectTypography(),
         topics:     collectTopics()
       };
     }
@@ -2151,6 +2253,7 @@
       }
 
       restoreHeaderIcon(formData.headerIcon);
+      restoreTypography(formData.typography);
 
       var topicCards = document.querySelectorAll('.topic-card');
       var topicsToRestore = Math.min(formData.topics.length, topicCards.length);
@@ -2180,6 +2283,7 @@
         if (btnUrlField) btnUrlField.value = topic.buttonUrl || '';
         if (dividerField) dividerField.checked = topic.showDivider || false;
         if (descQuill) descQuill.root.innerHTML = topic.description || '';
+        setTopicSizes(id, topic);
       }
     }
 
@@ -2371,7 +2475,47 @@
       var outro      = quillInstances['outro'] ? quillInstances['outro'].root.innerHTML : '';
       var headerIcon = collectHeaderIcon();
 
+      // Topics with no content yet are shown with sample text/images so the
+      // layout can be judged from the Setup tab. Each placeholder disappears
+      // as soon as that topic gets a title, description, or image.
+      var topicCounts = { 'hero': 3, 'stacked': 3, 'offset': 3, 'split': 3, 'showcase': 3, 'grid': 4, 'digest': 4 };
+      if (topics.length === 0) {
+        for (var n = 0; n < (topicCounts[template] || 3); n++) topics.push({});
+      }
+      var usedSample = false;
+      topics = topics.map(function(topic, i) {
+        if (!isTopicEmpty(topic)) return topic;
+        usedSample = true;
+        var sample = SAMPLE_TOPICS[i % SAMPLE_TOPICS.length];
+        return Object.assign({}, topic, {
+          title: '<p>' + sample.title + '</p>',
+          description: '<p>' + sample.description + '</p>',
+          image: SAMPLE_IMAGE,
+          buttonText: (i === 0) ? 'Learn More' : '',
+          buttonUrl:  (i === 0) ? '#' : ''
+        });
+      });
+      document.getElementById('sampleBadge').style.display = usedSample ? '' : 'none';
+
       preview.innerHTML = generateEmailHTML(template, subject, subheading, topics, intro, outro, headerIcon);
+    }
+
+    var SAMPLE_TOPICS = [
+      { title: 'Welcome Back to School', description: 'Sample text so you can see how this layout looks. Everything here is replaced by your own words as soon as you type a title, description, or add an image to this topic.' },
+      { title: 'Device Pickup Schedule', description: 'Placeholder description. Try switching layouts on the Setup tab to compare how titles, text, and images are arranged.' },
+      { title: 'Tech Tip of the Week', description: 'Another placeholder paragraph showing roughly how much room a short description takes in this layout.' },
+      { title: 'Upcoming Training', description: 'Sample content for a fourth topic. Add or remove topics on the Content tab.' }
+    ];
+    var SAMPLE_IMAGE = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="340" viewBox="0 0 600 340">' +
+      '<rect width="600" height="340" rx="12" fill="#e4e8f0"/>' +
+      '<path d="M120 250 L230 140 L320 220 L380 170 L480 250 Z" fill="#c5cddc"/>' +
+      '<circle cx="420" cy="110" r="32" fill="#c5cddc"/>' +
+      '<text x="300" y="305" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#7d8797">Sample image</text>' +
+      '</svg>');
+    function isTopicEmpty(topic) {
+      var EMPTY = /^(<p>(<br>|&nbsp;|\s)*<\/p>\s*)*$/;
+      return EMPTY.test(topic.title || '') && EMPTY.test(topic.description || '') && !topic.image;
     }
 
     // Generate email HTML based on template
@@ -2383,6 +2527,7 @@
       };
 
       var EMPTY_CONTENT = /^(<p>(<br>|&nbsp;|\s)*<\/p>\s*)+$/;
+      var typo = collectTypography();
 
       var html = '<div style="font-family: Arial, Helvetica, sans-serif; max-width: 800px; margin: 0 auto; background: #f0f2f5; padding: 20px;">';
 
@@ -2446,24 +2591,24 @@
       if (template === 'hero') {
         // Hero: Large first topic, two side-by-side, extra topics stacked below
         if (topics[0]) {
-          html += generateTopicHTML(topics[0], 'full', BRAND_COLORS);
+          html += generateTopicHTML(topics[0], 'full', BRAND_COLORS, typo);
         }
         if (topics[1] || topics[2]) {
           html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">';
-          if (topics[1]) html += '<div>' + generateTopicHTML(topics[1], 'half', BRAND_COLORS) + '</div>';
-          if (topics[2]) html += '<div>' + generateTopicHTML(topics[2], 'half', BRAND_COLORS) + '</div>';
+          if (topics[1]) html += '<div>' + generateTopicHTML(topics[1], 'half', BRAND_COLORS, typo) + '</div>';
+          if (topics[2]) html += '<div>' + generateTopicHTML(topics[2], 'half', BRAND_COLORS, typo) + '</div>';
           html += '</div>';
         }
         // Extra topics (4+) rendered full-width below
         for (var h = 3; h < topics.length; h++) {
-          html += '<div style="margin-top: 30px;">' + generateTopicHTML(topics[h], 'full', BRAND_COLORS) + '</div>';
+          html += '<div style="margin-top: 30px;">' + generateTopicHTML(topics[h], 'full', BRAND_COLORS, typo) + '</div>';
         }
 
       } else if (template === 'stacked') {
         // Stacked: All topics full-width, stacked vertically
         topics.forEach(function(topic, index) {
           if (index > 0) html += '<div style="margin-top: 30px;"></div>';
-          html += generateTopicHTML(topic, 'full', BRAND_COLORS);
+          html += generateTopicHTML(topic, 'full', BRAND_COLORS, typo);
         });
 
       } else if (template === 'offset') {
@@ -2471,7 +2616,7 @@
         topics.forEach(function(topic, index) {
           if (index > 0) html += '<div style="margin-top: 30px;"></div>';
           var align = (index % 2 === 0) ? 'left' : 'right';
-          html += generateTopicHTML(topic, 'offset-' + align, BRAND_COLORS);
+          html += generateTopicHTML(topic, 'offset-' + align, BRAND_COLORS, typo);
         });
 
       } else if (template === 'split') {
@@ -2479,14 +2624,14 @@
         topics.forEach(function(topic, index) {
           if (index > 0) html += '<div style="margin-top: 30px;"></div>';
           var side = topic.imageAlign === 'right' ? 'right' : 'left';
-          html += generateTopicHTML(topic, 'offset-' + side, BRAND_COLORS);
+          html += generateTopicHTML(topic, 'offset-' + side, BRAND_COLORS, typo);
         });
 
       } else if (template === 'showcase') {
         // Showcase: text first, image below it
         topics.forEach(function(topic, index) {
           if (index > 0) html += '<div style="margin-top: 30px;"></div>';
-          html += generateTopicHTML(topic, 'textfirst', BRAND_COLORS);
+          html += generateTopicHTML(topic, 'textfirst', BRAND_COLORS, typo);
         });
 
       } else if (template === 'grid') {
@@ -2495,11 +2640,11 @@
           var rowStyle = g > 0 ? 'margin-top: 26px;' : '';
           if (topics[g + 1]) {
             html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; ' + rowStyle + '">';
-            html += '<div>' + generateTopicHTML(topics[g], 'half', BRAND_COLORS) + '</div>';
-            html += '<div>' + generateTopicHTML(topics[g + 1], 'half', BRAND_COLORS) + '</div>';
+            html += '<div>' + generateTopicHTML(topics[g], 'half', BRAND_COLORS, typo) + '</div>';
+            html += '<div>' + generateTopicHTML(topics[g + 1], 'half', BRAND_COLORS, typo) + '</div>';
             html += '</div>';
           } else {
-            html += '<div style="' + rowStyle + '">' + generateTopicHTML(topics[g], 'full', BRAND_COLORS) + '</div>';
+            html += '<div style="' + rowStyle + '">' + generateTopicHTML(topics[g], 'full', BRAND_COLORS, typo) + '</div>';
           }
         }
 
@@ -2507,7 +2652,7 @@
         // Digest: compact thumbnail rows with automatic separators
         topics.forEach(function(topic, index) {
           if (index > 0) html += '<div style="margin: 18px 0; border-bottom: 1px solid #e8ecf4;"></div>';
-          html += generateTopicHTML(topic, 'digest', BRAND_COLORS);
+          html += generateTopicHTML(topic, 'digest', BRAND_COLORS, typo);
         });
       }
 
@@ -2554,10 +2699,18 @@
     }
 
     // Generate individual topic HTML
-    function generateTopicHTML(topic, layout, colors) {
+    function generateTopicHTML(topic, layout, colors, typo) {
       if (!topic.title && !topic.description) return '';
 
       var html = '';
+
+      // Built-in [title, description] px sizes per layout; overridden by the
+      // global Typography defaults, then by the per-topic Text Size fields.
+      var SIZE_DEFAULTS = { full: [24, 16], half: [18, 14], offset: [20, 16], textfirst: [24, 16], digest: [18, 14] };
+      var sizeKey   = layout.indexOf('offset-') === 0 ? 'offset' : layout;
+      var sizeDef   = SIZE_DEFAULTS[sizeKey] || [20, 16];
+      var titleSize = topic.titleSize || (typo && typo.titleSize) || sizeDef[0];
+      var descSize  = topic.descSize  || (typo && typo.descSize)  || sizeDef[1];
 
       var imageSize = topic.imageSize || 100;
       var imageAlign = topic.imageAlign || 'center';
@@ -2602,8 +2755,8 @@
         if (topic.image) {
           html += buildImageTag(topic.image, imageSize + '%', '400px', 'width: ' + imageSize + '%; max-height: 400px; margin-bottom: 20px;');
         }
-        html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 12px 0; font-size: 24px; font-weight: 600;">' + titleHTML + '</div>';
-        html += '<div style="color: ' + colors.primaryGray + '; margin: 0;">' + descHTML + '</div>';
+        html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 12px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
+        html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
         html += buildButton(topic.buttonText, topic.buttonUrl);
         if (topic.showDivider) {
           html += '<div style="margin: 30px 0; border-bottom: 2px solid #e0e0e0;"></div>';
@@ -2613,8 +2766,8 @@
         if (topic.image) {
           html += buildImageTag(topic.image, imageSize + '%', '220px', 'width: ' + imageSize + '%; max-height: 220px; margin-bottom: 15px;');
         }
-        html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: 18px; font-weight: 600;">' + titleHTML + '</div>';
-        html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: 14px;">' + descHTML + '</div>';
+        html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
+        html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
         html += buildButton(topic.buttonText, topic.buttonUrl);
         if (topic.showDivider) {
           html += '<div style="margin: 20px 0; border-bottom: 2px solid #e0e0e0;"></div>';
@@ -2633,23 +2786,23 @@
             html += '<div style="display: flex; gap: 20px; align-items: flex-start;">';
             html += '<img src="' + topic.image + '" style="' + imgStyle + '" alt="' + topic.title + '">';
             html += '<div>';
-            html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: 20px; font-weight: 600;">' + titleHTML + '</div>';
-            html += '<div style="color: ' + colors.primaryGray + '; margin: 0;">' + descHTML + '</div>';
+            html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
+            html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
             html += buildButton(topic.buttonText, topic.buttonUrl);
             html += '</div></div>';
           } else {
             html += '<div style="display: flex; gap: 20px; align-items: flex-start;">';
             html += '<div>';
-            html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: 20px; font-weight: 600;">' + titleHTML + '</div>';
-            html += '<div style="color: ' + colors.primaryGray + '; margin: 0;">' + descHTML + '</div>';
+            html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
+            html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
             html += buildButton(topic.buttonText, topic.buttonUrl);
             html += '</div>';
             html += '<img src="' + topic.image + '" style="' + imgStyle + '" alt="' + topic.title + '">';
             html += '</div>';
           }
         } else {
-          html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: 20px; font-weight: 600;">' + titleHTML + '</div>';
-          html += '<div style="color: ' + colors.primaryGray + '; margin: 0;">' + descHTML + '</div>';
+          html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
+          html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
           html += buildButton(topic.buttonText, topic.buttonUrl);
         }
         if (topic.showDivider) {
@@ -2658,8 +2811,8 @@
 
       } else if (layout === 'textfirst') {
         // Showcase: title + description first, image underneath, button last
-        html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 12px 0; font-size: 24px; font-weight: 600;">' + titleHTML + '</div>';
-        html += '<div style="color: ' + colors.primaryGray + '; margin: 0;">' + descHTML + '</div>';
+        html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 12px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
+        html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
         if (topic.image) {
           html += buildImageTag(topic.image, imageSize + '%', '400px', 'width: ' + imageSize + '%; max-height: 400px; margin-top: 18px;');
         }
@@ -2683,8 +2836,8 @@
         html += '<div style="display: flex; gap: 16px; align-items: flex-start;">';
         html += thumb;
         html += '<div style="flex: 1;">';
-        html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 6px 0; font-size: 18px; font-weight: 600;">' + titleHTML + '</div>';
-        html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: 14px;">' + descHTML + '</div>';
+        html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 6px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
+        html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
         if (topic.buttonText && topic.buttonUrl) {
           html += '<div style="margin-top: 8px;"><a href="' + topic.buttonUrl + '" style="color: ' + colors.primaryRed + '; font-weight: 600; text-decoration: none; font-size: 14px;">' + topic.buttonText + ' &rarr;</a></div>';
         }
@@ -2764,6 +2917,49 @@
       } else {
         showStatus('error', 'Copy failed — try using Chrome or Edge for best results.');
       }
+    }
+
+    // Download the composed email as a standalone .html file
+    function exportHtml() {
+      var template = document.getElementById('template').value;
+      var subject  = document.getElementById('subject').value;
+
+      if (!template) {
+        showStatus('error', 'Please select a layout first');
+        setTab('setup');
+        return;
+      }
+
+      var subheading = document.getElementById('subheading').value;
+      var topics = collectTopics();
+      var intro  = quillInstances['intro'] ? quillInstances['intro'].root.innerHTML : '';
+      var outro  = quillInstances['outro'] ? quillInstances['outro'].root.innerHTML : '';
+      var body   = generateEmailHTML(template, subject, subheading, topics, intro, outro, collectHeaderIcon());
+
+      var title = subject || 'Untitled Email';
+      var doc = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
+        + '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+        + '<title>' + escapeHtml(title) + '</title>\n'
+        + '</head>\n<body style="margin:0; padding:0; background:#f0f2f5;">\n'
+        + body + '\n</body>\n</html>\n';
+
+      var fileName = title.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'email';
+      var blob = new Blob([doc], { type: 'text/html;charset=utf-8' });
+      var url  = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = fileName + '.html';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+
+      var btn = document.getElementById('exportHtmlBtn');
+      btn.innerHTML = '<span class="material-icons" style="font-size:18px;color:#34a853;">check_circle</span> Downloaded';
+      setTimeout(function() {
+        btn.innerHTML = '<span class="material-icons">download</span> Export HTML';
+      }, 2500);
+      showStatus('success', 'Downloaded ' + fileName + '.html');
     }
 
     // Reset form
@@ -3116,6 +3312,7 @@
         intro:      quillInstances['intro'] ? quillInstances['intro'].root.innerHTML : '',
         outro:      quillInstances['outro'] ? quillInstances['outro'].root.innerHTML : '',
         headerIcon: collectHeaderIcon(),
+        typography: collectTypography(),
         topics:     collectTopics(),
         preview:    subject || 'Untitled Draft'
       };
@@ -3220,9 +3417,11 @@
             if (btnTextField)  btnTextField.value  = topic.buttonText || '';
             if (btnUrlField)   btnUrlField.value   = topic.buttonUrl  || '';
             if (dividerField)  dividerField.checked = topic.showDivider || false;
+            setTopicSizes(id, topic);
           }
         }
 
+        restoreTypography(draft.typography);
         updatePreview();
         showDraftStatus('Draft loaded', 'success');
       }, 500);
@@ -3271,6 +3470,7 @@
     window.setIconPosition = setIconPosition;
     window.updateHeaderIconSize = updateHeaderIconSize;
     window.updatePreview = updatePreview;
+    window.updatePreviewDebounced = updatePreviewDebounced;
     window.updateImageSize = updateImageSize;
     window.addTopic = addTopic;
     window.removeTopic = removeTopic;
@@ -3280,6 +3480,7 @@
     window.closeImageLibrary = closeImageLibrary;
     window.sendPreview = sendPreview;
     window.copyForGmail = copyForGmail;
+    window.exportHtml = exportHtml;
     window.archiveSentEmail = archiveSentEmail;
     window.manualSaveDraft = manualSaveDraft;
     window.resetForm = resetForm;
