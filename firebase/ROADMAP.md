@@ -108,6 +108,18 @@ Remaining for Joel: add that LaunchPad URL-app tile and assign it to staff.
   into down/partial/degraded (not caused by a declared incident), the addresses
   in Admin → "Status alert emails" get a digest. Blank field = alerts off.
 
+## Compose ideas (next up)
+
+- **Import a whole communication and map it to sections** (Joel, 2026-08-27): let a
+  user paste an entire draft (or share a Google Doc) and then assign each chunk to a
+  slot — subject, subheading, intro, topic N title / description / button (text +
+  URL + lead-in), outro. Likely shape: an "Import" modal on the Content tab that
+  splits the pasted text into blocks (by blank lines / headings), shows them as
+  draggable chips, and lets you drop each onto a target field or auto-suggest a
+  mapping (first line → title, lines that look like links → buttons). Google Doc
+  path would need the Docs API (or "File → Download → HTML" paste) — start with
+  bulk paste since it needs no extra auth.
+
 ## Optional, anytime
 
 - Custom domain (e.g. tech.orono.k12.mn.us): Hosting → add custom domain + district DNS CNAME + add to Auth authorized domains
