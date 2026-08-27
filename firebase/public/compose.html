@@ -1053,9 +1053,48 @@
       flex-wrap: wrap;
     }
 
-    .button-group + .button-group {
-      margin-top: 10px;
+    .send-row { display: flex; align-items: flex-start; gap: 14px; }
+    .send-row + .send-row { margin-top: 14px; padding-top: 14px; border-top: 1px dashed #e3e6ee; }
+    .send-row-label {
+      display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+      width: 92px; padding-top: 9px;
+      font-size: 0.78em; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #2d3f69;
     }
+    .send-row-label .step-number { margin: 0; }
+    .send-hint {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 12px; border-radius: 10px; background: #f8f9fc; color: #7d8797; font-size: 0.85em;
+    }
+    .send-hint .material-icons { font-size: 16px; }
+    .send-row.unlocked .send-hint { display: none; }
+    .send-row.unlocked .send-row-label .step-number { background: #ad2122; }
+    .send-row.done .send-row-label .step-number { background: #34a853; }
+    @media (max-width: 600px) {
+      .send-row { flex-direction: column; gap: 6px; }
+      .send-row-label { width: auto; padding-top: 0; }
+    }
+
+    /* "More" dropdown for occasional actions */
+    .more-menu { position: relative; }
+    .more-menu .caret { font-size: 18px; margin: 0 -6px 0 -4px; transition: transform 0.15s; }
+    .more-menu.open .caret { transform: rotate(180deg); }
+    .more-dropdown {
+      display: none; position: absolute; top: calc(100% + 6px); left: 0; z-index: 30;
+      min-width: 210px; padding: 6px; background: #fff; border: 1px solid #e3e6ee; border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(45, 63, 105, 0.15);
+    }
+    .more-menu.open .more-dropdown { display: block; }
+    .more-dropdown button {
+      display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px;
+      border: none; border-radius: 8px; background: none; text-align: left; cursor: pointer;
+      font-family: inherit; font-size: 0.9em; font-weight: 500; color: #2d3f69;
+    }
+    .more-dropdown button .material-icons { font-size: 18px; color: #7d8797; }
+    .more-dropdown button:hover { background: #f3f5f9; }
+    .more-dropdown button.danger { color: #ad2122; }
+    .more-dropdown button.danger .material-icons { color: #ad2122; }
+    .more-dropdown button.danger:hover { background: #fbeaea; }
+    .more-sep { height: 1px; background: #eef0f5; margin: 4px 6px; }
 
     /* Placeholder shown on the Content tab before a layout is chosen */
     .content-placeholder {
@@ -1831,59 +1870,70 @@
 
           <!-- ============ SEND AREA (always visible) ============ -->
           <div class="send-area">
-            <div class="button-group">
-              <button type="button" class="action-pill" onclick="sendPreview(this)">
-                <span class="material-icons">preview</span>
-                Send Preview to Me
-              </button>
-              <button type="button" class="action-pill outline" id="copyGmailBtn" onclick="copyForGmail()">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:18px;height:18px;flex-shrink:0;"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z" fill="#d93025"/></svg>
-                Copy for Gmail
-              </button>
-              <button type="button" class="action-pill outline" id="exportHtmlBtn" onclick="exportHtml()" title="View, copy, or download the email's HTML code">
-                <span class="material-icons">code</span>
-                Export HTML
-              </button>
-              <button type="button" class="action-pill outline" onclick="manualSaveDraft()">
-                <span class="material-icons">save</span>
-                <span id="saveDraftText">Save Draft</span>
-              </button>
-              <button type="button" class="action-pill outline" onclick="resetForm()">
-                <span class="material-icons">refresh</span>
-                Reset
-              </button>
+            <!-- Step 1: review -->
+            <div class="send-row">
+              <div class="send-row-label"><span class="step-number">1</span>Review</div>
+              <div class="button-group">
+                <button type="button" class="action-pill" onclick="sendPreview(this)">
+                  <span class="material-icons">preview</span>
+                  Send Preview to Me
+                </button>
+                <button type="button" class="action-pill outline" onclick="manualSaveDraft()">
+                  <span class="material-icons">save</span>
+                  <span id="saveDraftText">Save Draft</span>
+                </button>
+                <div class="more-menu" id="moreMenu">
+                  <button type="button" class="action-pill outline" onclick="toggleMoreMenu(event)" aria-haspopup="true">
+                    <span class="material-icons">more_horiz</span>
+                    More
+                    <span class="material-icons caret">expand_more</span>
+                  </button>
+                  <div class="more-dropdown">
+                    <button type="button" id="copyGmailBtn" onclick="copyForGmail()">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:18px;height:18px;flex-shrink:0;"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z" fill="#d93025"/></svg>
+                      Copy for Gmail
+                    </button>
+                    <button type="button" id="exportHtmlBtn" onclick="exportHtml()">
+                      <span class="material-icons">code</span>
+                      Export HTML
+                    </button>
+                    <div class="more-sep"></div>
+                    <button type="button" class="danger" onclick="resetForm()">
+                      <span class="material-icons">refresh</span>
+                      Reset form
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="button-group">
-              <button type="submit" class="action-pill" style="display: none;" id="sendFinalBtn">
-                <span class="material-icons">send</span>
-                Send to Recipients
-              </button>
-              <button type="button" class="action-pill navy" style="display: none;" id="scheduleBtn" onclick="openScheduleModal()">
-                <span class="material-icons">schedule_send</span>
-                Schedule Send
-              </button>
-              <button type="button" class="action-pill navy" style="display: none;" id="archiveBtn" onclick="archiveSentEmail()">
-                <span class="material-icons">archive</span>
-                Mark as Sent &amp; Archive
-              </button>
+
+            <!-- Step 2: send (unlocked after a preview) -->
+            <div class="send-row" id="sendRow">
+              <div class="send-row-label"><span class="step-number">2</span>Send</div>
+              <div class="button-group send-locked" id="sendActions">
+                <span class="send-hint" id="sendHint">
+                  <span class="material-icons">lock</span>
+                  Send yourself a preview first — these unlock once you've reviewed it.
+                </span>
+                <button type="submit" class="action-pill" style="display: none;" id="sendFinalBtn">
+                  <span class="material-icons">send</span>
+                  Send to Recipients
+                </button>
+                <button type="button" class="action-pill navy" style="display: none;" id="scheduleBtn" onclick="openScheduleModal()">
+                  <span class="material-icons">schedule_send</span>
+                  Schedule Send
+                </button>
+                <button type="button" class="action-pill navy" style="display: none;" id="archiveBtn" onclick="archiveSentEmail()" title="Use this if you sent the email yourself from Gmail">
+                  <span class="material-icons">archive</span>
+                  Mark as Sent &amp; Archive
+                </button>
+              </div>
             </div>
 
             <!-- Draft Status Indicator -->
             <div id="draftStatus" class="draft-status" style="display: none;">
               <span class="material-icons">check_circle</span>
               <span id="draftStatusText">Draft saved</span>
-            </div>
-
-            <!-- Workflow Instructions -->
-            <div id="workflowInstructions" class="workflow-instructions">
-              <div class="workflow-step">
-                <span class="step-number">1</span>
-                <span class="step-text">Send a preview to yourself first to review the email</span>
-              </div>
-              <div class="workflow-step" style="opacity: 0.4;">
-                <span class="step-number">2</span>
-                <span class="step-text">Then choose: Send to Recipients, Schedule Send, or send manually from Gmail and Archive</span>
-              </div>
             </div>
 
             <!-- Status Message -->
@@ -3550,11 +3600,10 @@
           document.getElementById('scheduleBtn').style.display = 'inline-flex';
           document.getElementById('archiveBtn').style.display = 'inline-flex';
 
-          // Update workflow instructions
-          var steps = document.querySelectorAll('.workflow-step');
-          steps[0].classList.add('completed');
-          steps[1].classList.add('active');
-          steps[1].style.opacity = '1';
+          // Mark step 1 done and unlock step 2
+          var rows = document.querySelectorAll('.send-row');
+          rows[0].classList.add('done');
+          document.getElementById('sendRow').classList.add('unlocked');
         } else {
           showStatus('error', result.message);
         }
@@ -3685,8 +3734,15 @@
     attachImageTools(document.getElementById('headerIcon_url'), 'headerIcon_url');
     attachImageTools(document.getElementById('footerLogo_url'), 'footerLogo_url');
 
+    function toggleMoreMenu(e) {
+      e.stopPropagation();
+      document.getElementById('moreMenu').classList.toggle('open');
+    }
+
     // Close modals when clicking outside
     window.onclick = function(event) {
+      var mm = document.getElementById('moreMenu');
+      if (mm && !mm.contains(event.target)) mm.classList.remove('open');
       if (event.target == document.getElementById('imageModal')) closeImageLibrary();
       if (event.target == document.getElementById('scheduleModal')) closeScheduleModal();
       if (event.target == document.getElementById('htmlModal')) closeHtmlModal();
@@ -3910,6 +3966,7 @@
     window.closeImageLibrary = closeImageLibrary;
     window.sendPreview = sendPreview;
     window.copyForGmail = copyForGmail;
+    window.toggleMoreMenu = toggleMoreMenu;
     window.exportHtml = exportHtml;
     window.closeHtmlModal = closeHtmlModal;
     window.copyHtmlCode = copyHtmlCode;
