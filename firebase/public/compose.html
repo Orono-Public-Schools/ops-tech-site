@@ -626,8 +626,36 @@
       padding: 14px 16px;
       background: #f4f7ff;
       border: 1.5px solid #dbe3f5;
+      border-left: 5px solid #2d3f69;
       border-radius: 12px;
     }
+    .typography-group { background: #fafafa; border-color: #e6e8ee; border-left-color: #9aa3b5; }
+    .topic-card { border-left: 5px solid #ad2122 !important; }
+
+    /* Collapsible sections: header stays, everything else hides */
+    .collapse-head { cursor: pointer; user-select: none; }
+    .collapse-head .chev {
+      margin-left: auto; font-size: 22px; color: #9aa3b5; transition: transform 0.18s;
+    }
+    .collapsible.collapsed > :not(.collapse-head) { display: none !important; }
+    .collapsible.collapsed > .collapse-head { margin-bottom: 0 !important; }
+    .collapsible.collapsed > .collapse-head .chev { transform: rotate(-90deg); }
+    .collapse-summary {
+      display: none; font-weight: 400; color: #6b7385; font-size: 0.9em;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 55%;
+    }
+    .collapsible.collapsed > .collapse-head .collapse-summary { display: inline-block; }
+    .collapsible.collapsed > .collapse-head .remove-topic-btn { display: none; }
+    .intro-outro-group > label.collapse-head { display: flex; align-items: center; }
+    .collapse-all-bar {
+      display: flex; justify-content: flex-end; gap: 12px; margin: -6px 0 12px; font-size: 0.8em;
+    }
+    .collapse-all-bar button {
+      border: none; background: none; color: #2d3f69; font-family: inherit; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px;
+    }
+    .collapse-all-bar button .material-icons { font-size: 16px; }
+    .collapse-all-bar button:hover { text-decoration: underline; }
 
     .intro-outro-group > label {
       display: flex;
@@ -1759,9 +1787,14 @@
                 </button>
               </div>
 
+              <div class="collapse-all-bar">
+                <button type="button" onclick="setAllCollapsed(false)"><span class="material-icons">unfold_more</span>Expand all</button>
+                <button type="button" onclick="setAllCollapsed(true)"><span class="material-icons">unfold_less</span>Collapse all</button>
+              </div>
+
               <!-- Intro Text -->
-              <div class="intro-outro-group">
-                <label><span class="material-icons">format_quote</span>Intro Text <span style="font-weight:300; color:#888;">(optional)</span></label>
+              <div class="intro-outro-group collapsible">
+                <label class="collapse-head" onclick="toggleCollapse(this)"><span class="material-icons">format_quote</span>Intro Text <span style="font-weight:300; color:#888;">&nbsp;(optional)</span><span class="material-icons chev">expand_more</span></label>
                 <div id="intro_container" class="quill-container"></div>
                 <div class="snippet-bar">
                   <span class="material-icons snip-glyph">bookmarks</span>
@@ -1780,8 +1813,8 @@
               </div>
 
               <!-- Typography defaults -->
-              <div class="intro-outro-group typography-group">
-                <label><span class="material-icons">format_size</span>Typography <span style="font-weight:300; color:#888;">(exact pixel sizes — blank = auto)</span></label>
+              <div class="intro-outro-group typography-group collapsible collapsed">
+                <label class="collapse-head" onclick="toggleCollapse(this)"><span class="material-icons">format_size</span>Typography <span style="font-weight:300; color:#888;">&nbsp;(exact pixel sizes — blank = auto)</span><span class="material-icons chev">expand_more</span></label>
                 <div class="typo-sub">Header</div>
                 <div class="type-size-control">
                   <div class="size-field">
@@ -1874,8 +1907,8 @@
               </button>
 
               <!-- Outro Text -->
-              <div class="intro-outro-group" style="margin-top: 20px;">
-                <label><span class="material-icons">format_quote</span>Outro Text <span style="font-weight:300; color:#888;">(optional)</span></label>
+              <div class="intro-outro-group collapsible" style="margin-top: 20px;">
+                <label class="collapse-head" onclick="toggleCollapse(this)"><span class="material-icons">format_quote</span>Outro Text <span style="font-weight:300; color:#888;">&nbsp;(optional)</span><span class="material-icons chev">expand_more</span></label>
                 <div id="outro_container" class="quill-container"></div>
                 <div class="snippet-bar">
                   <span class="material-icons snip-glyph">bookmarks</span>
@@ -2293,16 +2326,18 @@
     // Create a single topic card and its Quill instances
     function createTopicCard(id, container) {
       var topicCard = document.createElement('div');
-      topicCard.className = 'topic-card';
+      topicCard.className = 'topic-card collapsible';
       topicCard.id = 'topicCard_' + id;
       topicCard.innerHTML = `
-        <h4>
+        <h4 class="collapse-head" onclick="toggleCollapse(this)">
           <span class="topic-chip"><span class="material-icons">topic</span></span>
           Topic ${id}
-          <button type="button" class="remove-topic-btn" onclick="removeTopic(${id})">
+          <span class="collapse-summary" id="topic${id}_summary"></span>
+          <button type="button" class="remove-topic-btn" onclick="event.stopPropagation(); removeTopic(${id})">
             <span class="material-icons">close</span>
             Remove
           </button>
+          <span class="material-icons chev">expand_more</span>
         </h4>
         <div class="form-group">
           <label for="topic${id}_title">Title</label>
@@ -2391,7 +2426,11 @@
         }
       });
       quillInstances['topic' + id + '_title'] = titleQuill;
-      titleQuill.on('text-change', updatePreviewDebounced);
+      titleQuill.on('text-change', function() {
+        var sum = document.getElementById('topic' + id + '_summary');
+        if (sum) sum.textContent = titleQuill.getText().trim().replace(/\s+/g, ' ');
+        updatePreviewDebounced();
+      });
 
       // Initialize Quill for description field
       var descQuill = new Quill('#topic' + id + '_description_container', {
@@ -2460,6 +2499,26 @@
       if (Array.isArray(topic.buttons)) return topic.buttons.filter(function(b) { return b && (b.text || b.url || b.lead); });
       if (topic.buttonText || topic.buttonUrl) return [{ text: topic.buttonText || '', url: topic.buttonUrl || '' }];
       return [];
+    }
+
+    // ── Collapsible sections ──
+    function toggleCollapse(head) {
+      var box = head.parentElement;
+      box.classList.toggle('collapsed');
+      // Titles set programmatically (draft load / import) don't fire text-change
+      var sum = box.querySelector('.collapse-summary');
+      var id = box.id && box.id.replace('topicCard_', '');
+      var tq = id && quillInstances['topic' + id + '_title'];
+      if (sum && tq) sum.textContent = tq.getText().trim().replace(/\s+/g, ' ');
+    }
+    function setAllCollapsed(collapsed) {
+      document.querySelectorAll('#contentSection .collapsible').forEach(function(box) {
+        box.classList.toggle('collapsed', collapsed);
+        var sum = box.querySelector('.collapse-summary');
+        var id = box.id && box.id.replace('topicCard_', '');
+        var tq = id && quillInstances['topic' + id + '_title'];
+        if (sum && tq) sum.textContent = tq.getText().trim().replace(/\s+/g, ' ');
+      });
     }
 
     // Add a new topic card
@@ -4275,6 +4334,8 @@
     window.updatePreviewDebounced = updatePreviewDebounced;
     window.updateImageSize = updateImageSize;
     window.addTopic = addTopic;
+    window.toggleCollapse = toggleCollapse;
+    window.setAllCollapsed = setAllCollapsed;
     window.removeTopic = removeTopic;
     window.addRecipientRow = addRecipientRow;
     window.removeRecipient = removeRecipient;
