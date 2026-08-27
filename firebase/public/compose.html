@@ -628,37 +628,79 @@
       border: 1.5px solid #d9e1f3;
       border-radius: 12px;
     }
-    /* Section headers: a tinted band that bleeds to the card edges.
-       Navy tint = text (intro/outro), grey = style, red tint = topics. */
-    .intro-outro-group > label.collapse-head,
-    .topic-card > h4.collapse-head {
-      margin: -14px -16px 14px;
-      padding: 11px 16px;
-      border-radius: 11px 11px 0 0;
-      border-bottom: 1.5px solid #d9e1f3;
-      background: linear-gradient(135deg, rgba(45,63,105,0.10), rgba(45,63,105,0.04));
+    /* ── Ledger treatment (design A1): no cards. Each section is a row with a
+       big gutter numeral (auto-numbered in email order), hairline rules
+       between rows, an uppercase kind-colored title, and a red sweep under
+       whichever section is open. ── */
+    #contentSection { counter-reset: sec; }
+    #contentSection .collapsible {
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr);
+      column-gap: 14px;
+      row-gap: 12px;
+      padding: 16px 0 !important;
+      margin: 0 !important;
+      background: none !important;
+      border: none !important;
+      border-top: 1px solid #e8eaf1 !important;
+      border-radius: 0 !important;
+      box-shadow: none;
     }
-    .intro-outro-group > label.collapse-head .material-icons:first-child { color: #2d3f69; }
-    .typography-group { border-color: #e3e6ee; }
-    .typography-group > label.collapse-head {
-      background: linear-gradient(135deg, rgba(122,131,151,0.14), rgba(122,131,151,0.05));
-      border-bottom-color: #e3e6ee;
+    #contentSection .collapsible::before {
+      counter-increment: sec;
+      content: counter(sec, decimal-leading-zero);
+      grid-column: 1;
+      grid-row: 1;
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      color: #d6dbe6;
+      padding-top: 3px;
+      transition: color 0.2s;
     }
-    .typography-group > label.collapse-head .material-icons:first-child { color: #6b7385; }
-    .topic-card { background: #fff !important; border-color: #ecd9d9 !important; }
-    .topic-card > h4.collapse-head {
-      margin: -16px -18px 16px;
-      padding: 11px 18px;
-      border-bottom-color: #ecd9d9;
-      background: linear-gradient(135deg, rgba(173,33,34,0.10), rgba(173,33,34,0.03));
+    #contentSection .collapsible:not(.collapsed)::before { color: #ad2122; }
+    #contentSection .collapsible > * { grid-column: 2; }
+    #contentSection .collapsible > .collapse-head {
+      margin: 0 !important;
+      padding: 0 !important;
+      background: none !important;
+      border: none !important;
+      flex-wrap: wrap;
+      gap: 10px;
     }
-    .collapsible.collapsed > label.collapse-head,
-    .collapsible.collapsed > h4.collapse-head {
-      border-radius: 11px;
-      border-bottom: none;
-      margin-bottom: -14px !important;
+    #contentSection .collapsible > .collapse-head .material-icons:first-child,
+    #contentSection .collapsible > .collapse-head .topic-chip { display: none; }
+    #contentSection .collapse-head-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: #2d3f69;
     }
-    .topic-card.collapsed > h4.collapse-head { margin-bottom: -16px !important; }
+    #contentSection .typography-group .collapse-head-title { color: #6b7385; }
+    #contentSection .topic-card .collapse-head-title { color: #ad2122; }
+    #contentSection .collapse-head > span[style] { text-transform: none; letter-spacing: 0; }
+    #contentSection .collapsible:not(.collapsed) > .collapse-head::after {
+      content: '';
+      flex-basis: 100%;
+      max-width: 56px;
+      height: 3px;
+      background: #ad2122;
+      border-radius: 2px;
+      margin-top: -2px;
+    }
+    #contentSection .collapsible.collapsed > .collapse-head { margin: 0 !important; }
+    #contentSection .collapsible.collapsed { row-gap: 0; padding: 14px 0 !important; }
+    #contentSection #topicFields { gap: 0; }
+    #contentSection .intro-outro-group:first-of-type,
+    #contentSection .collapse-all-bar + .intro-outro-group { border-top-color: transparent !important; }
+    #contentSection .add-topic-btn { margin: 0; justify-self: start; }
+    .add-topic-ledger {
+      display: grid; grid-template-columns: 44px minmax(0, 1fr); column-gap: 14px; align-items: center;
+      padding: 14px 0; border-top: 1px solid #e8eaf1;
+    }
+    .add-topic-ledger .plus { font-size: 26px; font-weight: 800; line-height: 1; color: #d6dbe6; }
 
     /* Collapsible sections: header stays, everything else hides */
     .collapse-head { cursor: pointer; user-select: none; }
@@ -1821,7 +1863,7 @@
 
               <!-- Intro Text -->
               <div class="intro-outro-group collapsible">
-                <label class="collapse-head" onclick="toggleCollapse(this)"><span class="material-icons">format_quote</span>Intro Text <span style="font-weight:300; color:#888;">&nbsp;(optional)</span><span class="material-icons chev">expand_more</span></label>
+                <label class="collapse-head" onclick="toggleCollapse(this)"><span class="material-icons">format_quote</span><span class="collapse-head-title">Intro</span><span style="font-weight:300; color:#888;">(optional)</span><span class="material-icons chev">expand_more</span></label>
                 <div id="intro_container" class="quill-container"></div>
                 <div class="snippet-bar">
                   <span class="material-icons snip-glyph">bookmarks</span>
@@ -1841,7 +1883,7 @@
 
               <!-- Typography defaults -->
               <div class="intro-outro-group typography-group collapsible collapsed">
-                <label class="collapse-head" onclick="toggleCollapse(this)"><span class="material-icons">format_size</span>Typography <span style="font-weight:300; color:#888;">&nbsp;(exact pixel sizes — blank = auto)</span><span class="material-icons chev">expand_more</span></label>
+                <label class="collapse-head" onclick="toggleCollapse(this)"><span class="material-icons">format_size</span><span class="collapse-head-title">Typography</span><span style="font-weight:300; color:#888;">(exact pixel sizes — blank = auto)</span><span class="material-icons chev">expand_more</span></label>
                 <div class="typo-sub">Header</div>
                 <div class="type-size-control">
                   <div class="size-field">
@@ -1928,14 +1970,11 @@
               <div id="topicFields"></div>
 
               <!-- Add Topic Button -->
-              <button type="button" class="add-topic-btn" id="addTopicBtn" onclick="addTopic()">
-                <span class="material-icons">add</span>
-                Add Topic
-              </button>
+              <div class="add-topic-ledger"><span class="plus">+</span><button type="button" class="add-topic-btn" id="addTopicBtn" onclick="addTopic()"> <span class="material-icons">add</span> Add Topic </button></div>
 
               <!-- Outro Text -->
               <div class="intro-outro-group collapsible" style="margin-top: 20px;">
-                <label class="collapse-head" onclick="toggleCollapse(this)"><span class="material-icons">format_quote</span>Outro Text <span style="font-weight:300; color:#888;">&nbsp;(optional)</span><span class="material-icons chev">expand_more</span></label>
+                <label class="collapse-head" onclick="toggleCollapse(this)"><span class="material-icons">format_quote</span><span class="collapse-head-title">Outro</span><span style="font-weight:300; color:#888;">(optional)</span><span class="material-icons chev">expand_more</span></label>
                 <div id="outro_container" class="quill-container"></div>
                 <div class="snippet-bar">
                   <span class="material-icons snip-glyph">bookmarks</span>
@@ -2358,7 +2397,7 @@
       topicCard.innerHTML = `
         <h4 class="collapse-head" onclick="toggleCollapse(this)">
           <span class="topic-chip"><span class="material-icons">topic</span></span>
-          Topic ${id}
+          <span class="collapse-head-title">Topic ${id}</span>
           <span class="collapse-summary" id="topic${id}_summary"></span>
           <button type="button" class="remove-topic-btn" onclick="event.stopPropagation(); removeTopic(${id})">
             <span class="material-icons">close</span>
