@@ -27,7 +27,29 @@ const USER_AGENT =
  * Returns { status: <http code>, text: <body> }. Throws on network error
  * or timeout (callers map that to 'down', like the old try/catch did).
  */
+const FETCH_RETRY_DELAY_MS = 2500;
+
+// Consecutive unreachable checks required before a system is marked down
+// (2 checks × 15-minute schedule = ~30 minutes). A single blip — a timeout
+// or a momentary 404 from a vendor's CDN — keeps the previous status.
+const UNREACHABLE_CONFIRM_CHECKS = 2;
+
 async function fetchText(url) {
+  try {
+    return await fetchTextOnce(url);
+  } catch (firstError) {
+    // Transient network failures (aborts, resets, DNS hiccups) usually clear
+    // within seconds — try once more before reporting a problem.
+    await new Promise(r => setTimeout(r, FETCH_RETRY_DELAY_MS));
+    try {
+      return await fetchTextOnce(url);
+    } catch (secondError) {
+      throw secondError;
+    }
+  }
+}
+
+async function fetchTextOnce(url) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
@@ -63,7 +85,8 @@ async function scrapeFeedStatus(feedUrl) {
     if (response.status !== 200) {
       return {
         status: 'down',
-        details: 'Unable to access status feed (HTTP ' + response.status + ')'
+        details: 'Unable to access status feed (HTTP ' + response.status + ')',
+        unreachable: true
       };
     }
 
@@ -366,7 +389,8 @@ async function scrapeStatusPage(url) {
     return {
       status: 'down',
       details: 'Unable to access status page: ' + String(error),
-      source: 'error'
+      source: 'error',
+      unreachable: true
     };
   }
 }
@@ -401,6 +425,7 @@ async function checkSystem(system) {
       return {
         status: statusResult.status,
         details: statusResult.details,
+        unreachable: !!statusResult.unreachable,
         url: GOOGLE_WORKSPACE_DASHBOARD
       };
     }
@@ -420,6 +445,7 @@ async function checkSystem(system) {
     return {
       status: statusResult.status,
       details: statusResult.details,
+      unreachable: !!statusResult.unreachable,
       url: GOOGLE_WORKSPACE_DASHBOARD
     };
   }
@@ -430,6 +456,7 @@ async function checkSystem(system) {
     return {
       status: statusResult.status,
       details: statusResult.details,
+      unreachable: !!statusResult.unreachable,
       url: system.url || ''
     };
   }
@@ -439,6 +466,7 @@ async function checkSystem(system) {
   return {
     status: statusResult.status,
     details: statusResult.details,
+    unreachable: !!statusResult.unreachable,
     url: system.url || ''
   };
 }
@@ -613,14 +641,25 @@ async function runAllChecks(db) {
           status: 'down',
           details: 'Error checking system: ' +
             ((outcome.reason && outcome.reason.message) || String(outcome.reason)),
-          url: system.url || ''
+          url: system.url || '',
+          unreachable: true
         };
 
     const overlay = overlayFor(system.id);
-    const status = overlay ? overlay.status : (check.status || 'down');
+    let status = overlay ? overlay.status : (check.status || 'down');
     if (overlay) check.details = overlay.details;
     const docRef = db.collection('statusResults').doc(system.id);
     let prev = prevById[system.id] || null;
+
+    // Debounce unreachable results: hold the previous status until the
+    // failure repeats UNREACHABLE_CONFIRM_CHECKS times in a row.
+    const failStreak = check.unreachable ? ((prev && prev.failStreak) || 0) + 1 : 0;
+    if (!overlay && check.unreachable && failStreak < UNREACHABLE_CONFIRM_CHECKS
+        && prev && prev.status && !isProblemStatus(prev.status)) {
+      status = prev.status;
+      check.details = 'Status page temporarily unreachable (' + shortReason(check.details)
+        + ') — will re-check before reporting a problem';
+    }
 
     // Systems that predate hourly buckets: rebuild from raw history once.
     if (!prev || !prev.hourly) {
@@ -676,7 +715,8 @@ async function runAllChecks(db) {
       checkedAt: checkedAt,
       statusSince: statusSince,
       hourly: hourly,
-      events: events
+      events: events,
+      failStreak: failStreak
     };
 
     batch.set(docRef, result);
@@ -693,6 +733,19 @@ async function runAllChecks(db) {
   await batch.commit();
   results.alertTransitions = alertTransitions;
   return results;
+}
+
+function isProblemStatus(st) {
+  return st === 'down' || st === 'partial' || st === 'degraded';
+}
+// "Unable to access status page: AbortError: This operation was aborted"
+//   -> "timed out"; HTTP codes stay as-is; anything else is trimmed.
+function shortReason(details) {
+  const d = String(details || '');
+  if (/AbortError|aborted|timeout/i.test(d)) return 'timed out';
+  const m = /HTTP (\d{3})/.exec(d);
+  if (m) return 'HTTP ' + m[1];
+  return d.replace(/^Unable to access status (page|feed): /i, '').replace(/^Error checking system: /i, '').slice(0, 80) || 'network error';
 }
 
 module.exports = { runAllChecks };

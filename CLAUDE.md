@@ -44,6 +44,9 @@ firebase deploy --only "functions:sendEmail,functions:statusCheck,..."   # by na
 **Gotchas learned the hard way:**
 - If a combined deploy (`hosting,...,functions`) errors at the end, hosting may have
   uploaded but NOT released — rerun `firebase deploy --only hosting` to release it.
+- If a functions deploy fails with "User code failed to load ... Timeout after 10000", it is
+  usually the discovery timeout, not the code: rerun with `FUNCTIONS_DISCOVERY_TIMEOUT=60`
+  set in the environment.
 - After editing an HTML page's inline `<script type="module">`, syntax-check it before
   deploying (extract the script block and `node --check`).
 - Hidden `<select id="template">` on compose.html must list every template value the
