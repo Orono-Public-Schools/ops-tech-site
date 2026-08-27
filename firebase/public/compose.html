@@ -2968,9 +2968,9 @@
       return html;
     }
 
-    // Digest thumbnail edge in px for a given Image Size % (160px at 100%)
+    // Digest thumbnail edge in px for a given Image Size % (120px at 100%)
     function digestThumbPx(imageSize) {
-      return Math.max(40, Math.round(160 * ((imageSize || 100) / 100)));
+      return Math.max(40, Math.round(120 * ((imageSize || 100) / 100)));
     }
 
     // Generate individual topic HTML
@@ -3120,7 +3120,7 @@
       } else if (layout === 'digest') {
         // Digest: small fixed thumbnail beside compact text; text link instead
         // of a button. Separators come from the template loop; the size slider
-        // scales the square thumbnail (160px at 100%).
+        // scales the square thumbnail (120px at 100%).
         var thumb = '';
         if (topic.image) {
           var thumbPx = digestThumbPx(imageSize);
@@ -3130,7 +3130,7 @@
           }
           thumb = '<img src="' + topic.image + '" style="' + thumbStyle + '" alt="' + altText + '">';
         }
-        html += '<div style="display: flex; gap: 16px; align-items: flex-start;">';
+        html += '<div style="display: flex; gap: 12px; align-items: flex-start;">';
         // Shared-width image column keeps text aligned across rows; smaller
         // thumbnails are centred within it.
         var colPx = topic.digestCol || 0;
