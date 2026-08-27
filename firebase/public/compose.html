@@ -1610,6 +1610,45 @@
                 </div>
               </div>
             </div>
+
+            <!-- Footer logo -->
+            <div class="form-section">
+              <div class="sec-head">
+                <span class="sec-icon"><span class="material-icons">branding_watermark</span></span>
+                <h3>Footer Logo</h3>
+              </div>
+              <div class="form-group">
+                <label>Footer Image / Logo <span style="font-weight:300;color:#888;">(optional)</span></label>
+                <input type="url" id="footerLogo_url" name="footerLogo_url" placeholder="https://example.com/logo.png" oninput="updatePreview()">
+                <small>Shown at the very bottom of the email, below the outro</small>
+              </div>
+              <div class="form-group" id="footerLogoControls">
+                <label>Alignment</label>
+                <div class="seg-grid cols-3" id="footerAlignButtons">
+                  <button type="button" class="seg-btn" data-align="left" onclick="setFooterAlign('left')">
+                    <span class="material-icons">format_align_left</span>Left
+                  </button>
+                  <button type="button" class="seg-btn active" data-align="center" onclick="setFooterAlign('center')">
+                    <span class="material-icons">format_align_center</span>Center
+                  </button>
+                  <button type="button" class="seg-btn" data-align="right" onclick="setFooterAlign('right')">
+                    <span class="material-icons">format_align_right</span>Right
+                  </button>
+                </div>
+                <input type="hidden" id="footerLogo_align" value="center">
+                <div class="image-size-control" style="margin-top:12px;">
+                  <label>
+                    <span>Logo Width</span>
+                    <span class="size-value" id="footerLogo_size_value">160px</span>
+                  </label>
+                  <input type="range" id="footerLogo_size" min="40" max="600" value="160" oninput="updateFooterLogoSize()">
+                </div>
+                <div class="form-group" style="margin-top:12px;">
+                  <label for="footerLogo_link">Link URL <span style="font-weight:300;color:#888;">(optional — makes the logo clickable)</span></label>
+                  <input type="url" id="footerLogo_link" name="footerLogo_link" placeholder="https://www.orono.k12.mn.us" oninput="updatePreviewDebounced()">
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- ============ CONTENT TAB ============ -->
@@ -2358,6 +2397,14 @@
       if (df) df.value = topic.descSize  || '';
     }
 
+    // Drop empty topics from the end of a list (keeps interior ones so
+    // ordering is preserved)
+    function trimEmptyTopics(topics) {
+      var out = topics.slice();
+      while (out.length && isTopicEmpty(out[out.length - 1])) out.pop();
+      return out;
+    }
+
     // Collect all topics in DOM order
     function collectTopics() {
       var topics = [];
@@ -2457,7 +2504,8 @@
 
       // Define topic counts per template
       var topicCounts = { 'hero': 3, 'stacked': 3, 'offset': 3, 'split': 3, 'showcase': 3, 'grid': 4, 'digest': 4 };
-      var topicCount = topicCounts[template] || 3;
+      var keptTopics = trimEmptyTopics(formData.topics || []);
+      var topicCount = keptTopics.length > 0 ? keptTopics.length : (topicCounts[template] || 3);
 
       // Create initial topic cards
       for (var i = 1; i <= topicCount; i++) {
@@ -2492,6 +2540,7 @@
         intro:      quillInstances['intro'] ? quillInstances['intro'].root.innerHTML : '',
         outro:      quillInstances['outro'] ? quillInstances['outro'].root.innerHTML : '',
         headerIcon: collectHeaderIcon(),
+        footerLogo: collectFooterLogo(),
         typography: collectTypography(),
         topics:     collectTopics()
       };
@@ -2520,6 +2569,7 @@
       }
 
       restoreHeaderIcon(formData.headerIcon);
+      restoreFooterLogo(formData.footerLogo);
       restoreTypography(formData.typography);
 
       var topicCards = document.querySelectorAll('.topic-card');
@@ -2604,6 +2654,36 @@
         position:    document.getElementById('headerIcon_position').value || 'right',
         bannerColor: document.getElementById('bannerColor').value || 'blue'
       };
+    }
+
+    // ── Footer logo ──
+    function setFooterAlign(align) {
+      document.getElementById('footerLogo_align').value = align;
+      document.querySelectorAll('#footerAlignButtons .seg-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.align === align);
+      });
+      updatePreview();
+    }
+    function updateFooterLogoSize() {
+      var slider = document.getElementById('footerLogo_size');
+      document.getElementById('footerLogo_size_value').textContent = slider.value + 'px';
+      updatePreview();
+    }
+    function collectFooterLogo() {
+      return {
+        url:   document.getElementById('footerLogo_url').value || '',
+        width: parseInt(document.getElementById('footerLogo_size').value) || 160,
+        align: document.getElementById('footerLogo_align').value || 'center',
+        link:  document.getElementById('footerLogo_link').value || ''
+      };
+    }
+    function restoreFooterLogo(d) {
+      d = d || {};
+      document.getElementById('footerLogo_url').value  = d.url || '';
+      document.getElementById('footerLogo_link').value = d.link || '';
+      document.getElementById('footerLogo_size').value = d.width || 160;
+      document.getElementById('footerLogo_size_value').textContent = (d.width || 160) + 'px';
+      setFooterAlign(d.align || 'center');
     }
 
     // Update image size display and preview
@@ -2928,6 +3008,14 @@
       // Outro text
       if (outro && !EMPTY_CONTENT.test(outro)) {
         html += '<div style="color: ' + BRAND_COLORS.primaryGray + '; font-size: ' + (typo.outroSize || 16) + 'px; margin-top: 28px; padding-top: 22px; border-top: 2px solid #e8ecf4;">' + processQuillHTML(outro) + '</div>';
+      }
+
+      // Footer logo
+      var footer = collectFooterLogo();
+      if (footer.url) {
+        var logoImg = '<img src="' + footer.url + '" style="width: ' + footer.width + 'px; max-width: 100%; height: auto; display: inline-block;" alt="">';
+        if (footer.link) logoImg = '<a href="' + footer.link + '" style="text-decoration: none;">' + logoImg + '</a>';
+        html += '<div style="text-align: ' + footer.align + '; margin-top: 28px; padding-top: 22px; border-top: 2px solid #e8ecf4;">' + logoImg + '</div>';
       }
 
       html += '</div></div>';
@@ -3595,6 +3683,7 @@
 
     // Header icon: browse-library + upload row
     attachImageTools(document.getElementById('headerIcon_url'), 'headerIcon_url');
+    attachImageTools(document.getElementById('footerLogo_url'), 'footerLogo_url');
 
     // Close modals when clicking outside
     window.onclick = function(event) {
@@ -3647,6 +3736,7 @@
         intro:      quillInstances['intro'] ? quillInstances['intro'].root.innerHTML : '',
         outro:      quillInstances['outro'] ? quillInstances['outro'].root.innerHTML : '',
         headerIcon: collectHeaderIcon(),
+        footerLogo: collectFooterLogo(),
         typography: collectTypography(),
         topics:     collectTopics(),
         preview:    subject || 'Untitled Draft'
@@ -3707,6 +3797,7 @@
 
         // Restore header icon
         restoreHeaderIcon(draft.headerIcon);
+        restoreFooterLogo(draft.footerLogo);
 
         // Load intro / outro
         if (draft.intro && quillInstances['intro']) {
@@ -3716,12 +3807,17 @@
           quillInstances['outro'].root.innerHTML = draft.outro;
         }
 
-        // Ensure we have enough topic cards (draft may have more than the default 3)
-        if (draft.topics && draft.topics.length > 0) {
+        // Match the card count to the draft (trailing empty topics dropped)
+        draft.topics = trimEmptyTopics(draft.topics || []);
+        if (draft.topics.length > 0) {
           var topicCards = document.querySelectorAll('.topic-card');
           while (topicCards.length < draft.topics.length) {
             nextTopicId++;
             createTopicCard(nextTopicId, document.getElementById('topicFields'));
+            topicCards = document.querySelectorAll('.topic-card');
+          }
+          while (topicCards.length > draft.topics.length) {
+            removeTopic(topicCards[topicCards.length - 1].id.replace('topicCard_', ''));
             topicCards = document.querySelectorAll('.topic-card');
           }
 
@@ -3801,6 +3897,8 @@
     window.setBannerColor = setBannerColor;
     window.setIconPosition = setIconPosition;
     window.updateHeaderIconSize = updateHeaderIconSize;
+    window.setFooterAlign = setFooterAlign;
+    window.updateFooterLogoSize = updateFooterLogoSize;
     window.updatePreview = updatePreview;
     window.updatePreviewDebounced = updatePreviewDebounced;
     window.updateImageSize = updateImageSize;
