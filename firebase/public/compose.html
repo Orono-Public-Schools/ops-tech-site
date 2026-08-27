@@ -778,6 +778,50 @@
     }
     .px-reset .material-icons { font-size: 18px; }
     .px-reset:hover { background: #f3e6e6; color: #ad2122; }
+    /* Bulk import */
+    .import-bar {
+      display: flex; align-items: center; gap: 14px; margin: 0 0 18px;
+      padding: 14px 16px; background: #f4f6fb; border: 1px dashed #c9d0e0; border-radius: 12px;
+    }
+    .import-bar .sec-icon { flex-shrink: 0; }
+    .import-text { flex: 1; display: flex; flex-direction: column; gap: 2px; font-size: 0.9em; }
+    .import-text strong { color: #2d3f69; }
+    .import-text span { color: #6b7385; font-size: 0.92em; }
+    .import-bar .action-pill { padding: 9px 18px; font-size: 0.85em; white-space: nowrap; }
+    @media (max-width: 640px) { .import-bar { flex-wrap: wrap; } }
+    .modal-card.wide { max-width: 980px; }
+    .import-body { display: flex; flex-direction: column; min-height: 0; }
+    .import-hint { margin: 0 0 12px; font-size: 0.9em; color: #666; }
+    .import-textarea {
+      width: 100%; height: 50vh; min-height: 260px; resize: vertical;
+      padding: 14px; border: 1px solid #d6dbe6; border-radius: 10px; font-family: inherit; font-size: 0.92em; line-height: 1.55;
+    }
+    .import-textarea:focus { outline: none; border-color: #2d3f69; box-shadow: 0 0 0 3px rgba(45,63,105,0.12); }
+    .import-toolbar { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; flex-wrap: wrap; }
+    .import-count { font-weight: 600; color: #2d3f69; font-size: 0.9em; }
+    .import-check { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85em; color: #555; margin-left: auto; }
+    .import-rows { display: flex; flex-direction: column; gap: 8px; max-height: 58vh; overflow: auto; padding-right: 4px; }
+    .import-row {
+      display: grid; grid-template-columns: 34px minmax(0, 1fr) 230px; gap: 12px; align-items: start;
+      padding: 10px 12px; background: #fff; border: 1px solid #e3e6ee; border-radius: 10px;
+    }
+    .import-row.skip { opacity: 0.5; }
+    .import-row .idx {
+      width: 26px; height: 26px; border-radius: 50%; background: #2d3f69; color: #fff;
+      display: inline-flex; align-items: center; justify-content: center; font-size: 0.75em; font-weight: 700; margin-top: 4px;
+    }
+    .import-row .blk {
+      font-size: 0.86em; line-height: 1.5; color: #333; white-space: pre-wrap; word-break: break-word;
+      max-height: 96px; overflow: auto; padding-top: 4px;
+    }
+    .import-row .blk a { color: #ad2122; }
+    .import-row select {
+      width: 100%; padding: 8px 10px; border: 1px solid #d6dbe6; border-radius: 8px; background: #fff;
+      font-family: inherit; font-size: 0.85em; color: #2d3f69;
+    }
+    .import-row .why { display: block; font-size: 0.72em; color: #9aa3b5; margin-top: 4px; }
+    @media (max-width: 640px) { .import-row { grid-template-columns: 34px 1fr; } .import-row select { grid-column: 2; } }
+
     .html-modal-hint { margin: 0 0 12px; font-size: 0.9em; color: #666; }
     .html-code {
       width: 100%; height: 420px; max-height: 60vh; resize: vertical;
@@ -1702,6 +1746,19 @@
             </div>
 
             <div id="contentSection" style="display: none;">
+              <!-- Bulk import -->
+              <div class="import-bar">
+                <span class="sec-icon"><span class="material-icons">content_paste_go</span></span>
+                <div class="import-text">
+                  <strong>Have the whole communication written already?</strong>
+                  <span>Paste it once and map each paragraph to a section.</span>
+                </div>
+                <button type="button" class="action-pill navy" onclick="openImportModal()">
+                  <span class="material-icons">upload</span>
+                  Import text
+                </button>
+              </div>
+
               <!-- Intro Text -->
               <div class="intro-outro-group">
                 <label><span class="material-icons">format_quote</span>Intro Text <span style="font-weight:300; color:#888;">(optional)</span></label>
@@ -1977,6 +2034,42 @@
   </div>
 
   <!-- Schedule Send Modal -->
+  <div id="importModal" class="modal">
+    <div class="modal-card wide">
+      <div class="modal-head">
+        <h2><span class="material-icons">content_paste_go</span>Import a communication</h2>
+        <button type="button" class="modal-close" onclick="closeImportModal()">&times;</button>
+      </div>
+      <div class="modal-body import-body">
+        <!-- Step A: paste -->
+        <div class="import-step" id="importStepPaste">
+          <p class="import-hint">Paste the full text (from a Google Doc, email, etc.). Separate paragraphs with a blank line — each one becomes a block you can map to a section. Links on their own line become buttons.</p>
+          <textarea id="importText" class="import-textarea" placeholder="Dear Families,&#10;&#10;Here are a few notes...&#10;&#10;PASSWORD SUPPORT&#10;&#10;If your student does not remember their password...&#10;&#10;Setting Up Account Recovery&#10;https://example.com/recovery"></textarea>
+        </div>
+        <!-- Step B: map -->
+        <div class="import-step" id="importStepMap" style="display:none;">
+          <div class="import-toolbar">
+            <span class="import-count" id="importCount"></span>
+            <label class="import-check"><input type="checkbox" id="importReplace" checked> Replace existing topics</label>
+            <button type="button" class="snip-btn" onclick="backToPaste()"><span class="material-icons">arrow_back</span>Edit text</button>
+          </div>
+          <div id="importRows" class="import-rows"></div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="action-pill outline" onclick="closeImportModal()">Cancel</button>
+        <button type="button" class="action-pill navy" id="importSplitBtn" onclick="splitImportText()">
+          <span class="material-icons">call_split</span>
+          Split into blocks
+        </button>
+        <button type="button" class="action-pill" id="importApplyBtn" style="display:none;" onclick="applyImport()">
+          <span class="material-icons">done_all</span>
+          Apply to email
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div id="htmlModal" class="modal">
     <div class="modal-card">
       <div class="modal-head">
@@ -3375,6 +3468,218 @@
       }
     }
 
+    // ========== BULK IMPORT (paste → blocks → map → apply) ==========
+    var importBlocks = [];   // [{ text, target, why }]
+    var URL_RE = /https?:\/\/[^\s<>"')]+/i;
+
+    function openImportModal() {
+      if (!document.getElementById('template').value) {
+        showStatus('error', 'Select a layout on the Setup tab first.');
+        setTab('setup');
+        return;
+      }
+      backToPaste();
+      document.getElementById('importModal').classList.add('show');
+      setTimeout(function() { document.getElementById('importText').focus(); }, 50);
+    }
+    function closeImportModal() {
+      document.getElementById('importModal').classList.remove('show');
+    }
+    function backToPaste() {
+      document.getElementById('importStepPaste').style.display = '';
+      document.getElementById('importStepMap').style.display = 'none';
+      document.getElementById('importSplitBtn').style.display = '';
+      document.getElementById('importApplyBtn').style.display = 'none';
+    }
+
+    // Split pasted text into blocks and auto-suggest a target for each
+    function splitImportText() {
+      var raw = document.getElementById('importText').value.replace(/\r\n?/g, '\n');
+      var blocks = raw.split(/\n[ \t]*\n+/).map(function(b) { return b.trim(); }).filter(Boolean);
+      if (!blocks.length) { showStatus('error', 'Paste some text first.'); return; }
+
+      importBlocks = suggestMapping(blocks);
+      renderImportRows();
+
+      document.getElementById('importStepPaste').style.display = 'none';
+      document.getElementById('importStepMap').style.display = '';
+      document.getElementById('importSplitBtn').style.display = 'none';
+      document.getElementById('importApplyBtn').style.display = '';
+    }
+
+    function looksLikeTitle(t) {
+      return t.length <= 80 && t.indexOf('\n') < 0 && !URL_RE.test(t) && !/[.:;,!?]$/.test(t)
+        && !/^(dear|hi|hello|hey)\b/i.test(t);
+    }
+    function looksLikeButton(t) {
+      var lines = t.split('\n');
+      return URL_RE.test(t) && lines.length <= 2 && t.length <= 220;
+    }
+    function looksLikeLeadIn(t) {
+      return /:$/.test(t) && t.length <= 160 && t.indexOf('\n') < 0;
+    }
+    function looksLikeSignoff(t) {
+      return /^(thanks|thank you|sincerely|best|regards|warmly|cheers|as always|questions\?|if you have (any )?questions)/i.test(t);
+    }
+
+    function suggestMapping(blocks) {
+      var out = [], topic = 0;
+      var subjectEmpty = !document.getElementById('subject').value.trim();
+      blocks.forEach(function(text, i) {
+        var next = blocks[i + 1] || '';
+        var last = i === blocks.length - 1;
+        var target, why;
+        if (looksLikeButton(text)) {
+          if (topic === 0) topic = 1;
+          target = 'topic:' + topic + ':button'; why = 'contains a link';
+        } else if (looksLikeLeadIn(text) && looksLikeButton(next)) {
+          if (topic === 0) topic = 1;
+          target = 'topic:' + topic + ':lead'; why = 'short line ending in ":" before a link';
+        } else if (looksLikeTitle(text)) {
+          if (topic === 0 && subjectEmpty && i === 0) { target = 'subject'; why = 'first short line'; subjectEmpty = false; }
+          else { topic++; target = 'topic:' + topic + ':title'; why = 'short line — new topic'; }
+        } else if (topic === 0) {
+          target = 'intro'; why = 'paragraph before any topic';
+        } else if (last && looksLikeSignoff(text)) {
+          target = 'outro'; why = 'closing paragraph';
+        } else {
+          target = 'topic:' + topic + ':desc'; why = 'paragraph under topic ' + topic;
+        }
+        out.push({ text: text, target: target, why: why });
+      });
+      return out;
+    }
+
+    function importTargetOptions(selected, maxTopic) {
+      var opts = [
+        ['', [['skip', '— Skip —'], ['subject', 'Subject'], ['subheading', 'Subheading'], ['intro', 'Intro text'], ['outro', 'Outro text']]]
+      ];
+      for (var t = 1; t <= maxTopic; t++) {
+        opts.push(['Topic ' + t, [
+          ['topic:' + t + ':title', 'Topic ' + t + ' — Title'],
+          ['topic:' + t + ':desc',  'Topic ' + t + ' — Description'],
+          ['topic:' + t + ':lead',  'Topic ' + t + ' — Lead-in (above next button)'],
+          ['topic:' + t + ':button','Topic ' + t + ' — Button / link']
+        ]]);
+      }
+      return opts.map(function(g) {
+        var items = g[1].map(function(o) {
+          return '<option value="' + o[0] + '"' + (o[0] === selected ? ' selected' : '') + '>' + o[1] + '</option>';
+        }).join('');
+        return g[0] ? '<optgroup label="' + g[0] + '">' + items + '</optgroup>' : items;
+      }).join('');
+    }
+
+    function importMaxTopic() {
+      var max = 0;
+      importBlocks.forEach(function(b) {
+        var m = /^topic:(\d+):/.exec(b.target);
+        if (m) max = Math.max(max, parseInt(m[1], 10));
+      });
+      return Math.max(max + 1, 3);
+    }
+
+    function renderImportRows() {
+      var maxTopic = importMaxTopic();
+      var rows = document.getElementById('importRows');
+      rows.innerHTML = importBlocks.map(function(b, i) {
+        var preview = escapeHtml(b.text).replace(URL_RE, function(u) { return '<a>' + u + '</a>'; });
+        return '<div class="import-row' + (b.target === 'skip' ? ' skip' : '') + '" data-i="' + i + '">'
+          + '<span class="idx">' + (i + 1) + '</span>'
+          + '<div class="blk">' + preview + '</div>'
+          + '<div><select onchange="setImportTarget(' + i + ', this.value)">' + importTargetOptions(b.target, maxTopic) + '</select>'
+          + '<span class="why">' + (b.why ? 'Suggested: ' + escapeHtml(b.why) : '&nbsp;') + '</span></div>'
+          + '</div>';
+      }).join('');
+      var mapped = importBlocks.filter(function(b) { return b.target !== 'skip'; }).length;
+      document.getElementById('importCount').textContent = importBlocks.length + ' blocks · ' + mapped + ' mapped';
+    }
+    function setImportTarget(i, target) {
+      importBlocks[i].target = target;
+      importBlocks[i].why = '';
+      renderImportRows();
+    }
+
+    function textToParas(text) {
+      return text.split('\n').map(function(l) { return l.trim(); }).filter(Boolean)
+        .map(function(l) { return '<p>' + escapeHtml(l) + '</p>'; }).join('');
+    }
+    function parseButtonBlock(text) {
+      var m = URL_RE.exec(text);
+      var url = m ? m[0] : '';
+      var label = text.replace(URL_RE, '').replace(/[\s\-–—:|]+$/g, '').replace(/^[\s\-–—:|]+/g, '').trim();
+      return { text: label || 'Learn More', url: url };
+    }
+
+    // Write the mapped blocks into the composer
+    function applyImport() {
+      var replace = document.getElementById('importReplace').checked;
+      var perTopic = {};   // n -> { title, desc:[], buttons:[], pendingLead }
+      var subject = null, subheading = null, intro = [], outro = [];
+
+      importBlocks.forEach(function(b) {
+        if (b.target === 'skip') return;
+        if (b.target === 'subject')    { subject = b.text.replace(/\n+/g, ' '); return; }
+        if (b.target === 'subheading') { subheading = b.text.replace(/\n+/g, ' '); return; }
+        if (b.target === 'intro')      { intro.push(textToParas(b.text)); return; }
+        if (b.target === 'outro')      { outro.push(textToParas(b.text)); return; }
+        var m = /^topic:(\d+):(\w+)$/.exec(b.target);
+        if (!m) return;
+        var n = parseInt(m[1], 10), part = m[2];
+        var t = perTopic[n] = perTopic[n] || { title: '', desc: [], buttons: [], pendingLead: '' };
+        if (part === 'title') t.title = '<p>' + escapeHtml(b.text.replace(/\n+/g, ' ')) + '</p>';
+        else if (part === 'desc') t.desc.push(textToParas(b.text));
+        else if (part === 'lead') t.pendingLead = b.text.replace(/\n+/g, ' ');
+        else if (part === 'button') {
+          var pb = parseButtonBlock(b.text);
+          t.buttons.push({ text: pb.text, url: pb.url, lead: t.pendingLead });
+          t.pendingLead = '';
+        }
+      });
+      // A lead-in with no button after it becomes description text
+      Object.keys(perTopic).forEach(function(n) {
+        if (perTopic[n].pendingLead) perTopic[n].desc.push('<p>' + escapeHtml(perTopic[n].pendingLead) + '</p>');
+      });
+
+      if (subject !== null)    { document.getElementById('subject').value = subject; }
+      if (subheading !== null) { document.getElementById('subheading').value = subheading; }
+      if (intro.length && quillInstances['intro']) quillInstances['intro'].root.innerHTML = intro.join('');
+      if (outro.length && quillInstances['outro']) quillInstances['outro'].root.innerHTML = outro.join('');
+
+      var nums = Object.keys(perTopic).map(Number).sort(function(a, b) { return a - b; });
+      if (nums.length) {
+        var container = document.getElementById('topicFields');
+        var existing = Array.prototype.slice.call(document.querySelectorAll('.topic-card'));
+        if (replace) {
+          existing.forEach(function(card) { removeTopic(card.id.replace('topicCard_', '')); });
+          existing = [];
+        }
+        var offset = existing.length;
+        var need = offset + nums.length;
+        while (document.querySelectorAll('.topic-card').length < need) {
+          nextTopicId++;
+          createTopicCard(nextTopicId, container);
+        }
+        var cards = document.querySelectorAll('.topic-card');
+        nums.forEach(function(n, i) {
+          var card = cards[offset + i];
+          var id = card.id.replace('topicCard_', '');
+          var t = perTopic[n];
+          if (t.title && quillInstances['topic' + id + '_title']) quillInstances['topic' + id + '_title'].root.innerHTML = t.title;
+          if (t.desc.length && quillInstances['topic' + id + '_description']) quillInstances['topic' + id + '_description'].root.innerHTML = t.desc.join('');
+          if (t.buttons.length) setTopicButtons(id, { buttons: t.buttons });
+        });
+      }
+
+      closeImportModal();
+      setTab('content');
+      updatePreview();
+      var missingUrls = nums.reduce(function(c, n) { return c + perTopic[n].buttons.filter(function(b) { return !b.url; }).length; }, 0);
+      showStatus('success', 'Imported ' + importBlocks.filter(function(b) { return b.target !== 'skip'; }).length + ' blocks into '
+        + nums.length + ' topic' + (nums.length === 1 ? '' : 's') + '.'
+        + (missingUrls ? ' ' + missingUrls + ' button' + (missingUrls === 1 ? ' needs a' : 's need a') + ' URL — fill those in below.' : ''));
+    }
+
     // Build the standalone HTML document for the composed email
     var exportedHtml = { doc: '', fileName: 'email' };
     function buildExportDoc() {
@@ -3756,6 +4061,7 @@
       if (event.target == document.getElementById('imageModal')) closeImageLibrary();
       if (event.target == document.getElementById('scheduleModal')) closeScheduleModal();
       if (event.target == document.getElementById('htmlModal')) closeHtmlModal();
+      if (event.target == document.getElementById('importModal')) closeImportModal();
     }
 
     // ========== DRAFT MANAGEMENT (Firestore per-user drafts) ==========
@@ -3978,6 +4284,12 @@
     window.copyForGmail = copyForGmail;
     window.toggleMoreMenu = toggleMoreMenu;
     window.exportHtml = exportHtml;
+    window.openImportModal = openImportModal;
+    window.closeImportModal = closeImportModal;
+    window.backToPaste = backToPaste;
+    window.splitImportText = splitImportText;
+    window.setImportTarget = setImportTarget;
+    window.applyImport = applyImport;
     window.closeHtmlModal = closeHtmlModal;
     window.copyHtmlCode = copyHtmlCode;
     window.downloadHtml = downloadHtml;

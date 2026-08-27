@@ -110,7 +110,10 @@ Remaining for Joel: add that LaunchPad URL-app tile and assign it to staff.
 
 ## Compose ideas (next up)
 
-- **Import a whole communication and map it to sections** (Joel, 2026-08-27): let a
+- ✅ **Import a whole communication and map it to sections** — SHIPPED 2026-08-27 as the
+  "Import text" bar on the Content tab (paste → split on blank lines → auto-suggested
+  mapping → per-block target dropdown → Apply). Google Doc sharing (Docs API) still
+  open if plain paste proves insufficient. Original idea: let a
   user paste an entire draft (or share a Google Doc) and then assign each chunk to a
   slot — subject, subheading, intro, topic N title / description / button (text +
   URL + lead-in), outro. Likely shape: an "Import" modal on the Content tab that
