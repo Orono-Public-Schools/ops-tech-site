@@ -962,6 +962,28 @@
       box-shadow: 0 0 0 2px rgba(173, 33, 34, 0.1);
     }
 
+    .button-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) 28px;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .button-link-control .button-row input[type="text"],
+    .button-link-control .button-row input[type="url"] { margin-bottom: 0; }
+    .button-row .remove-btn {
+      width: 28px; height: 28px; border: none; border-radius: 50%; background: transparent;
+      color: #9aa3b5; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    }
+    .button-row .remove-btn .material-icons { font-size: 18px; }
+    .button-row .remove-btn:hover { background: #f3e6e6; color: #ad2122; }
+    .add-button-link {
+      border: none; background: none; color: #ad2122; font-family: inherit; font-weight: 600;
+      font-size: 0.82em; cursor: pointer; padding: 2px 0; display: inline-flex; align-items: center; gap: 4px;
+    }
+    .add-button-link .material-icons { font-size: 16px; }
+    .add-button-link:hover { text-decoration: underline; }
+
     .button-link-control small {
       display: block;
       color: #ad2122;
@@ -2111,10 +2133,10 @@
           <small>Optional: Add an image to this topic</small>
         </div>
         <div class="button-link-control">
-          <label for="topic${id}_button_text">Button/Link (optional)</label>
-          <input type="text" id="topic${id}_button_text" name="topic${id}_button_text" placeholder="Button text (e.g., Learn More)" onchange="updatePreview()">
-          <input type="url" id="topic${id}_button_url" name="topic${id}_button_url" placeholder="Button URL (e.g., https://example.com)" onchange="updatePreview()">
-          <small>Add a clickable button or link to this topic</small>
+          <label>Buttons/Links (optional)</label>
+          <div id="topic${id}_buttons"></div>
+          <button type="button" class="add-button-link" onclick="addButtonRow(${id})"><span class="material-icons">add_circle</span>Add button</button>
+          <small>Add one or more clickable buttons or links to this topic</small>
         </div>
         <div class="divider-control">
           <label for="topic${id}_divider">
@@ -2166,6 +2188,48 @@
       topicCard.querySelectorAll('input').forEach(function(field) {
         field.addEventListener('input', updatePreview);
       });
+    }
+
+    // ── Per-topic button rows ──
+    function addButtonRow(id, text, url) {
+      var list = document.getElementById('topic' + id + '_buttons');
+      if (!list) return;
+      var row = document.createElement('div');
+      row.className = 'button-row';
+      row.innerHTML =
+        '<input type="text" placeholder="Button text (e.g., Learn More)">' +
+        '<input type="url" placeholder="https://example.com">' +
+        '<button type="button" class="remove-btn" title="Remove button"><span class="material-icons">close</span></button>';
+      var inputs = row.querySelectorAll('input');
+      inputs[0].value = text || '';
+      inputs[1].value = url || '';
+      inputs.forEach(function(inp) { inp.addEventListener('input', updatePreviewDebounced); });
+      row.querySelector('.remove-btn').addEventListener('click', function() { row.remove(); updatePreview(); });
+      list.appendChild(row);
+      if (text === undefined) inputs[0].focus();
+    }
+    function collectButtons(id) {
+      var out = [];
+      var list = document.getElementById('topic' + id + '_buttons');
+      if (!list) return out;
+      list.querySelectorAll('.button-row').forEach(function(row) {
+        var inputs = row.querySelectorAll('input');
+        var text = inputs[0].value.trim(), url = inputs[1].value.trim();
+        if (text || url) out.push({ text: text, url: url });
+      });
+      return out;
+    }
+    // Restore a topic's buttons (accepts new `buttons` array or legacy buttonText/buttonUrl)
+    function setTopicButtons(id, topic) {
+      var list = document.getElementById('topic' + id + '_buttons');
+      if (!list) return;
+      list.innerHTML = '';
+      topicButtons(topic).forEach(function(b) { addButtonRow(id, b.text, b.url); });
+    }
+    function topicButtons(topic) {
+      if (Array.isArray(topic.buttons)) return topic.buttons.filter(function(b) { return b && (b.text || b.url); });
+      if (topic.buttonText || topic.buttonUrl) return [{ text: topic.buttonText || '', url: topic.buttonUrl || '' }];
+      return [];
     }
 
     // Add a new topic card
@@ -2234,8 +2298,6 @@
         var alignField    = document.getElementById('topic' + id + '_align');
         var bgColorField  = document.getElementById('topic' + id + '_bg');
         var bgEnableField = document.getElementById('topic' + id + '_bg_enable');
-        var btnTextField  = document.getElementById('topic' + id + '_button_text');
-        var btnUrlField   = document.getElementById('topic' + id + '_button_url');
         var dividerField  = document.getElementById('topic' + id + '_divider');
         var titleSizeField= document.getElementById('topic' + id + '_title_size');
         var descSizeField = document.getElementById('topic' + id + '_desc_size');
@@ -2252,8 +2314,7 @@
           imageAlign: alignField    ? alignField.value            : 'center',
           bgColor:    bgColorField  ? bgColorField.value          : '#ffffff',
           bgEnabled:  bgEnableField ? bgEnableField.checked       : false,
-          buttonText: btnTextField  ? btnTextField.value          : '',
-          buttonUrl:  btnUrlField   ? btnUrlField.value           : '',
+          buttons:    collectButtons(id),
           showDivider:dividerField  ? dividerField.checked        : false
         });
       });
@@ -2403,8 +2464,6 @@
         var alignField    = document.getElementById('topic' + id + '_align');
         var bgColorField  = document.getElementById('topic' + id + '_bg');
         var bgEnableField = document.getElementById('topic' + id + '_bg_enable');
-        var btnTextField  = document.getElementById('topic' + id + '_button_text');
-        var btnUrlField   = document.getElementById('topic' + id + '_button_url');
         var dividerField  = document.getElementById('topic' + id + '_divider');
         var titleQuill    = quillInstances['topic' + id + '_title'];
         var descQuill     = quillInstances['topic' + id + '_description'];
@@ -2415,8 +2474,7 @@
         if (alignField) alignField.value = topic.imageAlign || 'center';
         if (bgColorField) bgColorField.value = topic.bgColor || '#ffffff';
         if (bgEnableField) bgEnableField.checked = topic.bgEnabled || false;
-        if (btnTextField) btnTextField.value = topic.buttonText || '';
-        if (btnUrlField) btnUrlField.value = topic.buttonUrl || '';
+        setTopicButtons(id, topic);
         if (dividerField) dividerField.checked = topic.showDivider || false;
         if (descQuill) descQuill.root.innerHTML = topic.description || '';
         setTopicSizes(id, topic);
@@ -2627,8 +2685,7 @@
           title: '<p>' + sample.title + '</p>',
           description: '<p>' + sample.description + '</p>',
           image: SAMPLE_IMAGE,
-          buttonText: (i === 0) ? 'Learn More' : '',
-          buttonUrl:  (i === 0) ? '#' : ''
+          buttons: (i === 0) ? [{ text: 'Learn More', url: '#' }] : []
         });
       });
       document.getElementById('sampleBadge').style.display = usedSample ? '' : 'none';
@@ -2651,7 +2708,7 @@
       '</svg>');
     function isTopicEmpty(topic) {
       var EMPTY = /^(<p>(<br>|&nbsp;|\s)*<\/p>\s*)*$/;
-      return EMPTY.test(topic.title || '') && EMPTY.test(topic.description || '') && !topic.image;
+      return EMPTY.test(topic.title || '') && EMPTY.test(topic.description || '') && !topic.image && topicButtons(topic).length === 0;
     }
 
     // Generate email HTML based on template
@@ -2890,10 +2947,13 @@
         return '<img src="' + src + '" style="' + fullStyle + '" alt="' + altText + '">';
       }
 
-      // Helper function to build button HTML
-      function buildButton(text, url) {
-        if (!text || !url) return '';
-        return '<div style="margin-top: 20px;"><a href="' + url + '" style="display: inline-block; padding: 12px 24px; background: ' + colors.primaryBlue + '; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: background 0.3s;">' + text + '</a></div>';
+      // Helper: render all of the topic's buttons (inline-block pills that wrap)
+      function buildButtons() {
+        var btns = topicButtons(topic).filter(function(b) { return b.text && b.url; });
+        if (!btns.length) return '';
+        return '<div style="margin-top: 20px;">' + btns.map(function(b) {
+          return '<a href="' + b.url + '" style="display: inline-block; margin: 0 10px 8px 0; padding: 12px 24px; background: ' + colors.primaryBlue + '; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">' + b.text + '</a>';
+        }).join('') + '</div>';
       }
 
       // Plain-text, attribute-safe alt (raw Quill HTML here breaks the <img> tag)
@@ -2907,7 +2967,7 @@
         }
         html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 12px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
         html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
-        html += buildButton(topic.buttonText, topic.buttonUrl);
+        html += buildButtons();
         if (topic.showDivider) {
           html += '<div style="margin: 30px 0; border-bottom: 2px solid #e0e0e0;"></div>';
         }
@@ -2918,7 +2978,7 @@
         }
         html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
         html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
-        html += buildButton(topic.buttonText, topic.buttonUrl);
+        html += buildButtons();
         if (topic.showDivider) {
           html += '<div style="margin: 20px 0; border-bottom: 2px solid #e0e0e0;"></div>';
         }
@@ -2938,14 +2998,14 @@
             html += '<div style="flex: 1; min-width: 0;">';
             html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
             html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
-            html += buildButton(topic.buttonText, topic.buttonUrl);
+            html += buildButtons();
             html += '</div></div>';
           } else {
             html += '<div style="display: flex; gap: 20px; align-items: flex-start;">';
             html += '<div style="flex: 1; min-width: 0;">';
             html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
             html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
-            html += buildButton(topic.buttonText, topic.buttonUrl);
+            html += buildButtons();
             html += '</div>';
             html += '<img src="' + topic.image + '" style="' + imgStyle + '" alt="' + altText + '">';
             html += '</div>';
@@ -2953,7 +3013,7 @@
         } else {
           html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
           html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
-          html += buildButton(topic.buttonText, topic.buttonUrl);
+          html += buildButtons();
         }
         if (topic.showDivider) {
           html += '<div style="margin: 30px 0; border-bottom: 2px solid #e0e0e0;"></div>';
@@ -2966,7 +3026,7 @@
         if (topic.image) {
           html += buildImageTag(topic.image, imageSize + '%', '400px', 'width: ' + imageSize + '%; max-height: 400px; margin-top: 18px;');
         }
-        html += buildButton(topic.buttonText, topic.buttonUrl);
+        html += buildButtons();
         if (topic.showDivider) {
           html += '<div style="margin: 30px 0; border-bottom: 2px solid #e0e0e0;"></div>';
         }
@@ -2994,8 +3054,11 @@
         html += '<div style="flex: 1;">';
         html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 6px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
         html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
-        if (topic.buttonText && topic.buttonUrl) {
-          html += '<div style="margin-top: 8px;"><a href="' + topic.buttonUrl + '" style="color: ' + colors.primaryRed + '; font-weight: 600; text-decoration: none; font-size: 14px;">' + topic.buttonText + ' &rarr;</a></div>';
+        var links = topicButtons(topic).filter(function(b) { return b.text && b.url; });
+        if (links.length) {
+          html += '<div style="margin-top: 8px;">' + links.map(function(b) {
+            return '<a href="' + b.url + '" style="display: inline-block; margin-right: 16px; color: ' + colors.primaryRed + '; font-weight: 600; text-decoration: none; font-size: 14px;">' + b.text + ' &rarr;</a>';
+          }).join('') + '</div>';
         }
         html += '</div></div>';
       }
@@ -3586,8 +3649,6 @@
             var alignField    = document.getElementById('topic' + id + '_align');
             var bgColorField  = document.getElementById('topic' + id + '_bg');
             var bgEnableField = document.getElementById('topic' + id + '_bg_enable');
-            var btnTextField  = document.getElementById('topic' + id + '_button_text');
-            var btnUrlField   = document.getElementById('topic' + id + '_button_url');
             var dividerField  = document.getElementById('topic' + id + '_divider');
 
             if (titleQuill) titleQuill.root.innerHTML = topic.title || '';
@@ -3597,8 +3658,7 @@
             if (alignField) alignField.value = topic.imageAlign || 'center';
             if (bgColorField)  bgColorField.value  = topic.bgColor  || '#ffffff';
             if (bgEnableField) bgEnableField.checked = topic.bgEnabled || false;
-            if (btnTextField)  btnTextField.value  = topic.buttonText || '';
-            if (btnUrlField)   btnUrlField.value   = topic.buttonUrl  || '';
+            setTopicButtons(id, topic);
             if (dividerField)  dividerField.checked = topic.showDivider || false;
             setTopicSizes(id, topic);
           }
@@ -3668,6 +3728,7 @@
     window.copyHtmlCode = copyHtmlCode;
     window.downloadHtml = downloadHtml;
     window.resetPx = resetPx;
+    window.addButtonRow = addButtonRow;
     window.archiveSentEmail = archiveSentEmail;
     window.manualSaveDraft = manualSaveDraft;
     window.resetForm = resetForm;
