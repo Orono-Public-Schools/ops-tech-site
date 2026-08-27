@@ -624,13 +624,41 @@
     .intro-outro-group {
       margin-bottom: 20px;
       padding: 14px 16px;
-      background: #f4f7ff;
-      border: 1.5px solid #dbe3f5;
-      border-left: 5px solid #2d3f69;
+      background: #fff;
+      border: 1.5px solid #d9e1f3;
       border-radius: 12px;
     }
-    .typography-group { background: #fafafa; border-color: #e6e8ee; border-left-color: #9aa3b5; }
-    .topic-card { border-left: 5px solid #ad2122 !important; }
+    /* Section headers: a tinted band that bleeds to the card edges.
+       Navy tint = text (intro/outro), grey = style, red tint = topics. */
+    .intro-outro-group > label.collapse-head,
+    .topic-card > h4.collapse-head {
+      margin: -14px -16px 14px;
+      padding: 11px 16px;
+      border-radius: 11px 11px 0 0;
+      border-bottom: 1.5px solid #d9e1f3;
+      background: linear-gradient(135deg, rgba(45,63,105,0.10), rgba(45,63,105,0.04));
+    }
+    .intro-outro-group > label.collapse-head .material-icons:first-child { color: #2d3f69; }
+    .typography-group { border-color: #e3e6ee; }
+    .typography-group > label.collapse-head {
+      background: linear-gradient(135deg, rgba(122,131,151,0.14), rgba(122,131,151,0.05));
+      border-bottom-color: #e3e6ee;
+    }
+    .typography-group > label.collapse-head .material-icons:first-child { color: #6b7385; }
+    .topic-card { background: #fff !important; border-color: #ecd9d9 !important; }
+    .topic-card > h4.collapse-head {
+      margin: -16px -18px 16px;
+      padding: 11px 18px;
+      border-bottom-color: #ecd9d9;
+      background: linear-gradient(135deg, rgba(173,33,34,0.10), rgba(173,33,34,0.03));
+    }
+    .collapsible.collapsed > label.collapse-head,
+    .collapsible.collapsed > h4.collapse-head {
+      border-radius: 11px;
+      border-bottom: none;
+      margin-bottom: -14px !important;
+    }
+    .topic-card.collapsed > h4.collapse-head { margin-bottom: -16px !important; }
 
     /* Collapsible sections: header stays, everything else hides */
     .collapse-head { cursor: pointer; user-select: none; }
@@ -638,7 +666,6 @@
       margin-left: auto; font-size: 22px; color: #9aa3b5; transition: transform 0.18s;
     }
     .collapsible.collapsed > :not(.collapse-head) { display: none !important; }
-    .collapsible.collapsed > .collapse-head { margin-bottom: 0 !important; }
     .collapsible.collapsed > .collapse-head .chev { transform: rotate(-90deg); }
     .collapse-summary {
       display: none; font-weight: 400; color: #6b7385; font-size: 0.9em;
