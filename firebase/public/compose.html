@@ -3230,7 +3230,7 @@
           var offsetText = '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>'
             + '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>'
             + buildButtons();
-          html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;"><tr>';
+          html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse; table-layout: fixed; width: 100%;"><tr>';
           if (offsetAlign === 'left') {
             html += '<td width="' + offsetImageWidth + '" style="width: ' + offsetImageWidth + 'px; padding: 0 20px 0 0; vertical-align: top;">' + offsetImg + '</td>';
             html += '<td style="vertical-align: top;">' + offsetText + '</td>';
@@ -3267,16 +3267,20 @@
         var thumb = '';
         if (topic.image) {
           var thumbPx = digestThumbPx(imageSize);
-          var thumbStyle = 'width: ' + thumbPx + 'px; height: ' + thumbPx + 'px; object-fit: contain; border-radius: 8px; display: inline-block; vertical-align: top;';
-          if (bgEnabled && bgColor) {
-            thumbStyle += ' background-color: ' + bgColor + '; padding: 8px;';
+          // Padding for the background is taken out of the image box so the
+          // total footprint always equals thumbPx (keeps the column width exact)
+          var pad = (bgEnabled && bgColor) ? 8 : 0;
+          var inner = Math.max(16, thumbPx - pad * 2);
+          var thumbStyle = 'width: ' + inner + 'px; height: ' + inner + 'px; object-fit: contain; border-radius: 8px; display: inline-block; vertical-align: top;';
+          if (pad) {
+            thumbStyle += ' background-color: ' + bgColor + '; padding: ' + pad + 'px;';
           }
           thumb = '<img src="' + topic.image + '" style="' + thumbStyle + '" alt="' + altText + '">';
         }
         // Table layout so spacing survives Gmail (no flex `gap`). A shared
         // image-column width keeps text aligned across rows; smaller
         // thumbnails are centred within it.
-        html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;"><tr>';
+        html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse; table-layout: fixed; width: 100%;"><tr>';
         var colPx = topic.digestCol || 0;
         if (colPx > 0) {
           html += '<td width="' + colPx + '" style="width: ' + colPx + 'px; padding: 0 12px 0 0; vertical-align: top; text-align: center;">' + thumb + '</td>';
