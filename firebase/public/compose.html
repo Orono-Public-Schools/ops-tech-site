@@ -3083,9 +3083,9 @@
         html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
         var links = topicButtons(topic).filter(function(b) { return b.text && b.url; });
         if (links.length) {
-          html += '<div style="margin-top: 8px;">' + links.map(function(b) {
-            var leadHtml = b.lead ? '<span style="color: ' + colors.primaryGray + '; font-size: ' + descSize + 'px;">' + escapeHtml(b.lead) + ' </span>' : '';
-            return '<div style="margin-bottom: 4px;">' + leadHtml + '<a href="' + b.url + '" style="display: inline-block; color: ' + colors.primaryRed + '; font-weight: 600; text-decoration: none; font-size: 14px;">' + b.text + ' &rarr;</a></div>';
+          html += '<div style="margin-top: 14px;">' + links.map(function(b) {
+            var leadHtml = b.lead ? '<div style="color: ' + colors.primaryGray + '; font-size: ' + descSize + 'px; line-height: 1.65; margin-bottom: 6px;">' + escapeHtml(b.lead) + '</div>' : '';
+            return '<div style="margin-bottom: 10px;">' + leadHtml + '<a href="' + b.url + '" style="display: inline-block; color: ' + colors.primaryRed + '; font-weight: 600; text-decoration: none; font-size: 14px;">' + b.text + ' &rarr;</a></div>';
           }).join('') + '</div>';
         }
         html += '</div></div>';
