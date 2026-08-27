@@ -2785,10 +2785,16 @@
         }
 
       } else if (template === 'digest') {
-        // Digest: compact thumbnail rows with automatic separators
+        // Digest: compact thumbnail rows with automatic separators. Every row
+        // shares one image-column width (the largest thumbnail) so titles and
+        // text stay aligned even when image sizes differ.
+        var digestCol = 0;
+        topics.forEach(function(topic) {
+          if (topic.image) digestCol = Math.max(digestCol, digestThumbPx(topic.imageSize));
+        });
         topics.forEach(function(topic, index) {
           if (index > 0) html += '<div style="margin: 18px 0; border-bottom: 1px solid #e8ecf4;"></div>';
-          html += generateTopicHTML(topic, 'digest', BRAND_COLORS, typo);
+          html += generateTopicHTML(Object.assign({}, topic, { digestCol: digestCol }), 'digest', BRAND_COLORS, typo);
         });
       }
 
@@ -2833,6 +2839,11 @@
       html = html.replace(/<li ((?!style=)[^>]+)>/gi, '<li style="margin:0 0 4px 0;line-height:1.65;" $1>');
 
       return html;
+    }
+
+    // Digest thumbnail edge in px for a given Image Size % (160px at 100%)
+    function digestThumbPx(imageSize) {
+      return Math.max(40, Math.round(160 * ((imageSize || 100) / 100)));
     }
 
     // Generate individual topic HTML
@@ -2966,7 +2977,7 @@
         // scales the square thumbnail (160px at 100%).
         var thumb = '';
         if (topic.image) {
-          var thumbPx = Math.max(40, Math.round(160 * (imageSize / 100)));
+          var thumbPx = digestThumbPx(imageSize);
           var thumbStyle = 'width: ' + thumbPx + 'px; height: ' + thumbPx + 'px; object-fit: contain; border-radius: 8px; flex-shrink: 0;';
           if (bgEnabled && bgColor) {
             thumbStyle += ' background-color: ' + bgColor + '; padding: 8px;';
@@ -2974,7 +2985,12 @@
           thumb = '<img src="' + topic.image + '" style="' + thumbStyle + '" alt="' + altText + '">';
         }
         html += '<div style="display: flex; gap: 16px; align-items: flex-start;">';
-        html += thumb;
+        // Shared-width image column keeps text aligned across rows; smaller
+        // thumbnails are centred within it.
+        var colPx = topic.digestCol || 0;
+        if (colPx > 0) {
+          html += '<div style="width: ' + colPx + 'px; flex-shrink: 0; display: flex; justify-content: center;">' + thumb + '</div>';
+        }
         html += '<div style="flex: 1;">';
         html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 6px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
         html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
