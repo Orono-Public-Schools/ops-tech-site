@@ -787,6 +787,13 @@
     }
     .html-code:focus { outline: none; border-color: #2d3f69; box-shadow: 0 0 0 3px rgba(45,63,105,0.12); }
     .typography-group { margin: 6px 0 18px; }
+    .type-size-control.three { grid-template-columns: repeat(3, minmax(0, 200px)); }
+    .typo-select {
+      padding: 7px 10px; border: 1px solid #d6dbe6; border-radius: 8px; background: #fff;
+      font-family: inherit; font-size: 0.9em; color: #2d3f69; min-width: 110px;
+    }
+    .typo-select:focus { outline: none; border-color: #2d3f69; box-shadow: 0 0 0 3px rgba(45,63,105,0.12); }
+    .px-wrap input[type="color"] { width: 36px; height: 34px; padding: 2px; border: 1px solid #d6dbe6; border-radius: 8px; background: #fff; cursor: pointer; }
     .typo-sub {
       font-size: 0.78em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
       color: #ad2122; margin: 14px 0 8px;
@@ -1674,6 +1681,35 @@
                     </div>
                   </div>
                 </div>
+                <div class="typo-sub">Buttons</div>
+                <div class="type-size-control three">
+                  <div class="size-field">
+                    <label for="typo_button">Text size</label>
+                    <div class="px-wrap">
+                      <span class="px-input"><input type="number" id="typo_button" min="8" max="48" step="1" placeholder="auto" oninput="updatePreviewDebounced()"><span class="unit">px</span></span>
+                      <button type="button" class="px-reset" title="Reset to default (16px)" onclick="resetPx('typo_button')"><span class="material-icons">restart_alt</span></button>
+                    </div>
+                  </div>
+                  <div class="size-field">
+                    <label for="typo_button_size">Button size</label>
+                    <select id="typo_button_size" class="typo-select" onchange="updatePreview()">
+                      <option value="small">Small</option>
+                      <option value="medium" selected>Medium</option>
+                      <option value="large">Large</option>
+                    </select>
+                  </div>
+                  <div class="size-field">
+                    <label for="typo_button_color">Color</label>
+                    <div class="px-wrap">
+                      <select id="typo_button_color" class="typo-select" onchange="syncButtonColor(); updatePreview()">
+                        <option value="navy" selected>Navy</option>
+                        <option value="red">Red</option>
+                        <option value="custom">Custom</option>
+                      </select>
+                      <input type="color" id="typo_button_custom" value="#2d3f69" style="display:none;" oninput="updatePreviewDebounced()">
+                    </div>
+                  </div>
+                </div>
                 <div class="typo-sub">Topics <span>(defaults for every topic; each topic can override below)</span></div>
                 <div class="type-size-control">
                   <div class="size-field">
@@ -2282,16 +2318,38 @@
         introSize:      pxOrNull(document.getElementById('typo_intro')),
         outroSize:      pxOrNull(document.getElementById('typo_outro')),
         titleSize:      pxOrNull(document.getElementById('typo_title')),
-        descSize:       pxOrNull(document.getElementById('typo_desc'))
+        descSize:       pxOrNull(document.getElementById('typo_desc')),
+        buttonSize:     pxOrNull(document.getElementById('typo_button')),
+        buttonScale:    document.getElementById('typo_button_size').value || 'medium',
+        buttonColor:    document.getElementById('typo_button_color').value || 'navy',
+        buttonCustom:   document.getElementById('typo_button_custom').value || '#2d3f69'
       };
+    }
+    function syncButtonColor() {
+      var custom = document.getElementById('typo_button_color').value === 'custom';
+      document.getElementById('typo_button_custom').style.display = custom ? '' : 'none';
+    }
+    // Resolve the button colour + padding + font-size from typography settings
+    function buttonStyle(typo, colors) {
+      typo = typo || {};
+      var bg = colors.primaryBlue;
+      if (typo.buttonColor === 'red') bg = colors.primaryRed;
+      else if (typo.buttonColor === 'custom' && typo.buttonCustom) bg = typo.buttonCustom;
+      var pad = { small: '8px 16px', medium: '12px 24px', large: '16px 34px' }[typo.buttonScale || 'medium'] || '12px 24px';
+      var fs  = typo.buttonSize || 16;
+      return { bg: bg, pad: pad, fs: fs };
     }
     function restoreTypography(t) {
       t = t || {};
       var map = { typo_subject: 'subjectSize', typo_subheading: 'subheadingSize', typo_intro: 'introSize',
-                  typo_outro: 'outroSize', typo_title: 'titleSize', typo_desc: 'descSize' };
+                  typo_outro: 'outroSize', typo_title: 'titleSize', typo_desc: 'descSize', typo_button: 'buttonSize' };
       Object.keys(map).forEach(function(id) {
         document.getElementById(id).value = t[map[id]] ? t[map[id]] : '';
       });
+      document.getElementById('typo_button_size').value  = t.buttonScale  || 'medium';
+      document.getElementById('typo_button_color').value = t.buttonColor  || 'navy';
+      document.getElementById('typo_button_custom').value = t.buttonCustom || '#2d3f69';
+      syncButtonColor();
     }
     function setTopicSizes(id, topic) {
       var tf = document.getElementById('topic' + id + '_title_size');
@@ -2963,8 +3021,9 @@
       function buildButtons() {
         var btns = topicButtons(topic).filter(function(b) { return b.text && b.url; });
         if (!btns.length) return '';
+        var bs = buttonStyle(typo, colors);
         var pill = function(b) {
-          return '<a href="' + b.url + '" style="display: inline-block; margin: 0 10px 8px 0; padding: 12px 24px; background: ' + colors.primaryBlue + '; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">' + b.text + '</a>';
+          return '<a href="' + b.url + '" style="display: inline-block; margin: 0 10px 8px 0; padding: ' + bs.pad + '; background: ' + bs.bg + '; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: ' + bs.fs + 'px;">' + b.text + '</a>';
         };
         // Lead-less buttons flow inline as a pill row; a button with a lead-in
         // starts a new block: lead paragraph, then its pill.
@@ -3085,7 +3144,9 @@
         if (links.length) {
           html += '<div style="margin-top: 14px;">' + links.map(function(b) {
             var leadHtml = b.lead ? '<div style="color: ' + colors.primaryGray + '; font-size: ' + descSize + 'px; line-height: 1.65; margin-bottom: 6px;">' + escapeHtml(b.lead) + '</div>' : '';
-            return '<div style="margin-bottom: 10px;">' + leadHtml + '<a href="' + b.url + '" style="display: inline-block; color: ' + colors.primaryRed + '; font-weight: 600; text-decoration: none; font-size: 14px;">' + b.text + ' &rarr;</a></div>';
+            var ls = buttonStyle(typo, colors);
+            var linkColor = (typo && typo.buttonColor && typo.buttonColor !== 'navy') ? ls.bg : colors.primaryRed;
+            return '<div style="margin-bottom: 10px;">' + leadHtml + '<a href="' + b.url + '" style="display: inline-block; color: ' + linkColor + '; font-weight: 600; text-decoration: none; font-size: ' + (typo && typo.buttonSize ? typo.buttonSize : 14) + 'px;">' + b.text + ' &rarr;</a></div>';
           }).join('') + '</div>';
         }
         html += '</div></div>';
@@ -3757,6 +3818,7 @@
     window.downloadHtml = downloadHtml;
     window.resetPx = resetPx;
     window.addButtonRow = addButtonRow;
+    window.syncButtonColor = syncButtonColor;
     window.archiveSentEmail = archiveSentEmail;
     window.manualSaveDraft = manualSaveDraft;
     window.resetForm = resetForm;
