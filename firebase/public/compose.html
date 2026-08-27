@@ -2775,12 +2775,13 @@
     function processQuillHTML(html) {
       if (!html) return html;
 
-      // Collapse 2+ consecutive empty paragraphs into one
-      html = html.replace(/(<p[^>]*>\s*(<br\s*\/?>\s*)?<\/p>\s*){2,}/gi, '<p style="margin:0 0 6px 0;line-height:1.65;"><br></p>');
-
       // Strip leading/trailing empty paragraphs from the whole block
       html = html.replace(/^(\s*<p[^>]*>\s*(<br\s*\/?>\s*)?<\/p>\s*)+/i, '');
       html = html.replace(/(\s*<p[^>]*>\s*(<br\s*\/?>\s*)?<\/p>\s*)+$/i, '');
+
+      // Blank lines in the editor -> one compact spacer (a full empty <p> plus
+      // margins rendered roughly double the gap seen in the editor)
+      html = html.replace(/(<p[^>]*>\s*(<br\s*\/?>\s*)?<\/p>\s*)+/gi, '<div style="height:8px;line-height:8px;font-size:8px;">&nbsp;</div>');
 
       // <p> — no existing style
       html = html.replace(/<p>/gi, '<p style="margin:0 0 10px 0;line-height:1.65;">');
@@ -2891,14 +2892,14 @@
           if (offsetAlign === 'left') {
             html += '<div style="display: flex; gap: 20px; align-items: flex-start;">';
             html += '<img src="' + topic.image + '" style="' + imgStyle + '" alt="' + altText + '">';
-            html += '<div>';
+            html += '<div style="flex: 1; min-width: 0;">';
             html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
             html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
             html += buildButton(topic.buttonText, topic.buttonUrl);
             html += '</div></div>';
           } else {
             html += '<div style="display: flex; gap: 20px; align-items: flex-start;">';
-            html += '<div>';
+            html += '<div style="flex: 1; min-width: 0;">';
             html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
             html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
             html += buildButton(topic.buttonText, topic.buttonUrl);
@@ -2929,11 +2930,12 @@
 
       } else if (layout === 'digest') {
         // Digest: small fixed thumbnail beside compact text; text link instead
-        // of a button. Separators come from the template loop, and the size
-        // slider is ignored (thumbnails stay uniform).
+        // of a button. Separators come from the template loop; the size slider
+        // scales the square thumbnail (160px at 100%).
         var thumb = '';
         if (topic.image) {
-          var thumbStyle = 'width: 90px; height: 90px; object-fit: contain; border-radius: 8px; flex-shrink: 0;';
+          var thumbPx = Math.max(40, Math.round(160 * (imageSize / 100)));
+          var thumbStyle = 'width: ' + thumbPx + 'px; height: ' + thumbPx + 'px; object-fit: contain; border-radius: 8px; flex-shrink: 0;';
           if (bgEnabled && bgColor) {
             thumbStyle += ' background-color: ' + bgColor + '; padding: 8px;';
           }
