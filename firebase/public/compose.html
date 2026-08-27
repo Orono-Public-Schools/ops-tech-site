@@ -634,11 +634,9 @@
        whichever section is open. ── */
     #contentSection { counter-reset: sec; }
     #contentSection .collapsible {
-      display: grid;
-      grid-template-columns: 44px minmax(0, 1fr);
-      column-gap: 14px;
-      row-gap: 12px;
-      padding: 16px 0 !important;
+      display: block;
+      position: relative;
+      padding: 16px 0 16px 58px !important;
       margin: 0 !important;
       background: none !important;
       border: none !important;
@@ -649,8 +647,10 @@
     #contentSection .collapsible::before {
       counter-increment: sec;
       content: counter(sec, decimal-leading-zero);
-      grid-column: 1;
-      grid-row: 1;
+      position: absolute;
+      left: 0;
+      top: 16px;
+      width: 44px;
       font-size: 26px;
       font-weight: 800;
       line-height: 1;
@@ -660,9 +660,8 @@
       transition: color 0.2s;
     }
     #contentSection .collapsible:not(.collapsed)::before { color: #ad2122; }
-    #contentSection .collapsible > * { grid-column: 2; }
     #contentSection .collapsible > .collapse-head {
-      margin: 0 !important;
+      margin: 0 0 14px !important;
       padding: 0 !important;
       background: none !important;
       border: none !important;
@@ -681,26 +680,28 @@
     #contentSection .typography-group .collapse-head-title { color: #6b7385; }
     #contentSection .topic-card .collapse-head-title { color: #ad2122; }
     #contentSection .collapse-head > span[style] { text-transform: none; letter-spacing: 0; }
+    /* Red sweep: a full-width flex item that only paints its first 56px */
     #contentSection .collapsible:not(.collapsed) > .collapse-head::after {
       content: '';
       flex-basis: 100%;
-      max-width: 56px;
       height: 3px;
-      background: #ad2122;
-      border-radius: 2px;
       margin-top: -2px;
+      background: linear-gradient(#ad2122, #ad2122) no-repeat 0 0 / 56px 3px;
     }
     #contentSection .collapsible.collapsed > .collapse-head { margin: 0 !important; }
-    #contentSection .collapsible.collapsed { row-gap: 0; padding: 14px 0 !important; }
+    #contentSection .collapsible.collapsed { padding: 14px 0 14px 58px !important; }
+    #contentSection .collapsible.collapsed::before { top: 14px; }
     #contentSection #topicFields { gap: 0; }
     #contentSection .intro-outro-group:first-of-type,
     #contentSection .collapse-all-bar + .intro-outro-group { border-top-color: transparent !important; }
-    #contentSection .add-topic-btn { margin: 0; justify-self: start; }
+    #contentSection .add-topic-btn { margin: 0; }
     .add-topic-ledger {
-      display: grid; grid-template-columns: 44px minmax(0, 1fr); column-gap: 14px; align-items: center;
-      padding: 14px 0; border-top: 1px solid #e8eaf1;
+      position: relative; padding: 14px 0 14px 58px; border-top: 1px solid #e8eaf1;
     }
-    .add-topic-ledger .plus { font-size: 26px; font-weight: 800; line-height: 1; color: #d6dbe6; }
+    .add-topic-ledger .plus {
+      position: absolute; left: 0; top: 14px; width: 44px;
+      font-size: 26px; font-weight: 800; line-height: 1; color: #d6dbe6;
+    }
 
     /* Collapsible sections: header stays, everything else hides */
     .collapse-head { cursor: pointer; user-select: none; }
