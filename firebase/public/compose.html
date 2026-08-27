@@ -3216,24 +3216,21 @@
             imgStyle += ' background-color: ' + bgColor + '; padding: 15px;';
           }
 
+          // Table layout (not flex) so the spacing survives Gmail, which
+          // strips the CSS `gap` property.
+          var offsetImg  = '<img src="' + topic.image + '" style="' + imgStyle + ' display: block;" alt="' + altText + '">';
+          var offsetText = '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>'
+            + '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>'
+            + buildButtons();
+          html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;"><tr>';
           if (offsetAlign === 'left') {
-            html += '<div style="display: flex; gap: 20px; align-items: flex-start;">';
-            html += '<img src="' + topic.image + '" style="' + imgStyle + '" alt="' + altText + '">';
-            html += '<div style="flex: 1; min-width: 0;">';
-            html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
-            html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
-            html += buildButtons();
-            html += '</div></div>';
+            html += '<td width="' + offsetImageWidth + '" style="width: ' + offsetImageWidth + 'px; padding: 0 20px 0 0; vertical-align: top;">' + offsetImg + '</td>';
+            html += '<td style="vertical-align: top;">' + offsetText + '</td>';
           } else {
-            html += '<div style="display: flex; gap: 20px; align-items: flex-start;">';
-            html += '<div style="flex: 1; min-width: 0;">';
-            html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
-            html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
-            html += buildButtons();
-            html += '</div>';
-            html += '<img src="' + topic.image + '" style="' + imgStyle + '" alt="' + altText + '">';
-            html += '</div>';
+            html += '<td style="vertical-align: top;">' + offsetText + '</td>';
+            html += '<td width="' + offsetImageWidth + '" style="width: ' + offsetImageWidth + 'px; padding: 0 0 0 20px; vertical-align: top;">' + offsetImg + '</td>';
           }
+          html += '</tr></table>';
         } else {
           html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
           html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
@@ -3262,20 +3259,21 @@
         var thumb = '';
         if (topic.image) {
           var thumbPx = digestThumbPx(imageSize);
-          var thumbStyle = 'width: ' + thumbPx + 'px; height: ' + thumbPx + 'px; object-fit: contain; border-radius: 8px; flex-shrink: 0;';
+          var thumbStyle = 'width: ' + thumbPx + 'px; height: ' + thumbPx + 'px; object-fit: contain; border-radius: 8px; display: inline-block; vertical-align: top;';
           if (bgEnabled && bgColor) {
             thumbStyle += ' background-color: ' + bgColor + '; padding: 8px;';
           }
           thumb = '<img src="' + topic.image + '" style="' + thumbStyle + '" alt="' + altText + '">';
         }
-        html += '<div style="display: flex; gap: 12px; align-items: flex-start;">';
-        // Shared-width image column keeps text aligned across rows; smaller
+        // Table layout so spacing survives Gmail (no flex `gap`). A shared
+        // image-column width keeps text aligned across rows; smaller
         // thumbnails are centred within it.
+        html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;"><tr>';
         var colPx = topic.digestCol || 0;
         if (colPx > 0) {
-          html += '<div style="width: ' + colPx + 'px; flex-shrink: 0; display: flex; justify-content: center;">' + thumb + '</div>';
+          html += '<td width="' + colPx + '" style="width: ' + colPx + 'px; padding: 0 12px 0 0; vertical-align: top; text-align: center;">' + thumb + '</td>';
         }
-        html += '<div style="flex: 1;">';
+        html += '<td style="vertical-align: top;">';
         html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 6px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
         html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
         var links = topicButtons(topic).filter(function(b) { return b.text && b.url; });
@@ -3287,7 +3285,7 @@
             return '<div style="margin-bottom: 10px;">' + leadHtml + '<a href="' + b.url + '" style="display: inline-block; color: ' + linkColor + '; font-weight: 600; text-decoration: none; font-size: ' + (typo && typo.buttonSize ? typo.buttonSize : 14) + 'px;">' + b.text + ' &rarr;</a></div>';
           }).join('') + '</div>';
         }
-        html += '</div></div>';
+        html += '</td></tr></table>';
       }
 
       return html;
