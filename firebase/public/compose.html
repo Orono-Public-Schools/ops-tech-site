@@ -778,6 +778,14 @@
     }
     .px-reset .material-icons { font-size: 18px; }
     .px-reset:hover { background: #f3e6e6; color: #ad2122; }
+    .html-modal-hint { margin: 0 0 12px; font-size: 0.9em; color: #666; }
+    .html-code {
+      width: 100%; height: 420px; max-height: 60vh; resize: vertical;
+      font-family: Consolas, "Courier New", monospace; font-size: 12px; line-height: 1.5;
+      padding: 12px 14px; border: 1px solid #d6dbe6; border-radius: 10px;
+      background: #f7f8fb; color: #2d3f69; white-space: pre; overflow: auto;
+    }
+    .html-code:focus { outline: none; border-color: #2d3f69; box-shadow: 0 0 0 3px rgba(45,63,105,0.12); }
     .typography-group { margin: 6px 0 18px; }
     .typo-sub {
       font-size: 0.78em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
@@ -1726,8 +1734,8 @@
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:18px;height:18px;flex-shrink:0;"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z" fill="#d93025"/></svg>
                 Copy for Gmail
               </button>
-              <button type="button" class="action-pill outline" id="exportHtmlBtn" onclick="exportHtml()" title="Download the email as a standalone .html file">
-                <span class="material-icons">download</span>
+              <button type="button" class="action-pill outline" id="exportHtmlBtn" onclick="exportHtml()" title="View, copy, or download the email's HTML code">
+                <span class="material-icons">code</span>
                 Export HTML
               </button>
               <button type="button" class="action-pill outline" onclick="manualSaveDraft()">
@@ -1813,6 +1821,30 @@
   </div>
 
   <!-- Schedule Send Modal -->
+  <div id="htmlModal" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2><span class="material-icons">code</span>Email HTML</h2>
+        <button type="button" class="modal-close" onclick="closeHtmlModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="html-modal-hint">Complete standalone HTML for this email. Copy it to paste into another tool, or download it as a file.</p>
+        <textarea id="htmlCode" class="html-code" readonly spellcheck="false" onclick="this.select()"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="action-pill outline" onclick="closeHtmlModal()">Close</button>
+        <button type="button" class="action-pill outline" id="downloadHtmlBtn" onclick="downloadHtml()">
+          <span class="material-icons">download</span>
+          Download .html
+        </button>
+        <button type="button" class="action-pill" id="copyHtmlBtn" onclick="copyHtmlCode()">
+          <span class="material-icons">content_copy</span>
+          Copy code
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div id="scheduleModal" class="modal">
     <div class="modal-card small">
       <div class="modal-head">
@@ -3027,17 +3059,16 @@
       }
     }
 
-    // Download the composed email as a standalone .html file
-    function exportHtml() {
+    // Build the standalone HTML document for the composed email
+    var exportedHtml = { doc: '', fileName: 'email' };
+    function buildExportDoc() {
       var template = document.getElementById('template').value;
       var subject  = document.getElementById('subject').value;
-
       if (!template) {
         showStatus('error', 'Please select a layout first');
         setTab('setup');
-        return;
+        return null;
       }
-
       var subheading = document.getElementById('subheading').value;
       var topics = collectTopics();
       var intro  = quillInstances['intro'] ? quillInstances['intro'].root.innerHTML : '';
@@ -3045,29 +3076,56 @@
       var body   = generateEmailHTML(template, subject, subheading, topics, intro, outro, collectHeaderIcon());
 
       var title = subject || 'Untitled Email';
-      var doc = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
+      exportedHtml.doc = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
         + '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
         + '<title>' + escapeHtml(title) + '</title>\n'
         + '</head>\n<body style="margin:0; padding:0; background:#f0f2f5;">\n'
         + body + '\n</body>\n</html>\n';
+      exportedHtml.fileName = (title.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'email') + '.html';
+      return exportedHtml;
+    }
 
-      var fileName = title.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'email';
-      var blob = new Blob([doc], { type: 'text/html;charset=utf-8' });
+    // Open the HTML modal with the code ready to copy
+    function exportHtml() {
+      if (!buildExportDoc()) return;
+      document.getElementById('htmlCode').value = exportedHtml.doc;
+      document.getElementById('htmlModal').classList.add('show');
+    }
+    function closeHtmlModal() {
+      document.getElementById('htmlModal').classList.remove('show');
+    }
+
+    function flashButton(btn, label, original) {
+      btn.innerHTML = '<span class="material-icons" style="font-size:18px;color:#34a853;">check_circle</span> ' + label;
+      setTimeout(function() { btn.innerHTML = original; }, 2500);
+    }
+
+    function copyHtmlCode() {
+      var ta  = document.getElementById('htmlCode');
+      var btn = document.getElementById('copyHtmlBtn');
+      var original = '<span class="material-icons">content_copy</span> Copy code';
+      var done = function() { flashButton(btn, 'Copied!', original); showStatus('success', 'HTML code copied to clipboard.'); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(ta.value).then(done).catch(function() {
+          ta.select(); document.execCommand('copy'); done();
+        });
+      } else {
+        ta.select(); document.execCommand('copy'); done();
+      }
+    }
+
+    function downloadHtml() {
+      var blob = new Blob([exportedHtml.doc], { type: 'text/html;charset=utf-8' });
       var url  = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
-      a.download = fileName + '.html';
+      a.download = exportedHtml.fileName;
       document.body.appendChild(a);
       a.click();
       a.remove();
       setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
-
-      var btn = document.getElementById('exportHtmlBtn');
-      btn.innerHTML = '<span class="material-icons" style="font-size:18px;color:#34a853;">check_circle</span> Downloaded';
-      setTimeout(function() {
-        btn.innerHTML = '<span class="material-icons">download</span> Export HTML';
-      }, 2500);
-      showStatus('success', 'Downloaded ' + fileName + '.html');
+      flashButton(document.getElementById('downloadHtmlBtn'), 'Downloaded', '<span class="material-icons">download</span> Download .html');
+      showStatus('success', 'Downloaded ' + exportedHtml.fileName);
     }
 
     // Reset form
@@ -3589,6 +3647,9 @@
     window.sendPreview = sendPreview;
     window.copyForGmail = copyForGmail;
     window.exportHtml = exportHtml;
+    window.closeHtmlModal = closeHtmlModal;
+    window.copyHtmlCode = copyHtmlCode;
+    window.downloadHtml = downloadHtml;
     window.resetPx = resetPx;
     window.archiveSentEmail = archiveSentEmail;
     window.manualSaveDraft = manualSaveDraft;
