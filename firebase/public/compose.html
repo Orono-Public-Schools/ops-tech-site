@@ -2853,7 +2853,7 @@
       }
 
       // Plain-text, attribute-safe alt (raw Quill HTML here breaks the <img> tag)
-      var altText   = (topic.title || '').replace(/<[^>]*>/g, ' ').replace(/s+/g, ' ').trim().replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+      var altText   = (topic.title || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().replace(/&/g, '&amp;').replace(/"/g, '&quot;');
       var titleHTML = processQuillHTML(topic.title);
       var descHTML  = processQuillHTML(topic.description);
 
