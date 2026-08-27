@@ -2843,7 +2843,7 @@
         }
 
         var fullStyle = baseStyle + displayStyle + marginStyle + bgStyle + (additionalStyles || '');
-        return '<img src="' + src + '" style="' + fullStyle + '" alt="' + topic.title + '">';
+        return '<img src="' + src + '" style="' + fullStyle + '" alt="' + altText + '">';
       }
 
       // Helper function to build button HTML
@@ -2852,6 +2852,8 @@
         return '<div style="margin-top: 20px;"><a href="' + url + '" style="display: inline-block; padding: 12px 24px; background: ' + colors.primaryBlue + '; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: background 0.3s;">' + text + '</a></div>';
       }
 
+      // Plain-text, attribute-safe alt (raw Quill HTML here breaks the <img> tag)
+      var altText   = (topic.title || '').replace(/<[^>]*>/g, ' ').replace(/s+/g, ' ').trim().replace(/&/g, '&amp;').replace(/"/g, '&quot;');
       var titleHTML = processQuillHTML(topic.title);
       var descHTML  = processQuillHTML(topic.description);
 
@@ -2888,7 +2890,7 @@
 
           if (offsetAlign === 'left') {
             html += '<div style="display: flex; gap: 20px; align-items: flex-start;">';
-            html += '<img src="' + topic.image + '" style="' + imgStyle + '" alt="' + topic.title + '">';
+            html += '<img src="' + topic.image + '" style="' + imgStyle + '" alt="' + altText + '">';
             html += '<div>';
             html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
             html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
@@ -2901,7 +2903,7 @@
             html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
             html += buildButton(topic.buttonText, topic.buttonUrl);
             html += '</div>';
-            html += '<img src="' + topic.image + '" style="' + imgStyle + '" alt="' + topic.title + '">';
+            html += '<img src="' + topic.image + '" style="' + imgStyle + '" alt="' + altText + '">';
             html += '</div>';
           }
         } else {
@@ -2935,7 +2937,7 @@
           if (bgEnabled && bgColor) {
             thumbStyle += ' background-color: ' + bgColor + '; padding: 8px;';
           }
-          thumb = '<img src="' + topic.image + '" style="' + thumbStyle + '" alt="' + topic.title + '">';
+          thumb = '<img src="' + topic.image + '" style="' + thumbStyle + '" alt="' + altText + '">';
         }
         html += '<div style="display: flex; gap: 16px; align-items: flex-start;">';
         html += thumb;
