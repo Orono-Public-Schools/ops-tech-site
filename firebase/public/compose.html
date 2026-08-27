@@ -967,8 +967,17 @@
       grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) 28px;
       gap: 8px;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      padding: 10px;
+      background: rgba(255,255,255,0.7);
+      border: 1px dashed rgba(173, 33, 34, 0.3);
+      border-radius: 8px;
     }
+    .button-row .lead { grid-column: 1 / -1; }
+    .button-row .lead-label {
+      grid-column: 1 / -1; font-size: 0.75em; color: #ad2122; opacity: 0.85; margin-bottom: -4px;
+    }
+    .button-row .lead-label .material-icons { font-size: 13px; vertical-align: -2px; margin-right: 2px; }
     .button-link-control .button-row input[type="text"],
     .button-link-control .button-row input[type="url"] { margin-bottom: 0; }
     .button-row .remove-btn {
@@ -2191,22 +2200,25 @@
     }
 
     // ── Per-topic button rows ──
-    function addButtonRow(id, text, url) {
+    function addButtonRow(id, text, url, lead) {
       var list = document.getElementById('topic' + id + '_buttons');
       if (!list) return;
       var row = document.createElement('div');
       row.className = 'button-row';
       row.innerHTML =
+        '<span class="lead-label"><span class="material-icons">subdirectory_arrow_right</span>Lead-in text shown above this button (optional)</span>' +
+        '<input type="text" class="lead" placeholder="e.g., Instructions are here:">' +
         '<input type="text" placeholder="Button text (e.g., Learn More)">' +
         '<input type="url" placeholder="https://example.com">' +
         '<button type="button" class="remove-btn" title="Remove button"><span class="material-icons">close</span></button>';
       var inputs = row.querySelectorAll('input');
-      inputs[0].value = text || '';
-      inputs[1].value = url || '';
+      inputs[0].value = lead || '';
+      inputs[1].value = text || '';
+      inputs[2].value = url || '';
       inputs.forEach(function(inp) { inp.addEventListener('input', updatePreviewDebounced); });
       row.querySelector('.remove-btn').addEventListener('click', function() { row.remove(); updatePreview(); });
       list.appendChild(row);
-      if (text === undefined) inputs[0].focus();
+      if (text === undefined) inputs[1].focus();
     }
     function collectButtons(id) {
       var out = [];
@@ -2214,8 +2226,8 @@
       if (!list) return out;
       list.querySelectorAll('.button-row').forEach(function(row) {
         var inputs = row.querySelectorAll('input');
-        var text = inputs[0].value.trim(), url = inputs[1].value.trim();
-        if (text || url) out.push({ text: text, url: url });
+        var lead = inputs[0].value.trim(), text = inputs[1].value.trim(), url = inputs[2].value.trim();
+        if (text || url || lead) out.push({ text: text, url: url, lead: lead });
       });
       return out;
     }
@@ -2224,10 +2236,10 @@
       var list = document.getElementById('topic' + id + '_buttons');
       if (!list) return;
       list.innerHTML = '';
-      topicButtons(topic).forEach(function(b) { addButtonRow(id, b.text, b.url); });
+      topicButtons(topic).forEach(function(b) { addButtonRow(id, b.text, b.url, b.lead || ''); });
     }
     function topicButtons(topic) {
-      if (Array.isArray(topic.buttons)) return topic.buttons.filter(function(b) { return b && (b.text || b.url); });
+      if (Array.isArray(topic.buttons)) return topic.buttons.filter(function(b) { return b && (b.text || b.url || b.lead); });
       if (topic.buttonText || topic.buttonUrl) return [{ text: topic.buttonText || '', url: topic.buttonUrl || '' }];
       return [];
     }
@@ -2951,9 +2963,24 @@
       function buildButtons() {
         var btns = topicButtons(topic).filter(function(b) { return b.text && b.url; });
         if (!btns.length) return '';
-        return '<div style="margin-top: 20px;">' + btns.map(function(b) {
+        var pill = function(b) {
           return '<a href="' + b.url + '" style="display: inline-block; margin: 0 10px 8px 0; padding: 12px 24px; background: ' + colors.primaryBlue + '; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">' + b.text + '</a>';
-        }).join('') + '</div>';
+        };
+        // Lead-less buttons flow inline as a pill row; a button with a lead-in
+        // starts a new block: lead paragraph, then its pill.
+        var out = '', inline = '';
+        btns.forEach(function(b) {
+          if (b.lead) {
+            if (inline) { out += '<div style="margin-top: 20px;">' + inline + '</div>'; inline = ''; }
+            out += '<div style="margin-top: 16px;">'
+              + '<p style="color: ' + colors.primaryGray + '; margin: 0 0 10px 0; line-height: 1.65; font-size: ' + descSize + 'px;">' + escapeHtml(b.lead) + '</p>'
+              + pill(b) + '</div>';
+          } else {
+            inline += pill(b);
+          }
+        });
+        if (inline) out += '<div style="margin-top: 20px;">' + inline + '</div>';
+        return out;
       }
 
       // Plain-text, attribute-safe alt (raw Quill HTML here breaks the <img> tag)
@@ -3057,7 +3084,8 @@
         var links = topicButtons(topic).filter(function(b) { return b.text && b.url; });
         if (links.length) {
           html += '<div style="margin-top: 8px;">' + links.map(function(b) {
-            return '<a href="' + b.url + '" style="display: inline-block; margin-right: 16px; color: ' + colors.primaryRed + '; font-weight: 600; text-decoration: none; font-size: 14px;">' + b.text + ' &rarr;</a>';
+            var leadHtml = b.lead ? '<span style="color: ' + colors.primaryGray + '; font-size: ' + descSize + 'px;">' + escapeHtml(b.lead) + ' </span>' : '';
+            return '<div style="margin-bottom: 4px;">' + leadHtml + '<a href="' + b.url + '" style="display: inline-block; color: ' + colors.primaryRed + '; font-weight: 600; text-decoration: none; font-size: 14px;">' + b.text + ' &rarr;</a></div>';
           }).join('') + '</div>';
         }
         html += '</div></div>';
