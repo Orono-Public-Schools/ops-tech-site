@@ -2987,10 +2987,10 @@
           html += generateTopicHTML(topics[0], 'full', BRAND_COLORS, typo);
         }
         if (topics[1] || topics[2]) {
-          html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">';
-          if (topics[1]) html += '<div>' + generateTopicHTML(topics[1], 'half', BRAND_COLORS, typo) + '</div>';
-          if (topics[2]) html += '<div>' + generateTopicHTML(topics[2], 'half', BRAND_COLORS, typo) + '</div>';
-          html += '</div>';
+          html += twoColumnRow(
+            topics[1] ? generateTopicHTML(topics[1], 'half', BRAND_COLORS, typo) : '',
+            topics[2] ? generateTopicHTML(topics[2], 'half', BRAND_COLORS, typo) : '',
+            'margin-top: 30px;');
         }
         // Extra topics (4+) rendered full-width below
         for (var h = 3; h < topics.length; h++) {
@@ -3032,10 +3032,10 @@
         for (var g = 0; g < topics.length; g += 2) {
           var rowStyle = g > 0 ? 'margin-top: 26px;' : '';
           if (topics[g + 1]) {
-            html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; ' + rowStyle + '">';
-            html += '<div>' + generateTopicHTML(topics[g], 'half', BRAND_COLORS, typo) + '</div>';
-            html += '<div>' + generateTopicHTML(topics[g + 1], 'half', BRAND_COLORS, typo) + '</div>';
-            html += '</div>';
+            html += twoColumnRow(
+              generateTopicHTML(topics[g], 'half', BRAND_COLORS, typo),
+              generateTopicHTML(topics[g + 1], 'half', BRAND_COLORS, typo),
+              rowStyle);
           } else {
             html += '<div style="' + rowStyle + '">' + generateTopicHTML(topics[g], 'full', BRAND_COLORS, typo) + '</div>';
           }
@@ -3104,6 +3104,14 @@
       html = html.replace(/<li ((?!style=)[^>]+)>/gi, '<li style="margin:0 0 4px 0;line-height:1.65;" $1>');
 
       return html;
+    }
+
+    // Two equal columns as a table (CSS grid isn't supported by Gmail)
+    function twoColumnRow(leftHtml, rightHtml, wrapperStyle) {
+      return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse; ' + (wrapperStyle || '') + '"><tr>'
+        + '<td width="50%" style="width: 50%; padding: 0 10px 0 0; vertical-align: top;">' + leftHtml + '</td>'
+        + '<td width="50%" style="width: 50%; padding: 0 0 0 10px; vertical-align: top;">' + rightHtml + '</td>'
+        + '</tr></table>';
     }
 
     // Digest thumbnail edge in px for a given Image Size % (120px at 100%)
