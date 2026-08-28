@@ -111,8 +111,22 @@ async function scrapeFeedStatus(feedUrl) {
     let hasDegradedService = false;
     let latestIssue = '';
 
-    for (let i = 0; i < Math.min(items.length, 5); i++) {
+    // Feeds publish several entries per incident (Google: "UPDATE:" then
+    // "RESOLVED:" sharing one incident link; Statuspage: one item per
+    // update). Feeds are newest-first, so the FIRST entry seen for an
+    // incident is its current state — later (older) entries for the same
+    // incident are ignored, which stops a resolved incident's earlier
+    // "UPDATE" from being read as still active.
+    const seenIncidents = new Set();
+
+    for (let i = 0; i < Math.min(items.length, 12); i++) {
       const item = items[i];
+
+      const incidentKey = incidentKeyFor(item);
+      if (incidentKey) {
+        if (seenIncidents.has(incidentKey)) continue;
+        seenIncidents.add(incidentKey);
+      }
 
       // Extract title (try both CDATA and plain text formats; titles can
       // span lines in Google's atom feed)
@@ -142,7 +156,9 @@ async function scrapeFeedStatus(feedUrl) {
                          summary.match(/is\s+now\s+complete/i) ||
                          summary.match(/has\s+been\s+fixed/i) ||
                          summary.match(/resolved/i) ||
-                         title.match(/resolved/i);
+                         title.match(/resolved/i) ||
+                         title.match(/^\s*\[?(completed|closed|fixed)\]?\s*:?/i) ||
+                         title.match(/postmortem|post-mortem|incident report/i);
 
       // Skip resolved incidents
       if (isResolved) {
@@ -735,6 +751,19 @@ async function runAllChecks(db) {
   return results;
 }
 
+// Stable per-incident key for a feed entry: the incident link (Google puts
+// the incident URL on every update), else the <id> with its per-update
+// suffix stripped, else the title minus any UPDATE:/RESOLVED: prefix.
+function incidentKeyFor(item) {
+  const link = item.match(/<link[^>]*href="([^"]+)"/i);
+  if (link && /incident/i.test(link[1])) return link[1].replace(/[?#].*$/, '');
+  const id = item.match(/<id>([^<]+)<\/id>/i) || item.match(/<guid[^>]*>([^<]+)<\/guid>/i);
+  if (id) return id[1].trim().replace(/\.[A-Za-z0-9_-]+$/, '');
+  const title = item.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  if (title) return title[1].replace(/^\s*(update|resolved|investigating|monitoring|identified)\s*:\s*/i, '').trim().toLowerCase();
+  return '';
+}
+
 function isProblemStatus(st) {
   return st === 'down' || st === 'partial' || st === 'degraded';
 }
@@ -748,4 +777,4 @@ function shortReason(details) {
   return d.replace(/^Unable to access status (page|feed): /i, '').replace(/^Error checking system: /i, '').slice(0, 80) || 'network error';
 }
 
-module.exports = { runAllChecks };
+module.exports = { runAllChecks, scrapeFeedStatus };
