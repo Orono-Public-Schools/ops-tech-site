@@ -399,6 +399,16 @@
     body:not(.can-edit) #incidentsBtn { display: none; }
 
     /* Affected-systems checkbox list in the incident forms */
+    body:not(.can-edit) .detail-create-inc { display: none; }
+    .vendor-report {
+      background: #fbf7ee; border: 1px solid #efe2c2; border-radius: 10px; padding: 12px 14px; font-size: 0.88em;
+    }
+    .vendor-report-title { font-weight: 600; color: #2d3f69; margin-bottom: 6px; }
+    .vendor-report-body { color: #4a4a4a; white-space: pre-line; line-height: 1.5; max-height: 220px; overflow: auto; }
+    .vendor-report-link {
+      display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; color: #ad2122; font-weight: 600; text-decoration: none; font-size: 0.92em;
+    }
+    .vendor-report-link:hover { text-decoration: underline; }
     .sys-check-list {
       max-height: 180px;
       overflow-y: auto;
@@ -2302,6 +2312,21 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
           }).join('') + '</ul>'
         : '<div class="timeline-empty">No status changes recorded in the last 7 days.</div>';
 
+      const problem = system.status === 'down' || system.status === 'partial' || system.status === 'degraded';
+      const fi = system.feedIncident || null;
+      const vendorReport = (problem && fi && (fi.title || fi.summary))
+        ? `<div class="detail-section-title">Vendor report</div>
+           <div class="vendor-report">
+             ${fi.title ? '<div class="vendor-report-title">' + escapeHtml(fi.title) + '</div>' : ''}
+             ${fi.summary ? '<div class="vendor-report-body">' + escapeHtml(fi.summary) + '</div>' : ''}
+             ${fi.link ? '<a href="' + escapeHtml(fi.link) + '" target="_blank" rel="noopener" class="vendor-report-link"><span class="material-icons" style="font-size:15px;">open_in_new</span>View on their status page</a>' : ''}
+           </div>`
+        : '';
+      const createIncidentBtn = problem
+        ? `<button type="button" class="launch-button detail-create-inc" onclick="createIncidentFromSystem('${escapeHtml(id)}')" style="margin-top:20px; margin-right:10px;">
+             <span class="material-icons">campaign</span> Create incident from this report</button>`
+        : '';
+
       const statusPageLink = (system.url && system.url !== 'INTERNAL')
         ? `<a href="${escapeHtml(system.url)}" target="_blank" rel="noopener" class="launch-button" style="margin-top:20px;">
              <span class="material-icons">open_in_new</span> View Status Page</a>`
@@ -2322,12 +2347,48 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
         <div class="detail-section-title">Past 7 Days ${pct == null ? '' : '— ' + pct + '% uptime'}</div>
         <div class="uptime-strip" style="height:32px;">${stripHtml168(system.hourly, 1, 168)}</div>
         <div class="detail-strip-labels"><span>7 days ago</span><span>Now</span></div>
+        ${vendorReport}
         <div class="detail-section-title">Recent Events</div>
         ${timelineHtml}
-        ${statusPageLink}`;
+        <div style="display:flex; flex-wrap:wrap; align-items:center;">${createIncidentBtn}${statusPageLink}</div>`;
 
       document.getElementById('detailModal').classList.add('show');
     }
+
+    // Open the Report Incident form prefilled from a system's current status
+    // and the vendor's feed report (title, severity, affected system, note).
+    async function createIncidentFromSystem(id) {
+      const system = statusById[id];
+      if (!system) return;
+      const fi = system.feedIncident || {};
+      const meta = metaOf(system.status);
+
+      closeDetailModal();
+      await openIncidentsModal();
+      switchIncTab('incident');
+
+      const sev = document.getElementById('incSeverity');
+      sev.value = ['down', 'partial', 'degraded'].indexOf(system.status) >= 0 ? system.status : 'partial';
+
+      const title = fi.title
+        ? (system.name + ': ' + fi.title)
+        : (system.name + ' — ' + meta.label);
+      document.getElementById('incTitle').value = title.length > 140 ? title.slice(0, 137) + '…' : title;
+
+      document.querySelectorAll('#incSystemsList input[type="checkbox"]').forEach(function(box) {
+        box.checked = box.value === id;
+      });
+
+      let note = '';
+      if (fi.summary) note += fi.summary.trim() + '\n\n';
+      else if (system.details) note += system.details.trim() + '\n\n';
+      note += 'Source: ' + (fi.link || system.url || 'vendor status page')
+        + (fi.updatedAt ? ' (updated ' + fmtWhen(new Date(fi.updatedAt)) + ')' : '');
+      document.getElementById('incNote').value = note.trim();
+
+      document.getElementById('incTitle').focus();
+    }
+    window.createIncidentFromSystem = createIncidentFromSystem;
 
     function closeDetailModal() {
       document.getElementById('detailModal').classList.remove('show');

@@ -110,6 +110,7 @@ async function scrapeFeedStatus(feedUrl) {
     let hasPartialIssue = false;
     let hasDegradedService = false;
     let latestIssue = '';
+    let incident = null;   // { title, summary, link, updatedAt } of the first active item
 
     // Feeds publish several entries per incident (Google: "UPDATE:" then
     // "RESOLVED:" sharing one incident link; Statuspage: one item per
@@ -193,6 +194,7 @@ async function scrapeFeedStatus(feedUrl) {
           summary.match(/service\s+(outage|disruption)/i)) {
         hasActiveIssue = true;
         if (!latestIssue) latestIssue = title.substring(0, 100);
+        if (!incident) incident = feedIncidentFrom(item, title, summary);
       }
 
       // Check for partial outages
@@ -203,6 +205,7 @@ async function scrapeFeedStatus(feedUrl) {
           summary.match(/some\s+users/i)) {
         hasPartialIssue = true;
         if (!latestIssue) latestIssue = title.substring(0, 100);
+        if (!incident) incident = feedIncidentFrom(item, title, summary);
       }
 
       // Check for degraded performance
@@ -212,6 +215,7 @@ async function scrapeFeedStatus(feedUrl) {
           summary.match(/degraded\s+performance/i)) {
         hasDegradedService = true;
         if (!latestIssue) latestIssue = title.substring(0, 100);
+        if (!incident) incident = feedIncidentFrom(item, title, summary);
       }
 
       // Check for maintenance
@@ -232,21 +236,24 @@ async function scrapeFeedStatus(feedUrl) {
     if (hasActiveIssue) {
       return {
         status: 'down',
-        details: 'Service issue: ' + (latestIssue || 'Active incident reported')
+        details: 'Service issue: ' + (latestIssue || 'Active incident reported'),
+        incident: incident
       };
     }
 
     if (hasPartialIssue) {
       return {
         status: 'partial',
-        details: 'Partial outage: ' + (latestIssue || 'Some users affected')
+        details: 'Partial outage: ' + (latestIssue || 'Some users affected'),
+        incident: incident
       };
     }
 
     if (hasDegradedService) {
       return {
         status: 'degraded',
-        details: 'Degraded service: ' + (latestIssue || 'Performance issues reported')
+        details: 'Degraded service: ' + (latestIssue || 'Performance issues reported'),
+        incident: incident
       };
     }
 
@@ -442,6 +449,7 @@ async function checkSystem(system) {
         status: statusResult.status,
         details: statusResult.details,
         unreachable: !!statusResult.unreachable,
+        incident: statusResult.incident || null,
         url: GOOGLE_WORKSPACE_DASHBOARD
       };
     }
@@ -462,6 +470,7 @@ async function checkSystem(system) {
       status: statusResult.status,
       details: statusResult.details,
       unreachable: !!statusResult.unreachable,
+        incident: statusResult.incident || null,
       url: GOOGLE_WORKSPACE_DASHBOARD
     };
   }
@@ -473,6 +482,7 @@ async function checkSystem(system) {
       status: statusResult.status,
       details: statusResult.details,
       unreachable: !!statusResult.unreachable,
+        incident: statusResult.incident || null,
       url: system.url || ''
     };
   }
@@ -483,6 +493,7 @@ async function checkSystem(system) {
     status: statusResult.status,
     details: statusResult.details,
     unreachable: !!statusResult.unreachable,
+        incident: statusResult.incident || null,
     url: system.url || ''
   };
 }
@@ -732,7 +743,10 @@ async function runAllChecks(db) {
       statusSince: statusSince,
       hourly: hourly,
       events: events,
-      failStreak: failStreak
+      failStreak: failStreak,
+      // Vendor-reported incident behind this status (from the RSS/Atom feed),
+      // used by "Create incident from this report" on the status page.
+      feedIncident: (!overlay && check.incident) ? check.incident : null
     };
 
     batch.set(docRef, result);
@@ -762,6 +776,32 @@ function incidentKeyFor(item) {
   const title = item.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
   if (title) return title[1].replace(/^\s*(update|resolved|investigating|monitoring|identified)\s*:\s*/i, '').trim().toLowerCase();
   return '';
+}
+
+// Readable incident record from a feed entry: plain-text title (prefix and
+// markdown stripped), plain-text body with line breaks kept, incident link.
+function feedIncidentFrom(item, rawTitle, rawSummary) {
+  const clean = (t) => String(t || '')
+    .replace(/<!\[CDATA\[|\]\]>/g, '')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|div|li|h\d)>/gi, '\n').replace(/<[^>]+>/g, '')
+    .replace(/\*\*/g, '')
+    .replace(/[ \t]+/g, ' ').replace(/\n[ \t]*/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  let title = clean(rawTitle).replace(/^\s*(update|resolved|investigating|monitoring|identified)\s*:\s*/i, '');
+  // Google titles are the whole notice; keep the first sentence/line.
+  title = title.replace(/^summary:\s*/i, '').split('\n')[0];
+  const firstSentence = title.match(/^.{20,140}?[.!?](\s|$)/);
+  if (firstSentence) title = firstSentence[0].trim();
+  if (title.length > 140) title = title.slice(0, 137).trim() + '…';
+  const summary = clean(rawSummary).slice(0, 1500);
+  const link = item.match(/<link[^>]*href="([^"]+)"/i) || item.match(/<link>([^<]+)<\/link>/i);
+  const updated = item.match(/<updated>(.*?)<\/updated>/i) || item.match(/<pubDate>(.*?)<\/pubDate>/i);
+  return {
+    title: title,
+    summary: summary,
+    link: link ? link[1].trim() : '',
+    updatedAt: updated ? updated[1].trim() : ''
+  };
 }
 
 function isProblemStatus(st) {

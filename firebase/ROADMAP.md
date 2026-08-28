@@ -43,6 +43,14 @@ Migration from Apps Script completed 2026-07-13; site is fully functional, secur
   page-level banners click through to the manager for admins. sendEmail accepts
   admin OR communications perm.
 
+## Done 2026-08-28 (status monitoring)
+
+- Fetch retry + 2-check debounce before a system goes down / alerts (no more one-blip
+  "Major Outage" emails); feed entries grouped per incident so a RESOLVED entry retires
+  its earlier UPDATEs; vendor report (title/body/link) stored as `feedIncident` and
+  surfaced in the system detail modal with an admin "Create incident from this report"
+  button that prefills the Report Incident form.
+
 ## ✅ Status page rework — COMPLETE (2026-07-21)
 
 Shipped: full visual redesign (stat-tiles banner, glow cards, style G/B), uptime history
