@@ -18,6 +18,8 @@ const { setGlobalOptions } = require('firebase-functions/v2');
 const admin = require('firebase-admin');
 const crypto = require('node:crypto');
 
+const { google } = require('googleapis');
+
 const { runAllChecks } = require('./lib/status');
 const { sendGmail } = require('./lib/gmail');
 const { buildIncidentEmail, buildAlertEmail, buildVerifyEmail } = require('./lib/notify');
@@ -379,6 +381,111 @@ exports.sendEmail = onCall({ secrets: [GMAIL_SA_KEY] }, async (req) => {
     return { success: false, message: 'Error: ' + (error.message || String(error)) };
   }
 });
+
+// ---------- Staff directory sync (OneSync Google Sheet -> staff/{email}) ----------
+// Same sheet and column order that PaperPal and OronoHR sync from:
+//   OneSync ID | Building Initials | Username | Email | Employee ID | Last Name | First Name | Title
+// The sheet must be shared (Viewer) with the functions' runtime service account.
+
+const STAFF_SHEET_DEFAULT = '1uvr4MN3DhNyHKxxZuVeT_Tag3U6EpkRxr3s82plIqbU';
+const STAFF_SHEET_RANGE_DEFAULT = 'A:H';
+const STAFF_SA_HINT = '770722055544-compute@developer.gserviceaccount.com';
+
+function parseStaffRows(rows) {
+  const out = [];
+  for (const row of rows) {
+    const building   = (row[1] || '').trim();
+    const username   = (row[2] || '').trim();
+    const email      = (row[3] || '').trim().toLowerCase();
+    const employeeId = (row[4] || '').trim();
+    const familyName = (row[5] || '').trim();
+    const givenName  = (row[6] || '').trim();
+    const title      = (row[7] || '').trim();
+    // Skips the header row and any blank/garbage rows in one go
+    if (!email || !/@orono\.k12\.mn\.us$/.test(email)) continue;
+    out.push({
+      email,
+      displayName: [givenName, familyName].filter(Boolean).join(' ') || email,
+      givenName, familyName, username, building, title, employeeId
+    });
+  }
+  return out;
+}
+
+async function performStaffSync(source, triggeredBy) {
+  const cfgRef = db.doc('config/staffSync');
+  const cfgSnap = await cfgRef.get();
+  const cfg = cfgSnap.exists ? cfgSnap.data() : {};
+  const sheetId = (cfg.sheetId || '').trim() || STAFF_SHEET_DEFAULT;
+  const range = (cfg.range || '').trim() || STAFF_SHEET_RANGE_DEFAULT;
+
+  try {
+    const auth = new google.auth.GoogleAuth({
+      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly']
+    });
+    const sheets = google.sheets({ version: 'v4', auth });
+    let rows;
+    try {
+      const res = await sheets.spreadsheets.values.get({ spreadsheetId: sheetId, range });
+      rows = res.data.values || [];
+    } catch (err) {
+      throw new HttpsError('internal',
+        'Sheets API error: ' + (err.message || String(err)) +
+        '. Share the sheet with ' + STAFF_SA_HINT + ' as a Viewer and make sure the Google Sheets API is enabled for this project.');
+    }
+
+    const staff = parseStaffRows(rows);
+    if (!staff.length) {
+      throw new HttpsError('failed-precondition',
+        'No staff rows parsed from ' + rows.length + ' sheet rows. Check the sheet ID and range (expected columns A:H, email in column D).');
+    }
+
+    const writer = db.bulkWriter();
+    const seen = new Set();
+    const now = admin.firestore.FieldValue.serverTimestamp();
+    for (const s of staff) {
+      seen.add(s.email);
+      writer.set(db.collection('staff').doc(s.email), { ...s, syncedAt: now });
+    }
+    await writer.close();
+
+    // Drop anyone no longer on the sheet so autocomplete never offers stale staff
+    const existing = await db.collection('staff').listDocuments();
+    const deleter = db.bulkWriter();
+    let removed = 0;
+    for (const ref of existing) {
+      if (!seen.has(ref.id)) { deleter.delete(ref); removed++; }
+    }
+    await deleter.close();
+
+    await cfgRef.set({
+      lastSyncedAt: now, lastSource: source, lastTriggeredBy: triggeredBy || null,
+      count: staff.length, lastRemoved: removed, lastError: null
+    }, { merge: true });
+    console.log(`Staff sync (${source}): ${staff.length} synced, ${removed} removed`);
+    return { synced: staff.length, removed };
+  } catch (err) {
+    await cfgRef.set({
+      lastError: err.message || String(err),
+      lastErrorAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true }).catch(() => {});
+    throw err;
+  }
+}
+
+exports.syncStaff = onCall({ timeoutSeconds: 240, memory: '512MiB' }, async (req) => {
+  const email = await assertAllowed(req.auth, 'admin');
+  return performStaffSync('manual', email);
+});
+
+exports.scheduledStaffSync = onSchedule(
+  { schedule: 'every day 04:00', timeZone: 'America/Chicago', timeoutSeconds: 240, memory: '512MiB' },
+  async () => {
+    const cfg = await db.doc('config/staffSync').get();
+    if (!cfg.exists || cfg.get('enabled') !== true) return;
+    await performStaffSync('scheduled', null);
+  }
+);
 
 // Sweep the scheduledEmails queue: anything pending and past its sendAt time
 // is sent, archived to communications, and marked sent (or error).

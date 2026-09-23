@@ -32,7 +32,9 @@ service cloud.firestore {
     // Users may check their own entry (auth gate UX); admins manage the list.
     match /allowedUsers/{email} {
       allow get: if isOrono() && email == myEmail();
-      allow read, write: if hasPerm('admin');
+      // Communications editors may list the team to share draft folders.
+      allow read: if hasPerm('admin') || hasPerm('communications');
+      allow write: if hasPerm('admin');
     }
 
     // Content collections: read for all allowed users, write per capability
@@ -85,7 +87,11 @@ service cloud.firestore {
     match /communications/{id} {
       allow read: if isAllowed();
       allow create: if hasPerm('communications');
-      allow update, delete: if false;
+      // Sent emails are immutable except for the archive flag.
+      allow update: if hasPerm('communications')
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['archived', 'archivedBy', 'archivedAt']);
+      allow delete: if false;
     }
 
     // Status results: written only by Cloud Functions (Admin SDK).
@@ -99,8 +105,38 @@ service cloud.firestore {
       }
     }
 
-    // Per-user email drafts
+    // Legacy per-user email drafts: kept readable so the client can migrate
+    // them into draftFolders/personal_{uid}/drafts on first visit.
     match /users/{uid}/drafts/{draftId} {
+      allow read, write: if isAllowed() && request.auth.uid == uid;
+    }
+
+    // Draft folders: the owner plus `members` (lowercase emails) collaborate
+    // live on every draft inside. Each user's personal folder has the fixed
+    // id personal_{uid}; nobody else may create one with that prefix.
+    function folderMember(data) {
+      return data.ownerUid == request.auth.uid || myEmail() in data.members;
+    }
+    match /draftFolders/{folderId} {
+      // `get` on a not-yet-created personal folder has no resource.data, so
+      // allow the owner's own personal id outright (the client creates it).
+      allow get: if hasPerm('communications')
+        && (folderId == 'personal_' + request.auth.uid || folderMember(resource.data));
+      allow list: if hasPerm('communications') && folderMember(resource.data);
+      allow create: if hasPerm('communications')
+        && request.resource.data.ownerUid == request.auth.uid
+        && (!folderId.matches('personal_.*') || folderId == 'personal_' + request.auth.uid);
+      allow update, delete: if hasPerm('communications')
+        && resource.data.ownerUid == request.auth.uid;
+
+      match /drafts/{draftId} {
+        allow read, write: if hasPerm('communications')
+          && folderMember(get(/databases/$(database)/documents/draftFolders/$(folderId)).data);
+      }
+    }
+
+    // Per-user preferences (compose typography defaults, etc.)
+    match /users/{uid}/prefs/{docId} {
       allow read, write: if isAllowed() && request.auth.uid == uid;
     }
 
@@ -109,6 +145,13 @@ service cloud.firestore {
     // Admins may inspect the list; no client writes.
     match /statusSubscribers/{email} {
       allow read: if hasPerm('admin');
+      allow write: if false;
+    }
+
+    // Staff directory: written only by the syncStaff functions (Admin SDK);
+    // powers recipient autocomplete on the Compose page.
+    match /staff/{email} {
+      allow read: if isAllowed();
       allow write: if false;
     }
 

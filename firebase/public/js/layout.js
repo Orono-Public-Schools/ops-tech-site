@@ -2,7 +2,7 @@
 // renderLayout(currentPage) injects all three; auth.js fills in the
 // signed-in email via setFooterEmail() (now shown in the sidebar).
 
-export const SITE_VERSION = 'v2.2.0';
+export const SITE_VERSION = 'v2.4.0';
 
 const NAV_ITEMS = [
   { page: 'home', href: 'index.html', icon: 'home', label: 'Home' },

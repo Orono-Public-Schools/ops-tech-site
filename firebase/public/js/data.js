@@ -1,12 +1,13 @@
 // Firestore data layer — replaces the old google.script.run backend calls.
 // Collections: links, documentation, homePages, images, emailGroups,
 // communications, monitoredSystems, config/app, statusResults,
-// users/{uid}/drafts.
+// draftFolders/{id}/drafts, users/{uid}/prefs, staff, config/staffSync.
 
 import { db } from './firebase-init.js';
 import {
   collection, doc, getDoc, getDocs, getDocsFromCache, addDoc, setDoc, updateDoc,
-  deleteDoc, query, where, orderBy, limit, writeBatch, serverTimestamp, onSnapshot, Timestamp
+  deleteDoc, query, where, orderBy, limit, writeBatch, serverTimestamp, onSnapshot, Timestamp,
+  deleteField
 } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
 const SORT_GAP = 1000;
@@ -169,46 +170,237 @@ export async function archiveManualEmail(subject, bodyHtml, templateUsed) {
   });
 }
 
+// Archive / restore a sent email (rules allow only these keys to change).
+export async function setCommunicationArchived(id, archived, byEmail) {
+  await updateDoc(doc(db, 'communications', id), archived
+    ? { archived: true, archivedBy: byEmail || '', archivedAt: serverTimestamp() }
+    : { archived: false, archivedBy: deleteField(), archivedAt: deleteField() });
+}
+
 export function stripHtml(html) {
   const tmp = document.createElement('div');
   tmp.innerHTML = html;
   return (tmp.textContent || tmp.innerText || '').replace(/\s+/g, ' ').trim();
 }
 
-// ---------- Per-user email drafts (replaces PropertiesService) ----------
+// ---------- Legacy per-user drafts (users/{uid}/drafts) ----------
+// Only used by migrateLegacyDrafts(); new drafts live in draftFolders.
 
-const MAX_DRAFTS = 10;
-
-function draftsCol(uid) {
+function legacyDraftsCol(uid) {
   return collection(db, 'users', uid, 'drafts');
 }
 
-export async function getAllDrafts(uid) {
-  return mapSnap(await getDocs(query(draftsCol(uid), orderBy('updatedAt', 'desc'))));
+async function getLegacyDrafts(uid) {
+  return mapSnap(await getDocs(query(legacyDraftsCol(uid), orderBy('updatedAt', 'desc'))));
 }
 
-export async function loadDraft(uid, draftId) {
-  const snap = await getDoc(doc(db, 'users', uid, 'drafts', draftId));
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+// ---------- Draft folders + collaborative drafts ----------
+// draftFolders/{folderId}: { name, personal, ownerUid, ownerEmail, members: [emails] }
+// draftFolders/{folderId}/drafts/{draftId}: the compose form, one Firestore
+// field per editable control (topics keyed by id + topicOrder) so several
+// people can edit different fields at once; `presence.{uid}` shows who is
+// in which field.
+
+export const personalFolderId = uid => 'personal_' + uid;
+
+export async function ensurePersonalFolder(uid, email) {
+  const ref = doc(db, 'draftFolders', personalFolderId(uid));
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      name: 'My Drafts', personal: true, ownerUid: uid,
+      ownerEmail: (email || '').toLowerCase(), members: [],
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    });
+  }
+  return personalFolderId(uid);
 }
 
-export async function saveDraft(uid, draftData, draftId) {
-  if (draftId) {
-    await setDoc(doc(db, 'users', uid, 'drafts', draftId),
-      { ...draftData, updatedAt: serverTimestamp() }, { merge: true });
-    return draftId;
+// Folders I own plus folders shared with me: personal first, then by name.
+export async function getMyFolders(uid, email) {
+  const me = (email || '').toLowerCase();
+  const owned = await getDocs(query(collection(db, 'draftFolders'), where('ownerUid', '==', uid)));
+  let shared = [];
+  try {
+    shared = mapSnap(await getDocs(query(collection(db, 'draftFolders'), where('members', 'array-contains', me))));
+  } catch (e) {
+    console.warn('Shared-folder query failed (owned folders still listed):', e);
   }
-  const ref = await addDoc(draftsCol(uid), { ...draftData, updatedAt: serverTimestamp() });
-  // Cap at MAX_DRAFTS: prune the oldest beyond the limit.
-  const all = await getAllDrafts(uid);
-  for (const stale of all.slice(MAX_DRAFTS)) {
-    await deleteDoc(doc(db, 'users', uid, 'drafts', stale.id));
-  }
+  const seen = new Map();
+  mapSnap(owned).concat(shared).forEach(f => seen.set(f.id, f));
+  return [...seen.values()].sort((a, b) => {
+    if (!!a.personal !== !!b.personal) return a.personal ? -1 : 1;
+    const ao = a.ownerUid === uid, bo = b.ownerUid === uid;
+    if (ao !== bo) return ao ? -1 : 1;
+    return (a.name || '').localeCompare(b.name || '');
+  });
+}
+
+export async function createFolder(uid, email, name, members) {
+  const ref = await addDoc(collection(db, 'draftFolders'), {
+    name: String(name || 'Untitled folder').trim(), personal: false,
+    ownerUid: uid, ownerEmail: (email || '').toLowerCase(),
+    members: normaliseEmails(members),
+    createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  });
   return ref.id;
 }
 
-export async function deleteDraft(uid, draftId) {
-  await deleteDoc(doc(db, 'users', uid, 'drafts', draftId));
+export async function updateFolder(folderId, values) {
+  const patch = { ...values, updatedAt: serverTimestamp() };
+  if (patch.members) patch.members = normaliseEmails(patch.members);
+  await updateDoc(doc(db, 'draftFolders', folderId), patch);
+}
+
+// Deletes the folder and everything in it.
+export async function deleteFolder(folderId) {
+  const drafts = await getDocs(collection(db, 'draftFolders', folderId, 'drafts'));
+  const batch = writeBatch(db);
+  drafts.docs.forEach(d => batch.delete(d.ref));
+  batch.delete(doc(db, 'draftFolders', folderId));
+  await batch.commit();
+}
+
+function normaliseEmails(list) {
+  return [...new Set((list || []).map(e => String(e || '').trim().toLowerCase()).filter(Boolean))];
+}
+
+export async function getFolderDrafts(folderId) {
+  return mapSnap(await getDocs(
+    query(collection(db, 'draftFolders', folderId, 'drafts'), orderBy('updatedAt', 'desc'))));
+}
+
+export function draftDocRef(folderId, draftId) {
+  return doc(db, 'draftFolders', folderId, 'drafts', draftId);
+}
+
+export async function loadDraft(folderId, draftId) {
+  const snap = await getDoc(draftDocRef(folderId, draftId));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+}
+
+export async function createDraft(folderId, data, ownerUid, ownerEmail) {
+  const ref = await addDoc(collection(db, 'draftFolders', folderId, 'drafts'), {
+    ...data, ownerUid, ownerEmail: (ownerEmail || '').toLowerCase(),
+    lastEditedBy: (ownerEmail || '').toLowerCase(),
+    presence: {}, archived: false,
+    createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  });
+  return ref.id;
+}
+
+// Field-level patch: keys are Firestore dot paths (e.g. 'topics.t1.title').
+// Pass DELETE_FIELD as a value to remove a key.
+export const DELETE_FIELD = deleteField();
+
+export async function patchDraft(folderId, draftId, patch, byEmail) {
+  await updateDoc(draftDocRef(folderId, draftId), {
+    ...patch, updatedAt: serverTimestamp(), lastEditedBy: (byEmail || '').toLowerCase()
+  });
+}
+
+// Presence writes deliberately don't bump updatedAt.
+export async function setDraftPresence(folderId, draftId, uid, info) {
+  await updateDoc(draftDocRef(folderId, draftId), {
+    ['presence.' + uid]: info ? { ...info, at: serverTimestamp() } : deleteField()
+  });
+}
+
+export function watchDraft(folderId, draftId, callback) {
+  return onSnapshot(draftDocRef(folderId, draftId), snap => {
+    callback(snap.exists() ? { id: snap.id, ...snap.data() } : null, snap.metadata.hasPendingWrites);
+  });
+}
+
+export async function deleteDraft(folderId, draftId) {
+  await deleteDoc(draftDocRef(folderId, draftId));
+}
+
+export async function setDraftArchived(folderId, draftId, archived) {
+  await updateDoc(draftDocRef(folderId, draftId), { archived: !!archived, updatedAt: serverTimestamp() });
+}
+
+// Move a draft to another folder, keeping its id (copy + delete in one batch).
+export async function moveDraft(fromFolderId, draftId, toFolderId) {
+  if (fromFolderId === toFolderId) return draftId;
+  const snap = await getDoc(draftDocRef(fromFolderId, draftId));
+  if (!snap.exists()) throw new Error('Draft not found');
+  const batch = writeBatch(db);
+  batch.set(draftDocRef(toFolderId, draftId), { ...snap.data(), presence: {}, updatedAt: serverTimestamp() });
+  batch.delete(snap.ref);
+  await batch.commit();
+  return draftId;
+}
+
+// One-time move of a user's legacy drafts into their personal folder.
+// Legacy drafts stored topics as an array; convert to the keyed form.
+export async function migrateLegacyDrafts(uid, email) {
+  let legacy = [];
+  try { legacy = await getLegacyDrafts(uid); } catch (e) { return 0; }
+  if (!legacy.length) return 0;
+  const folderId = await ensurePersonalFolder(uid, email);
+  for (const d of legacy) {
+    const { id, ...data } = d;
+    const converted = { ...data, ...topicsToKeyed(data.topics) };
+    await setDoc(draftDocRef(folderId, id), {
+      ...converted, ownerUid: uid, ownerEmail: (email || '').toLowerCase(),
+      presence: {}, archived: false, migratedAt: serverTimestamp(),
+      updatedAt: data.updatedAt || serverTimestamp()
+    });
+    await deleteDoc(doc(db, 'users', uid, 'drafts', id));
+  }
+  return legacy.length;
+}
+
+export function newTopicId() {
+  return 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+export function topicsToKeyed(topics) {
+  if (!Array.isArray(topics)) return { topics: topics || {}, topicOrder: [] };
+  const map = {}, order = [];
+  topics.forEach(t => {
+    const id = newTopicId();
+    map[id] = t; order.push(id);
+  });
+  return { topics: map, topicOrder: order };
+}
+
+// Team members who can be given access to a shared folder.
+export async function getCollaborators() {
+  const users = mapSnap(await getDocs(query(collection(db, 'allowedUsers'), orderBy('email'))));
+  return users.filter(u => u.perms && u.perms.communications);
+}
+
+// ---------- Staff directory (synced from the OneSync sheet; see Admin) ----------
+
+export async function getStaff() {
+  const rows = mapSnap(await cachedQuery(query(collection(db, 'staff'))));
+  return rows.sort((a, b) =>
+    (a.familyName || '').localeCompare(b.familyName || '') ||
+    (a.givenName || '').localeCompare(b.givenName || ''));
+}
+
+export async function getStaffSyncConfig() {
+  const snap = await getDoc(doc(db, 'config', 'staffSync'));
+  return snap.exists() ? snap.data() : {};
+}
+
+export async function saveStaffSyncConfig(values) {
+  await setDoc(doc(db, 'config', 'staffSync'), values, { merge: true });
+}
+
+// ---------- Per-user preferences (users/{uid}/prefs/compose) ----------
+// e.g. { typography: {...} } — the compose page's personal typography defaults.
+
+export async function getUserPrefs(uid) {
+  const snap = await getDoc(doc(db, 'users', uid, 'prefs', 'compose'));
+  return snap.exists() ? snap.data() : {};
+}
+
+export async function saveUserPrefs(uid, values) {
+  await setDoc(doc(db, 'users', uid, 'prefs', 'compose'),
+    { ...values, updatedAt: serverTimestamp() }, { merge: true });
 }
 
 // ---------- Reusable compose snippets (shared, communications perm) ----------

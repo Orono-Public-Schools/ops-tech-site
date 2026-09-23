@@ -564,7 +564,52 @@
       flex: 1;
     }
 
+    /* ========== ARCHIVE CONTROLS ========== */
+    .post-card .arch-btn {
+      position: absolute; top: 12px; right: 12px; z-index: 2;
+      width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid #e3e6ee;
+      background: #fff; color: #2d3f69; display: none; align-items: center; justify-content: center;
+      cursor: pointer; transition: all .2s; padding: 0;
+    }
+    .post-card .arch-btn .material-icons { font-size: 18px; }
+    body.can-edit .post-card:hover .arch-btn { display: inline-flex; }
+    .post-card .arch-btn:hover { background: #ad2122; border-color: #ad2122; color: #fff; }
+    .post-card.archived { opacity: .82; }
+    .post-card.archived .icon-chip { filter: grayscale(1); }
+    .mchip.muted { background: #f0f1f5; color: #666; }
+    .archive-toggle {
+      display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px;
+      border: 1.5px solid #dde2ec; background: #fff; color: #2d3f69; font-family: inherit;
+      font-size: 0.82em; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all .2s;
+    }
+    .archive-toggle .material-icons { font-size: 17px; }
+    .archive-toggle:hover { border-color: #2d3f69; }
+    .archive-toggle.active { background: #2d3f69; border-color: #2d3f69; color: #fff; }
+    .modal-head .head-actions { display: flex; gap: 8px; align-items: center; }
+    .modal-head .head-btn {
+      display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px;
+      border: 1.5px solid rgba(255,255,255,.5); background: transparent; color: #fff; font-family: inherit;
+      font-size: 0.82em; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all .2s;
+    }
+    .modal-head .head-btn .material-icons { font-size: 17px; }
+    .modal-head .head-btn:hover { background: #fff; color: #2d3f69; }
+
     /* ========== DRAFTS MODAL ========== */
+    .drafts-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .drafts-toolbar .folder-pills { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+    .folder-pill {
+      display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px;
+      border: 1.5px solid #dde2ec; background: #fff; color: #2d3f69; font-family: inherit;
+      font-size: 0.82em; font-weight: 600; cursor: pointer; transition: all .2s;
+    }
+    .folder-pill .material-icons { font-size: 17px; color: #ad2122; }
+    .folder-pill:hover { border-color: #2d3f69; }
+    .folder-pill.active { background: #ad2122; border-color: #ad2122; color: #fff; }
+    .folder-pill.active .material-icons { color: #fff; }
+    .folder-pill small { color: inherit; opacity: .7; font-weight: 400; }
+    .draft-item.archived { opacity: .75; }
+    .draft-btn-ghost { background: #fff; color: #2d3f69; border: 1.5px solid #c9d2e6; }
+    .draft-btn-ghost:hover { border-color: #2d3f69; }
     .draft-item {
       background: #f8f9fc;
       border: 1.5px solid #e8eaf1;
@@ -793,6 +838,9 @@
         <input type="search" id="searchInput" placeholder="Search sent emails..." autocomplete="off">
       </div>
       <div class="filter-pills" id="filterPills"></div>
+      <button type="button" class="archive-toggle" id="archiveToggle" onclick="toggleArchivedView()" title="Show archived emails">
+        <span class="material-icons">inventory_2</span><span id="archiveToggleText">Archived</span>
+      </button>
       <span class="result-count" id="resultCount"></span>
     </div>
 
@@ -835,7 +883,12 @@
     <div class="modal-card">
       <div class="modal-head">
         <h2 id="modalSubject"></h2>
-        <button type="button" class="modal-close" onclick="closeViewModal()">&times;</button>
+        <div class="head-actions">
+          <button type="button" class="head-btn edit-only" id="modalArchiveBtn" onclick="archiveFromModal()" style="display:none;">
+            <span class="material-icons">archive</span><span>Archive</span>
+          </button>
+          <button type="button" class="modal-close" onclick="closeViewModal()">&times;</button>
+        </div>
       </div>
       <div class="modal-meta" id="modalMeta"></div>
       <div class="modal-body" id="modalBody"></div>
@@ -850,6 +903,15 @@
         <button type="button" class="modal-close" onclick="closeDraftsModal()">&times;</button>
       </div>
       <div class="modal-body">
+        <div class="drafts-toolbar">
+          <div class="folder-pills" id="folderPills"></div>
+          <button type="button" class="archive-toggle" id="draftArchiveToggle" onclick="toggleDraftArchived()" title="Show archived drafts">
+            <span class="material-icons">inventory_2</span>Archived
+          </button>
+          <button type="button" class="folder-pill" onclick="manageDraftFolders()" title="Create, share, rename or delete folders">
+            <span class="material-icons">create_new_folder</span>Folders
+          </button>
+        </div>
         <div id="draftsLoading" style="text-align: center; padding: 40px; display: none;">
           <p>Loading drafts...</p>
         </div>
@@ -862,9 +924,12 @@
     import { renderLayout } from './js/layout.js';
     import { authReady, gateEditing } from './js/auth.js';
     import {
-      getCommunications, getAllDrafts, deleteDraft,
+      getCommunications, setCommunicationArchived,
+      getMyFolders, ensurePersonalFolder, migrateLegacyDrafts, personalFolderId,
+      getFolderDrafts, deleteDraft, setDraftArchived,
       getScheduledEmails, cancelScheduledEmail
     } from './js/data.js';
+    import { openFolderManager } from './js/draft-folders.js';
 
     renderLayout('communications');
     gateEditing('communications');
@@ -875,6 +940,12 @@
     let currentUser = null;
     let activeFilter = 'All';
     let searchTerm = '';
+    let showArchived = false;
+    let modalComm = null;          // communication open in the view modal
+    let draftFolders = [];
+    let activeFolderId = '';
+    let showArchivedDrafts = false;
+    let draftsCache = [];
 
     function escapeHtml(text) {
       const div = document.createElement('div');
@@ -926,8 +997,15 @@
       render();
     });
 
+    window.toggleArchivedView = function() {
+      showArchived = !showArchived;
+      document.getElementById('archiveToggle').classList.toggle('active', showArchived);
+      render();
+    };
+
     function visibleCommunications() {
       return communicationsData.filter(c => {
+        if (!!c.archived !== showArchived) return false;
         if (activeFilter !== 'All' && templateLabel(c.templateUsed) !== activeFilter) return false;
         if (searchTerm) {
           const hay = [c.subject, c.previewText, c.recipients, c.sentBy]
@@ -958,17 +1036,27 @@
       }
 
       const visible = visibleCommunications();
+      const pool = communicationsData.filter(c => !!c.archived === showArchived);
+      const archivedCount = communicationsData.filter(c => c.archived).length;
+      document.getElementById('archiveToggleText').textContent = 'Archived' + (archivedCount ? ' (' + archivedCount + ')' : '');
       document.getElementById('resultCount').textContent =
-        visible.length === communicationsData.length
-          ? communicationsData.length + ' sent'
-          : visible.length + ' of ' + communicationsData.length;
+        visible.length === pool.length
+          ? pool.length + (showArchived ? ' archived' : ' sent')
+          : visible.length + ' of ' + pool.length;
 
       if (!visible.length) {
-        content.innerHTML = `
+        content.innerHTML = showArchived && !pool.length
+          ? `
+          <div class="empty-state">
+            <span class="material-icons">inventory_2</span>
+            <h2>Nothing Archived</h2>
+            <p>Archive a sent email from its card or from the email view to tuck it away here.</p>
+          </div>`
+          : `
           <div class="empty-state">
             <span class="material-icons">search_off</span>
             <h2>No Matches</h2>
-            <p>No sent emails match your search or filter.</p>
+            <p>No ${showArchived ? 'archived' : 'sent'} emails match your search or filter.</p>
           </div>`;
         return;
       }
@@ -981,7 +1069,10 @@
           : 'Date unavailable';
         const tpl = templateLabel(comm.templateUsed);
         return `
-          <div class="post-card" onclick="viewEmail(${index})">
+          <div class="post-card${comm.archived ? ' archived' : ''}" onclick="viewEmail(${index})">
+            <button type="button" class="arch-btn" title="${comm.archived ? 'Restore to sent' : 'Archive'}" onclick="event.stopPropagation(); setArchived('${escapeHtml(comm.id)}', ${comm.archived ? 'false' : 'true'})">
+              <span class="material-icons">${comm.archived ? 'unarchive' : 'archive'}</span>
+            </button>
             <span class="watermark material-icons">mail</span>
             <div class="icon-chip"><span class="material-icons">${comm.source === 'scheduled' ? 'schedule_send' : 'mail'}</span></div>
             <h3 class="post-subject">${escapeHtml(comm.subject)}</h3>
@@ -990,9 +1081,39 @@
               <span class="mchip"><span class="material-icons">event</span>${escapeHtml(dateStr)}</span>
               <span class="mchip red"><span class="material-icons">label</span>${escapeHtml(tpl)}</span>
               <span class="mchip" title="${escapeHtml(comm.recipients || '')}"><span class="material-icons">group</span>${escapeHtml(comm.recipients || '—')}</span>
+              ${comm.archived ? '<span class="mchip muted"><span class="material-icons">inventory_2</span>Archived</span>' : ''}
             </div>
           </div>`;
       }).join('') + '</div>';
+    }
+
+    // Archive / restore a sent email (only the archive flag changes; rules enforce it)
+    window.setArchived = async function(id, archived) {
+      const comm = communicationsData.find(c => c.id === id);
+      if (!comm) return;
+      try {
+        await setCommunicationArchived(id, archived, currentUser.email);
+        comm.archived = archived;
+        if (archived) comm.archivedBy = currentUser.email; else delete comm.archivedBy;
+        render();
+        if (modalComm && modalComm.id === id) syncModalArchiveBtn();
+      } catch (err) {
+        alert('Could not ' + (archived ? 'archive' : 'restore') + ': ' + err.message);
+      }
+    };
+
+    window.archiveFromModal = function() {
+      if (!modalComm || !modalComm.id) return;
+      setArchived(modalComm.id, !modalComm.archived);
+    };
+
+    function syncModalArchiveBtn() {
+      const btn = document.getElementById('modalArchiveBtn');
+      if (!modalComm || !modalComm.id || modalComm.source === 'scheduled') { btn.style.display = 'none'; return; }
+      btn.style.display = '';
+      btn.innerHTML = modalComm.archived
+        ? '<span class="material-icons">unarchive</span><span>Restore</span>'
+        : '<span class="material-icons">archive</span><span>Archive</span>';
     }
 
     // ========== VIEW MODAL ==========
@@ -1003,6 +1124,8 @@
     };
 
     function openViewModal(comm) {
+      modalComm = comm;
+      syncModalArchiveBtn();
       document.getElementById('modalSubject').textContent = comm.subject || '';
 
       const date = toDate(comm.sentAt);
@@ -1014,6 +1137,7 @@
       chips.push(chip('label', templateLabel(comm.templateUsed), true));
       if (comm.sentBy) chips.push(chip('person', comm.sentBy));
       if (comm.source === 'scheduled') chips.push(chip('schedule_send', 'Scheduled send', true));
+      if (comm.archived) chips.push(chip('inventory_2', 'Archived' + (comm.archivedBy ? ' by ' + comm.archivedBy : '')));
 
       document.getElementById('modalMeta').innerHTML = chips.join('');
       // Newsletters and regular emails alike store their full HTML in bodyHtml.
@@ -1110,7 +1234,7 @@
       }
     });
 
-    // ========== DRAFTS MODAL ==========
+    // ========== DRAFTS MODAL (folders + collaborative drafts) ==========
     window.openDraftsModal = async function() {
       const modal = document.getElementById('draftsModal');
       const loading = document.getElementById('draftsLoading');
@@ -1121,9 +1245,15 @@
       container.innerHTML = '';
 
       try {
-        const drafts = await getAllDrafts(currentUser.uid);
-        loading.style.display = 'none';
-        renderDrafts(drafts);
+        await ensurePersonalFolder(currentUser.uid, currentUser.email);
+        // Sweep any legacy per-user drafts into the personal folder first
+        try { await migrateLegacyDrafts(currentUser.uid, currentUser.email); } catch (e) { console.warn('Draft migration:', e); }
+        draftFolders = await getMyFolders(currentUser.uid, currentUser.email);
+        if (!activeFolderId || !draftFolders.some(f => f.id === activeFolderId)) {
+          activeFolderId = personalFolderId(currentUser.uid);
+        }
+        renderFolderPills();
+        await loadFolderDrafts();
       } catch (error) {
         loading.style.display = 'none';
         container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ad2122;">Error loading drafts: ' + escapeHtml(error.message) + '</div>';
@@ -1134,15 +1264,70 @@
       document.getElementById('draftsModal').classList.remove('show');
     };
 
-    function renderDrafts(drafts) {
-      const container = document.getElementById('draftsContainer');
+    function renderFolderPills() {
+      const wrap = document.getElementById('folderPills');
+      wrap.innerHTML = draftFolders.map(f => {
+        const icon = f.personal ? 'person' : (f.ownerUid === currentUser.uid ? 'folder' : 'folder_shared');
+        const n = (f.members || []).length;
+        const note = f.personal ? '' : (f.ownerUid !== currentUser.uid ? 'shared with you' : (n ? n + ' shared' : ''));
+        return `<button type="button" class="folder-pill${f.id === activeFolderId ? ' active' : ''}" onclick="selectDraftFolder('${escapeHtml(f.id)}')">
+          <span class="material-icons">${icon}</span>${escapeHtml(f.name)}${note ? ' <small>· ' + escapeHtml(note) + '</small>' : ''}</button>`;
+      }).join('');
+    }
 
-      if (!drafts || drafts.length === 0) {
+    window.selectDraftFolder = async function(id) {
+      activeFolderId = id;
+      renderFolderPills();
+      await loadFolderDrafts();
+    };
+
+    window.toggleDraftArchived = async function() {
+      showArchivedDrafts = !showArchivedDrafts;
+      document.getElementById('draftArchiveToggle').classList.toggle('active', showArchivedDrafts);
+      renderDrafts(draftsCache);
+    };
+
+    window.manageDraftFolders = function() {
+      openFolderManager({
+        user: currentUser,
+        onChange: async function(folders) {
+          draftFolders = folders;
+          if (!draftFolders.some(f => f.id === activeFolderId)) activeFolderId = personalFolderId(currentUser.uid);
+          renderFolderPills();
+          await loadFolderDrafts();
+        }
+      });
+    };
+
+    async function loadFolderDrafts() {
+      const loading = document.getElementById('draftsLoading');
+      const container = document.getElementById('draftsContainer');
+      loading.style.display = 'block';
+      container.innerHTML = '';
+      try {
+        draftsCache = await getFolderDrafts(activeFolderId);
+        loading.style.display = 'none';
+        renderDrafts(draftsCache);
+      } catch (error) {
+        loading.style.display = 'none';
+        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ad2122;">Error loading drafts: ' + escapeHtml(error.message) + '</div>';
+      }
+    }
+
+    function renderDrafts(all) {
+      const container = document.getElementById('draftsContainer');
+      const drafts = (all || []).filter(d => !!d.archived === showArchivedDrafts);
+      const folder = draftFolders.find(f => f.id === activeFolderId);
+      const shared = folder && !folder.personal;
+
+      if (!drafts.length) {
         container.innerHTML = `
           <div class="drafts-empty">
-            <span class="material-icons">inbox</span>
-            <h3>No Drafts Found</h3>
-            <p>Saved email drafts will appear here</p>
+            <span class="material-icons">${showArchivedDrafts ? 'inventory_2' : 'inbox'}</span>
+            <h3>${showArchivedDrafts ? 'No Archived Drafts' : 'No Drafts Here'}</h3>
+            <p>${showArchivedDrafts
+              ? 'Archived drafts from this folder will appear here.'
+              : (shared ? 'Move a draft into this folder from the Compose page to collaborate on it.' : 'Saved email drafts will appear here')}</p>
           </div>
         `;
         return;
@@ -1152,7 +1337,7 @@
 
       drafts.forEach(function(draft) {
         const draftEl = document.createElement('div');
-        draftEl.className = 'draft-item';
+        draftEl.className = 'draft-item' + (draft.archived ? ' archived' : '');
 
         const date = toDate(draft.updatedAt);
         const dateStr = date
@@ -1164,17 +1349,30 @@
               minute: '2-digit'
             })
           : 'Date unavailable';
+        const who = draft.lastEditedBy || draft.ownerEmail || '';
+        const editors = Object.values(draft.presence || {}).filter(p => {
+          if (!p || !p.at) return false;
+          const t = typeof p.at.toMillis === 'function' ? p.at.toMillis() : new Date(p.at).getTime();
+          return (Date.now() - t) < 75000 && p.email !== currentUser.email;
+        });
 
         draftEl.innerHTML = `
           <div class="draft-subject">${escapeHtml(draft.preview || 'Untitled Draft')}</div>
           <div class="draft-meta">
             <span class="mchip"><span class="material-icons">schedule</span>${escapeHtml(dateStr)}</span>
             <span class="mchip red"><span class="material-icons">label</span>${escapeHtml(templateLabel(draft.template))}</span>
+            ${who && shared ? `<span class="mchip" title="Last edited by"><span class="material-icons">person</span>${escapeHtml(who)}</span>` : ''}
+            ${editors.length ? `<span class="mchip" style="background:#e6f4ea;color:#1e6b3a;"><span class="material-icons">edit</span>${escapeHtml(editors.map(p => (p.name || p.email || '').split(' ')[0]).join(', '))} editing now</span>` : ''}
+            ${draft.archived ? '<span class="mchip muted"><span class="material-icons">inventory_2</span>Archived</span>' : ''}
           </div>
           <div class="draft-actions">
             <button class="draft-btn draft-btn-load" onclick="loadDraftAndNavigate('${escapeHtml(draft.id)}')">
               <span class="material-icons">open_in_new</span>
-              Load Draft
+              Open Draft
+            </button>
+            <button class="draft-btn draft-btn-ghost" onclick="archiveDraftItem('${escapeHtml(draft.id)}', ${draft.archived ? 'false' : 'true'})">
+              <span class="material-icons">${draft.archived ? 'unarchive' : 'archive'}</span>
+              ${draft.archived ? 'Restore' : 'Archive'}
             </button>
             <button class="draft-btn draft-btn-delete" onclick="deleteDraftItem('${escapeHtml(draft.id)}')">
               <span class="material-icons">delete</span>
@@ -1188,19 +1386,29 @@
     }
 
     window.loadDraftAndNavigate = function(draftId) {
-      // Navigate to compose page with draft ID
-      window.open('compose.html?draftId=' + encodeURIComponent(draftId), '_top');
+      window.open('compose.html?folder=' + encodeURIComponent(activeFolderId) + '&draftId=' + encodeURIComponent(draftId), '_top');
+    };
+
+    window.archiveDraftItem = async function(draftId, archived) {
+      try {
+        await setDraftArchived(activeFolderId, draftId, archived);
+        const d = draftsCache.find(x => x.id === draftId);
+        if (d) d.archived = archived;
+        renderDrafts(draftsCache);
+      } catch (error) {
+        alert('Error updating draft: ' + error.message);
+      }
     };
 
     window.deleteDraftItem = async function(draftId) {
-      if (!confirm('Are you sure you want to delete this draft?')) {
+      if (!confirm('Are you sure you want to delete this draft? Anyone sharing this folder will lose it too.')) {
         return;
       }
 
       try {
-        await deleteDraft(currentUser.uid, draftId);
-        // Reload drafts list
-        openDraftsModal();
+        await deleteDraft(activeFolderId, draftId);
+        draftsCache = draftsCache.filter(x => x.id !== draftId);
+        renderDrafts(draftsCache);
       } catch (error) {
         alert('Error deleting draft: ' + error.message);
       }

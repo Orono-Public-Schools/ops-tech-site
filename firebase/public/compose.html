@@ -464,6 +464,27 @@
       font-size: 18px;
     }
 
+    /* Staff autocomplete under the recipient email field */
+    .recipient-input-wrap { position: relative; min-width: 0; }
+    .staff-suggest {
+      position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 50;
+      background: #fff; border: 1.5px solid #d8dbe4; border-radius: 10px;
+      box-shadow: 0 12px 30px rgba(20,27,51,0.18); overflow: hidden; display: none;
+    }
+    .staff-suggest.open { display: block; }
+    .staff-opt {
+      display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: center;
+      padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f0f2f7;
+    }
+    .staff-opt:last-child { border-bottom: none; }
+    .staff-opt.active, .staff-opt:hover { background: #eef1f8; }
+    .staff-opt .nm { font-size: 0.88em; font-weight: 600; color: #2d3f69; }
+    .staff-opt .em { font-size: 0.78em; color: #6b7385; grid-column: 1; }
+    .staff-opt .meta { grid-column: 2; grid-row: 1 / span 2; font-size: 0.72em; color: #9aa3b5; text-align: right; white-space: nowrap; }
+    .staff-suggest .none { padding: 8px 12px; font-size: 0.8em; color: #9aa3b5; }
+    .recipient-hint { font-size: 0.78em; color: #8b93a9; margin: -2px 0 10px; }
+    .recipient-hint b { color: #6b7385; font-weight: 600; }
+
     /* ========== CHECKBOX GROUP ========== */
     .checkbox-group {
       display: flex;
@@ -809,8 +830,8 @@
     /* Compact px size controls (Typography defaults + per-topic overrides) */
     .type-size-control {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 220px));
-      gap: 14px 28px;
+      grid-template-columns: repeat(2, max-content);
+      gap: 10px 18px;
     }
     .size-field label {
       display: block;
@@ -822,7 +843,7 @@
     .px-wrap {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 2px;
     }
     .px-input {
       display: inline-flex;
@@ -929,7 +950,51 @@
     }
     .html-code:focus { outline: none; border-color: #2d3f69; box-shadow: 0 0 0 3px rgba(45,63,105,0.12); }
     .typography-group { margin: 6px 0 18px; }
-    .type-size-control.three { grid-template-columns: repeat(3, minmax(0, 200px)); }
+    .type-size-control.three { grid-template-columns: repeat(3, max-content); }
+    /* Beta tag (Import text) */
+    .beta-tag {
+      display: inline-flex; align-items: center; margin-left: 8px; padding: 2px 8px; border-radius: 999px;
+      background: #fff3d6; color: #7a5a12; border: 1px solid #f0d9a0;
+      font-size: 0.66em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; vertical-align: middle;
+    }
+    .beta-tag.small { font-size: 0.6em; padding: 1px 7px; margin-left: 0; }
+    .import-action { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; }
+    .modal-head h2 .beta-tag { font-size: 0.55em; margin-left: 10px; }
+    .import-beta-note {
+      display: flex; align-items: flex-start; gap: 8px; margin: 0 0 12px; padding: 10px 12px;
+      background: #fff8e8; border: 1px solid #f0d9a0; border-radius: 8px; font-size: 0.85em; color: #6b5210; line-height: 1.5;
+    }
+    .import-beta-note .material-icons { font-size: 18px; color: #c9962a; flex-shrink: 0; margin-top: 1px; }
+    .import-beta-note strong { color: #5a4208; }
+    /* Personal typography defaults bar */
+    .typo-defaults-bar {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 16px; padding: 10px 12px;
+      background: #f4f6fb; border: 1px solid #e3e6ee; border-radius: 10px;
+    }
+    .typo-defaults-bar .material-icons.snip-glyph { font-size: 17px; color: #8b93a9; }
+    .typo-defaults-bar .typo-defaults-text { flex: 1; min-width: 160px; font-size: 0.82em; color: #6b7385; line-height: 1.4; }
+    .typo-defaults-bar .typo-defaults-text strong { color: #2d3f69; font-weight: 600; }
+    /* Editing highlight: marks the preview element(s) the focused field controls.
+       Parts (title, description, subject…): dashed navy outline + a tag naming the part. */
+    #emailPreview .pv-active { position: relative; outline: 1.5px dashed #2d3f69; outline-offset: 5px; border-radius: 3px; }
+    #emailPreview .pv-active[data-pv-label]::after {
+      content: attr(data-pv-label); position: absolute; right: -6px; top: -16px; z-index: 2;
+      background: #2d3f69; color: #fff; font: 600 10px/1 'Lexend', sans-serif; letter-spacing: 0.04em;
+      padding: 5px 8px; border-radius: 4px; white-space: nowrap; pointer-events: none;
+    }
+    /* Inside the navy banner the outline and tag flip to white so they stay visible */
+    #emailPreview [data-pv~="header"] .pv-active { outline-color: rgba(255,255,255,0.85); }
+    #emailPreview [data-pv~="header"] .pv-active[data-pv-label]::after { background: #fff; color: #2d3f69; }
+    /* Blocks (whole topic, header banner): red rail in the left gutter, no wash */
+    #emailPreview .pv-active.pv-block { outline: none; }
+    #emailPreview .pv-active.pv-block::before {
+      content: ''; position: absolute; left: -14px; top: -2px; bottom: -2px; width: 4px; border-radius: 2px; background: #ad2122;
+    }
+    .preview-head .live-dot.editing {
+      background: #e8ecf4; color: #2d3f69; margin-left: 8px; padding: 3px 10px; border-radius: 999px;
+      max-width: 46%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .preview-head .live-dot.editing::before { background: #2d3f69; animation: none; flex-shrink: 0; }
     .typo-select {
       padding: 7px 10px; border: 1px solid #d6dbe6; border-radius: 8px; background: #fff;
       font-family: inherit; font-size: 0.9em; color: #2d3f69; min-width: 110px;
@@ -938,7 +1003,7 @@
     .px-wrap input[type="color"] { width: 36px; height: 34px; padding: 2px; border: 1px solid #d6dbe6; border-radius: 8px; background: #fff; cursor: pointer; }
     .typo-sub {
       font-size: 0.78em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
-      color: #ad2122; margin: 14px 0 8px;
+      color: #ad2122; margin: 12px 0 6px;
     }
     .typo-sub:first-of-type { margin-top: 4px; }
     .typo-sub span { font-weight: 300; text-transform: none; letter-spacing: 0; color: #888; }
@@ -1291,6 +1356,36 @@
     }
 
     /* ========== DRAFT STATUS ========== */
+    /* ── Collaboration bar: folder picker, who's here, sync state ── */
+    .collab-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 18px; margin: -26px -30px 18px; border-bottom: 1.5px solid #eef0f5; background: #fbfbfd; border-radius: 12px 12px 0 0; }
+    .folder-pick { position: relative; }
+    .folder-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; border: 1.5px solid #dde2ec; background: #fff; color: #2d3f69; font-family: inherit; font-weight: 600; font-size: 0.85em; cursor: pointer; transition: border-color .2s; }
+    .folder-btn:hover { border-color: #2d3f69; }
+    .folder-btn .material-icons { font-size: 18px; color: #ad2122; }
+    .folder-btn .caret { color: #888; transition: transform .2s; }
+    .folder-pick.open .caret { transform: rotate(180deg); }
+    .folder-menu { display: none; position: absolute; top: calc(100% + 6px); left: 0; min-width: 260px; background: #fff; border: 1.5px solid #e3e6ee; border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.14); padding: 6px; z-index: 60; }
+    .folder-pick.open .folder-menu { display: block; }
+    .folder-menu button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 10px; border: none; background: none; border-radius: 8px; font-family: inherit; font-size: 0.88em; color: #1d2a5d; cursor: pointer; text-align: left; }
+    .folder-menu button:hover { background: #f3f5fa; }
+    .folder-menu button.active { background: #fbe9ea; color: #ad2122; }
+    .folder-menu button .material-icons { font-size: 18px; color: #ad2122; }
+    .folder-menu button small { margin-left: auto; color: #888; font-weight: 400; white-space: nowrap; }
+    .folder-menu .sep { height: 1px; background: #eef0f5; margin: 4px 6px; }
+    .collab-people { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+    .co-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; border-radius: 999px; background: #fff; border: 1.5px solid var(--co, #2d3f69); color: #1d2a5d; font-size: 0.8em; font-weight: 600; }
+    .co-chip small { color: #666; font-weight: 400; }
+    .avatar { width: 22px; height: 22px; border-radius: 50%; background: var(--co, #2d3f69); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7em; font-weight: 700; flex-shrink: 0; }
+    .co-badge { display: inline-flex; align-items: center; gap: 5px; margin-left: 8px; padding: 1px 8px 1px 2px; border-radius: 999px; background: var(--co, #2d3f69); color: #fff; font-size: 0.72em; font-weight: 600; vertical-align: middle; animation: coPulse 2s ease-in-out infinite; }
+    .co-badge .avatar { width: 16px; height: 16px; background: rgba(255,255,255,.28); font-size: 0.6em; }
+    @keyframes coPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(45,63,105,0); } 50% { box-shadow: 0 0 0 4px rgba(45,63,105,.18); } }
+    .sync-state { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78em; color: #666; margin-left: auto; white-space: nowrap; }
+    .sync-state .dot { width: 8px; height: 8px; border-radius: 50%; background: #bbb; }
+    .sync-state.saved .dot { background: #2e8b57; }
+    .sync-state.saving .dot, .sync-state.dirty .dot { background: #e0a100; }
+    .sync-state.saving .dot { animation: coPulse 1s infinite; }
+    .sync-state.error { color: #ad2122; }
+    .sync-state.error .dot { background: #ad2122; }
     .draft-status {
       margin-top: 12px;
       padding: 10px 14px;
@@ -1651,6 +1746,18 @@
     <div class="compose-layout">
       <!-- LEFT: Tabbed Workspace -->
       <div class="workspace-card">
+        <div class="collab-bar" id="collabBar">
+          <div class="folder-pick" id="folderPick">
+            <button type="button" class="folder-btn" onclick="toggleFolderMenu(event)" title="Which folder this draft is saved in">
+              <span class="material-icons">folder</span>
+              <span id="folderName">My Drafts</span>
+              <span class="material-icons caret">expand_more</span>
+            </button>
+            <div class="folder-menu" id="folderMenu"></div>
+          </div>
+          <div class="collab-people" id="collabPeople"></div>
+          <span class="sync-state" id="syncState"><span class="dot"></span><span id="syncText">Not saved yet</span></span>
+        </div>
         <div class="tabs" role="tablist">
           <button type="button" class="tab-btn active" data-tab="setup" onclick="setTab('setup')">
             <span class="material-icons">tune</span> Setup
@@ -1849,12 +1956,15 @@
                 <span class="sec-icon"><span class="material-icons">content_paste_go</span></span>
                 <div class="import-text">
                   <strong>Have the whole communication written already?</strong>
-                  <span>Paste it once and map each paragraph to a section.</span>
+                  <span>Paste it once and map each paragraph to a section. Still in beta &mdash; review the mapping before you apply it.</span>
                 </div>
-                <button type="button" class="action-pill navy" onclick="openImportModal()">
-                  <span class="material-icons">upload</span>
-                  Import text
-                </button>
+                <div class="import-action">
+                  <button type="button" class="action-pill navy" onclick="openImportModal()">
+                    <span class="material-icons">upload</span>
+                    Import text
+                  </button>
+                  <span class="beta-tag small">Beta</span>
+                </div>
               </div>
 
               <div class="collapse-all-bar">
@@ -1965,6 +2075,20 @@
                     </div>
                   </div>
                 </div>
+                <div class="typo-defaults-bar">
+                  <span class="material-icons snip-glyph">person</span>
+                  <span class="typo-defaults-text" id="typoDefaultsText">Loading your defaults&hellip;</span>
+                  <button type="button" class="snip-btn" onclick="saveTypographyDefaults()" title="Save the settings above as your personal defaults for new communications">
+                    <span class="material-icons">bookmark_add</span>Save as my defaults
+                  </button>
+                  <button type="button" class="snip-btn" id="typoApplyDefaultsBtn" style="display:none;" onclick="applyTypographyDefaults()" title="Apply your saved defaults to this communication">
+                    <span class="material-icons">restore</span>Apply my defaults
+                  </button>
+                  <button type="button" class="snip-btn danger" id="typoClearDefaultsBtn" style="display:none;" onclick="clearTypographyDefaults()" title="Remove your saved defaults">
+                    <span class="material-icons">delete</span>
+                  </button>
+                </div>
+                <small class="hint">Personal defaults are saved to your account only and load automatically whenever you start a new communication. Drafts keep their own settings.</small>
               </div>
 
               <!-- Topics -->
@@ -2003,6 +2127,7 @@
                 <h3>Individual Recipients</h3>
               </div>
               <div class="form-group">
+                <p class="recipient-hint" id="recipientHint" style="display:none;"><b>Tip:</b> start typing a staff member's name or email and pick them from the list.</p>
                 <div id="recipientsList"></div>
                 <button type="button" class="action-pill navy" style="padding: 8px 18px; font-size: 0.85em; margin-top: 6px;" onclick="addRecipientRow()">
                   <span class="material-icons">add</span>
@@ -2106,6 +2231,7 @@
           <h2>Live Preview</h2>
           <span class="live-dot">LIVE</span>
           <span class="live-dot sample" id="sampleBadge" style="display:none;" title="Topics without content are shown with sample text so you can judge the layout. They disappear as you add your own content.">SAMPLE CONTENT</span>
+          <span class="live-dot editing" id="pvEditing" style="display:none;" title="The outlined part of the preview is what the field you're editing controls"></span>
         </div>
         <div id="emailPreview">
           <p style="color: #666; text-align: center; padding: 40px 20px;">
@@ -2137,12 +2263,13 @@
   <div id="importModal" class="modal">
     <div class="modal-card wide">
       <div class="modal-head">
-        <h2><span class="material-icons">content_paste_go</span>Import a communication</h2>
+        <h2><span class="material-icons">content_paste_go</span>Import a communication <span class="beta-tag">Beta</span></h2>
         <button type="button" class="modal-close" onclick="closeImportModal()">&times;</button>
       </div>
       <div class="modal-body import-body">
         <!-- Step A: paste -->
         <div class="import-step" id="importStepPaste">
+          <div class="import-beta-note"><span class="material-icons">science</span><span><strong>Beta feature.</strong> The split and the suggested section for each block are automatic and can miss &mdash; check every block's target before applying. Text comes in as plain paragraphs (bold, colours and inline links from the source aren't kept), and applying replaces your current topics unless you untick <em>Replace existing topics</em>.</span></div>
           <p class="import-hint">Paste the full text (from a Google Doc, email, etc.). Separate paragraphs with a blank line — each one becomes a block you can map to a section. Links on their own line become buttons.</p>
           <textarea id="importText" class="import-textarea" placeholder="Dear Families,&#10;&#10;Here are a few notes...&#10;&#10;PASSWORD SUPPORT&#10;&#10;If your student does not remember their password...&#10;&#10;Setting Up Account Recovery&#10;https://example.com/recovery"></textarea>
         </div>
@@ -2226,11 +2353,15 @@
     import { authReady, requirePerm } from './js/auth.js';
     import {
       getEmailGroups, getImages, archiveManualEmail,
-      loadDraft, saveDraft, deleteDraft,
-      getSnippets, saveSnippet, deleteSnippet, scheduleEmail
+      loadDraft, createDraft, patchDraft, deleteDraft, watchDraft, setDraftPresence, moveDraft,
+      getMyFolders, ensurePersonalFolder, personalFolderId, migrateLegacyDrafts,
+      newTopicId, topicsToKeyed, DELETE_FIELD,
+      getSnippets, saveSnippet, deleteSnippet, scheduleEmail,
+      getUserPrefs, saveUserPrefs, getStaff
     } from './js/data.js';
     import { EMAIL_TEMPLATES } from './js/templates.js';
     import { attachImageUpload } from './js/upload.js';
+    import { openFolderManager } from './js/draft-folders.js';
     import { functions } from './js/firebase-init.js';
     import { httpsCallable } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-functions.js';
 
@@ -2248,8 +2379,14 @@
     var nextTopicId = 0; // Tracks the highest topic ID created (IDs never reuse)
     var formData = {}; // Store form data when switching templates
     var currentTargetField = null; // Track which field to populate with image URL
-    // Track current draft ID for updates (from ?draftId= URL param)
-    var currentDraftId = new URLSearchParams(window.location.search).get('draftId') || '';
+    // Current draft: draftFolders/{currentFolderId}/drafts/{currentDraftId}
+    // (?folder= & ?draftId= from the drafts library; personal folder by default)
+    var urlParams = new URLSearchParams(window.location.search);
+    var currentDraftId = urlParams.get('draftId') || '';
+    var currentFolderId = urlParams.get('folder') || '';
+    var pvMarkers = false;          // true only while rendering the live preview (adds data-pv hooks)
+    var pvToken = null;             // which part of the email the focused field controls
+    var personalTypography = null;  // this user's saved typography defaults (users/{uid}/prefs/compose)
 
     var EMPTY_CONTENT = /^(<p>(<br>|&nbsp;|\s)*<\/p>\s*)*$/;
 
@@ -2391,16 +2528,17 @@
     // ========== TOPIC CARD HELPERS ==========
 
     // Create a single topic card and its Quill instances
-    function createTopicCard(id, container) {
+    function createTopicCard(id, container, beforeEl) {
       var topicCard = document.createElement('div');
       topicCard.className = 'topic-card collapsible';
       topicCard.id = 'topicCard_' + id;
+      topicCard.dataset.topicId = id;
       topicCard.innerHTML = `
         <h4 class="collapse-head" onclick="toggleCollapse(this)">
           <span class="topic-chip"><span class="material-icons">topic</span></span>
-          <span class="collapse-head-title">Topic ${id}</span>
+          <span class="collapse-head-title">Topic</span>
           <span class="collapse-summary" id="topic${id}_summary"></span>
-          <button type="button" class="remove-topic-btn" onclick="event.stopPropagation(); removeTopic(${id})">
+          <button type="button" class="remove-topic-btn" onclick="event.stopPropagation(); removeTopic('${id}')">
             <span class="material-icons">close</span>
             Remove
           </button>
@@ -2441,7 +2579,7 @@
               <span>Image Size</span>
               <span class="size-value" id="topic${id}_size_value">100%</span>
             </label>
-            <input type="range" id="topic${id}_size" name="topic${id}_size" min="10" max="100" value="100" oninput="updateImageSize(${id})">
+            <input type="range" id="topic${id}_size" name="topic${id}_size" min="10" max="100" value="100" oninput="updateImageSize('${id}')">
           </div>
           <div class="image-align-control">
             <label for="topic${id}_align">Alignment</label>
@@ -2464,7 +2602,7 @@
         <div class="button-link-control">
           <label>Buttons/Links (optional)</label>
           <div id="topic${id}_buttons"></div>
-          <button type="button" class="add-button-link" onclick="addButtonRow(${id})"><span class="material-icons">add_circle</span>Add button</button>
+          <button type="button" class="add-button-link" onclick="addButtonRow('${id}')"><span class="material-icons">add_circle</span>Add button</button>
           <small>Add one or more clickable buttons or links to this topic</small>
         </div>
         <div class="divider-control">
@@ -2474,7 +2612,9 @@
           </label>
         </div>
       `;
-      container.appendChild(topicCard);
+      if (beforeEl) container.insertBefore(topicCard, beforeEl);
+      else container.appendChild(topicCard);
+      renumberTopics();
 
       // Browse-library + upload-from-computer row under the image URL field
       attachImageTools(document.getElementById('topic' + id + '_image'), 'topic' + id + '_image');
@@ -2516,6 +2656,8 @@
       });
       quillInstances['topic' + id + '_description'] = descQuill;
       descQuill.on('text-change', updatePreviewDebounced);
+      descQuill.on('selection-change', onQuillSelection);
+      titleQuill.on('selection-change', onQuillSelection);
 
       // Input listeners for non-Quill fields
       topicCard.querySelectorAll('input').forEach(function(field) {
@@ -2577,6 +2719,12 @@
       var id = box.id && box.id.replace('topicCard_', '');
       var tq = id && quillInstances['topic' + id + '_title'];
       if (sum && tq) sum.textContent = tq.getText().trim().replace(/\s+/g, ' ');
+      // Opening a section points the preview at it
+      if (!box.classList.contains('collapsed')) {
+        if (id) setPreviewFocus('topic:' + id);
+        else if (box.querySelector('#intro_container')) setPreviewFocus('intro');
+        else if (box.querySelector('#outro_container')) setPreviewFocus('outro');
+      }
     }
     function setAllCollapsed(collapsed) {
       document.querySelectorAll('#contentSection .collapsible').forEach(function(box) {
@@ -2590,9 +2738,18 @@
 
     // Add a new topic card
     function addTopic() {
-      nextTopicId++;
-      createTopicCard(nextTopicId, document.getElementById('topicFields'));
+      createTopicCard(newTopicId(), document.getElementById('topicFields'));
       updatePreview();
+    }
+
+    // Card headings show their position ("Topic 2"); ids are random strings
+    // so two collaborators adding topics at once never collide.
+    function renumberTopics() {
+      document.querySelectorAll('.topic-card').forEach(function(card, i) {
+        var t = card.querySelector('.collapse-head-title');
+        var label = 'Topic ' + (i + 1);
+        if (t && t.textContent !== label) t.textContent = label;
+      });
     }
 
     // Remove a topic card by its ID
@@ -2601,6 +2758,7 @@
       if (card) card.remove();
       delete quillInstances['topic' + id + '_title'];
       delete quillInstances['topic' + id + '_description'];
+      renumberTopics();
       updatePreview();
     }
 
@@ -2659,6 +2817,166 @@
       document.getElementById('typo_button_custom').value = t.buttonCustom || '#2d3f69';
       syncButtonColor();
     }
+    // ── Personal typography defaults (saved per user, applied to new communications) ──
+    function typographyIsUntouched() {
+      var t = collectTypography();
+      return !t.subjectSize && !t.subheadingSize && !t.introSize && !t.outroSize && !t.titleSize && !t.descSize
+        && !t.buttonSize && t.buttonScale === 'medium' && t.buttonColor === 'navy';
+    }
+    function describeTypography(t) {
+      var parts = [];
+      if (t.subjectSize)    parts.push('Subject ' + t.subjectSize + 'px');
+      if (t.subheadingSize) parts.push('Subheading ' + t.subheadingSize + 'px');
+      if (t.introSize)      parts.push('Intro ' + t.introSize + 'px');
+      if (t.outroSize)      parts.push('Outro ' + t.outroSize + 'px');
+      if (t.titleSize)      parts.push('Topic titles ' + t.titleSize + 'px');
+      if (t.descSize)       parts.push('Descriptions ' + t.descSize + 'px');
+      var btn = [];
+      if (t.buttonSize) btn.push(t.buttonSize + 'px');
+      if (t.buttonScale && t.buttonScale !== 'medium') btn.push(t.buttonScale);
+      if (t.buttonColor === 'red') btn.push('red');
+      else if (t.buttonColor === 'custom') btn.push(t.buttonCustom || 'custom colour');
+      if (btn.length) parts.push('Buttons ' + btn.join(', '));
+      return parts.length ? parts.join(' \u00b7 ') : 'everything on auto';
+    }
+    function renderTypographyDefaultsBar() {
+      var text  = document.getElementById('typoDefaultsText');
+      var apply = document.getElementById('typoApplyDefaultsBtn');
+      var clear = document.getElementById('typoClearDefaultsBtn');
+      if (personalTypography) {
+        text.innerHTML = '<strong>My defaults:</strong> ' + escapeHtml(describeTypography(personalTypography));
+        apply.style.display = '';
+        clear.style.display = '';
+      } else {
+        text.textContent = 'No personal defaults saved yet. Save these settings and every new communication you start will use them.';
+        apply.style.display = 'none';
+        clear.style.display = 'none';
+      }
+    }
+    function applyTypographyDefaults(silent) {
+      if (!personalTypography) return;
+      restoreTypography(personalTypography);
+      updatePreview();
+      if (!silent) showStatus('success', 'Your typography defaults have been applied to this communication.');
+    }
+    async function saveTypographyDefaults() {
+      var t = collectTypography();
+      try {
+        await saveUserPrefs(currentUser.uid, { typography: t });
+        personalTypography = t;
+        renderTypographyDefaultsBar();
+        showStatus('success', 'Saved as your typography defaults \u2014 new communications will start with these settings.');
+      } catch (error) {
+        showStatus('error', 'Failed to save your defaults: ' + error.message);
+      }
+    }
+    async function clearTypographyDefaults() {
+      if (!personalTypography) return;
+      if (!confirm('Remove your saved typography defaults? New communications will start with automatic sizes again.')) return;
+      try {
+        await saveUserPrefs(currentUser.uid, { typography: null });
+        personalTypography = null;
+        renderTypographyDefaultsBar();
+        showStatus('success', 'Your typography defaults were removed.');
+      } catch (error) {
+        showStatus('error', 'Failed to remove your defaults: ' + error.message);
+      }
+    }
+    async function loadPersonalTypography() {
+      try {
+        var prefs = await getUserPrefs(currentUser.uid);
+        personalTypography = (prefs && prefs.typography) || null;
+      } catch (error) {
+        console.error('Failed to load personal defaults:', error);
+        personalTypography = null;
+      }
+      renderTypographyDefaultsBar();
+      // A layout was picked before the prefs arrived and nothing has been
+      // set yet (and no draft is being loaded) — start from the defaults now.
+      if (personalTypography && !currentDraftId && document.getElementById('template').value && typographyIsUntouched()) {
+        applyTypographyDefaults(true);
+      }
+    }
+
+    // ── Editing highlight: outline in the preview whatever the focused field controls ──
+    // Preview elements carry data-pv="token token…" hooks (only while pvMarkers is on,
+    // so sent/copied HTML stays clean). A focused form field resolves to one token.
+    var PV_LABELS = {
+      subject: 'Subject', subheading: 'Subheading', intro: 'Intro', outro: 'Outro',
+      header: 'Header', footer: 'Footer logo',
+      title: 'All topic titles', desc: 'All topic descriptions', button: 'All buttons'
+    };
+    function pv(tokens, block) {
+      if (!pvMarkers) return '';
+      return ' data-pv="' + tokens + '"' + (block ? ' data-pv-block' : '');
+    }
+    function pvTokenFor(el) {
+      if (!el || !el.closest) return null;
+      var id = el.id || '';
+      var direct = {
+        subject: 'subject', subheading: 'subheading',
+        typo_subject: 'subject', typo_subheading: 'subheading', typo_intro: 'intro', typo_outro: 'outro',
+        typo_title: 'title', typo_desc: 'desc',
+        typo_button: 'button', typo_button_size: 'button', typo_button_color: 'button', typo_button_custom: 'button'
+      };
+      if (direct[id]) return direct[id];
+      if (/^headerIcon_/.test(id)) return 'header';
+      if (/^footerLogo_/.test(id)) return 'footer';
+      var m = id.match(/^topic([A-Za-z0-9]+)_(title_size|desc_size)$/);
+      if (m) return 'topic:' + m[1] + ':' + (m[2] === 'title_size' ? 'title' : 'desc');
+      if (el.closest('#intro_container')) return 'intro';
+      if (el.closest('#outro_container')) return 'outro';
+      var card = el.closest('.topic-card');
+      if (card) {
+        var tid = card.id.replace('topicCard_', '');
+        if (el.closest('#topic' + tid + '_title_container'))       return 'topic:' + tid + ':title';
+        if (el.closest('#topic' + tid + '_description_container')) return 'topic:' + tid + ':desc';
+        if (el.closest('.button-link-control'))                    return 'topic:' + tid + ':buttons';
+        return 'topic:' + tid;
+      }
+      return null;
+    }
+    function pvLabel(token) {
+      if (PV_LABELS[token]) return PV_LABELS[token];
+      var m = token.match(/^topic:([A-Za-z0-9]+)(?::(title|desc|buttons))?$/);
+      if (!m) return token;
+      var card = document.getElementById('topicCard_' + m[1]);
+      var head = card && card.querySelector('.collapse-head-title');
+      var name = head ? head.textContent.trim() : 'Topic ' + m[1];
+      var part = { title: 'title', desc: 'description', buttons: 'buttons' }[m[2]];
+      return name + (part ? ' \u00b7 ' + part : '');
+    }
+    function setPreviewFocus(token) {
+      if (!token || token === pvToken) return;
+      pvToken = token;
+      applyPreviewHighlight(true);
+    }
+    function applyPreviewHighlight(scroll) {
+      var preview = document.getElementById('emailPreview');
+      var badge = document.getElementById('pvEditing');
+      preview.querySelectorAll('.pv-active').forEach(function(el) {
+        el.classList.remove('pv-active', 'pv-block');
+        el.removeAttribute('data-pv-label');
+      });
+      if (!pvToken) { badge.style.display = 'none'; return; }
+      var hits = preview.querySelectorAll('[data-pv~="' + pvToken + '"]');
+      var label = pvLabel(pvToken);
+      var tagged = false;
+      hits.forEach(function(el) {
+        el.classList.add('pv-active');
+        if (el.hasAttribute('data-pv-block')) {
+          el.classList.add('pv-block');          // rail + wash, no tag
+        } else if (!tagged) {
+          el.setAttribute('data-pv-label', label); // tag the first part only
+          tagged = true;
+        }
+      });
+      badge.textContent = 'EDITING: ' + label;
+      badge.style.display = hits.length ? '' : 'none';
+      if (scroll && hits.length) hits[0].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+    document.addEventListener('focusin', function(e) { setPreviewFocus(pvTokenFor(e.target)); });
+
     function setTopicSizes(id, topic) {
       var tf = document.getElementById('topic' + id + '_title_size');
       var df = document.getElementById('topic' + id + '_desc_size');
@@ -2674,37 +2992,66 @@
       return out;
     }
 
-    // Collect all topics in DOM order
-    function collectTopics() {
-      var topics = [];
-      document.querySelectorAll('.topic-card').forEach(function(card) {
-        var id = card.id.replace('topicCard_', '');
-        var imageField    = document.getElementById('topic' + id + '_image');
-        var sizeField     = document.getElementById('topic' + id + '_size');
-        var alignField    = document.getElementById('topic' + id + '_align');
-        var bgColorField  = document.getElementById('topic' + id + '_bg');
-        var bgEnableField = document.getElementById('topic' + id + '_bg_enable');
-        var dividerField  = document.getElementById('topic' + id + '_divider');
-        var titleSizeField= document.getElementById('topic' + id + '_title_size');
-        var descSizeField = document.getElementById('topic' + id + '_desc_size');
-        var titleQuill    = quillInstances['topic' + id + '_title'];
-        var descQuill     = quillInstances['topic' + id + '_description'];
+    // Read one topic card into a plain object (matches the draft's topics.{id} shape)
+    function collectTopicCard(id) {
+      var $ = function(suffix) { return document.getElementById('topic' + id + suffix); };
+      var titleQuill = quillInstances['topic' + id + '_title'];
+      var descQuill  = quillInstances['topic' + id + '_description'];
+      return {
+        titleSize:  pxOrNull($('_title_size')),
+        descSize:   pxOrNull($('_desc_size')),
+        title:      titleQuill ? titleQuill.root.innerHTML : '',
+        description:descQuill  ? descQuill.root.innerHTML  : '',
+        image:      $('_image') ? $('_image').value : '',
+        imageSize:  $('_size')  ? (parseInt($('_size').value, 10) || 100) : 100,
+        imageAlign: $('_align') ? $('_align').value : 'center',
+        bgColor:    $('_bg')    ? $('_bg').value : '#ffffff',
+        bgEnabled:  $('_bg_enable') ? $('_bg_enable').checked : false,
+        buttons:    collectButtons(id),
+        showDivider:$('_divider') ? $('_divider').checked : false
+      };
+    }
 
-        topics.push({
-          titleSize:  pxOrNull(titleSizeField),
-          descSize:   pxOrNull(descSizeField),
-          title:      titleQuill    ? titleQuill.root.innerHTML   : '',
-          description:descQuill     ? descQuill.root.innerHTML    : '',
-          image:      imageField    ? imageField.value            : '',
-          imageSize:  sizeField     ? parseInt(sizeField.value)   : 100,
-          imageAlign: alignField    ? alignField.value            : 'center',
-          bgColor:    bgColorField  ? bgColorField.value          : '#ffffff',
-          bgEnabled:  bgEnableField ? bgEnableField.checked       : false,
-          buttons:    collectButtons(id),
-          showDivider:dividerField  ? dividerField.checked        : false
-        });
+    // Write a topic object into its card (draft load, template switch, remote edits)
+    function applyTopicToCard(id, topic) {
+      topic = topic || {};
+      var $ = function(suffix) { return document.getElementById('topic' + id + suffix); };
+      var titleQuill = quillInstances['topic' + id + '_title'];
+      var descQuill  = quillInstances['topic' + id + '_description'];
+      if (titleQuill) setQuillHtml(titleQuill, topic.title || '');
+      if (descQuill)  setQuillHtml(descQuill, topic.description || '');
+      if ($('_image')) $('_image').value = topic.image || '';
+      if ($('_size'))  { $('_size').value = topic.imageSize || 100; updateImageSize(id); }
+      if ($('_align')) $('_align').value = topic.imageAlign || 'center';
+      if ($('_bg'))    $('_bg').value = topic.bgColor || '#ffffff';
+      if ($('_bg_enable')) $('_bg_enable').checked = !!topic.bgEnabled;
+      setTopicButtons(id, topic);
+      if ($('_divider')) $('_divider').checked = !!topic.showDivider;
+      setTopicSizes(id, topic);
+      updateTopicSummary(id);
+    }
+
+    // Setting innerHTML resets the caret, so only touch Quill when the HTML differs
+    function setQuillHtml(quill, html) {
+      if (quill.root.innerHTML !== html) quill.root.innerHTML = html;
+    }
+    function updateTopicSummary(id) {
+      var sum = document.getElementById('topic' + id + '_summary');
+      var tq = quillInstances['topic' + id + '_title'];
+      if (sum && tq) sum.textContent = tq.getText().trim().replace(/\s+/g, ' ');
+    }
+
+    function topicCardIds() {
+      return Array.prototype.map.call(document.querySelectorAll('.topic-card'), function(c) { return c.dataset.topicId; });
+    }
+
+    // Collect all topics in DOM order (each tagged with its card id)
+    function collectTopics() {
+      return topicCardIds().map(function(id) {
+        var t = collectTopicCard(id);
+        t.id = id;
+        return t;
       });
-      return topics;
     }
 
     // Visible layout buttons drive the hidden select (which draft-loading
@@ -2770,6 +3117,7 @@
       });
       quillInstances['intro'] = introQuill;
       introQuill.on('text-change', updatePreviewDebounced);
+      introQuill.on('selection-change', onQuillSelection);
 
       // Define topic counts per template
       var topicCounts = { 'hero': 3, 'stacked': 3, 'offset': 3, 'split': 3, 'showcase': 3, 'grid': 4, 'digest': 4 };
@@ -2777,9 +3125,8 @@
       var topicCount = keptTopics.length > 0 ? keptTopics.length : (topicCounts[template] || 3);
 
       // Create initial topic cards
-      for (var i = 1; i <= topicCount; i++) {
-        nextTopicId = i;
-        createTopicCard(i, topicFields);
+      for (var i = 0; i < topicCount; i++) {
+        createTopicCard((keptTopics[i] && keptTopics[i].id) || newTopicId(), topicFields);
       }
 
       // Show the Add Topic button
@@ -2794,9 +3141,17 @@
       });
       quillInstances['outro'] = outroQuill;
       outroQuill.on('text-change', updatePreviewDebounced);
+      outroQuill.on('selection-change', onQuillSelection);
 
       // Restore saved form data
       restoreFormData();
+
+      // Fresh compose (nothing carried over from a previous layout): start
+      // from the user's saved typography defaults. A draft being loaded
+      // restores its own typography right after this.
+      if (personalTypography && (!formData.topics || formData.topics.length === 0) && typographyIsUntouched()) {
+        applyTypographyDefaults(true);
+      }
 
       updatePreview();
     });
@@ -2841,33 +3196,9 @@
       restoreFooterLogo(formData.footerLogo);
       restoreTypography(formData.typography);
 
-      var topicCards = document.querySelectorAll('.topic-card');
-      var topicsToRestore = Math.min(formData.topics.length, topicCards.length);
-
-      for (var i = 0; i < topicsToRestore; i++) {
-        var id = topicCards[i].id.replace('topicCard_', '');
-        var topic = formData.topics[i];
-
-        var imageField    = document.getElementById('topic' + id + '_image');
-        var sizeField     = document.getElementById('topic' + id + '_size');
-        var alignField    = document.getElementById('topic' + id + '_align');
-        var bgColorField  = document.getElementById('topic' + id + '_bg');
-        var bgEnableField = document.getElementById('topic' + id + '_bg_enable');
-        var dividerField  = document.getElementById('topic' + id + '_divider');
-        var titleQuill    = quillInstances['topic' + id + '_title'];
-        var descQuill     = quillInstances['topic' + id + '_description'];
-
-        if (titleQuill) titleQuill.root.innerHTML = topic.title || '';
-        if (imageField) imageField.value = topic.image || '';
-        if (sizeField) { sizeField.value = topic.imageSize || 100; updateImageSize(id); }
-        if (alignField) alignField.value = topic.imageAlign || 'center';
-        if (bgColorField) bgColorField.value = topic.bgColor || '#ffffff';
-        if (bgEnableField) bgEnableField.checked = topic.bgEnabled || false;
-        setTopicButtons(id, topic);
-        if (dividerField) dividerField.checked = topic.showDivider || false;
-        if (descQuill) descQuill.root.innerHTML = topic.description || '';
-        setTopicSizes(id, topic);
-      }
+      var ids = topicCardIds();
+      var topicsToRestore = Math.min(formData.topics.length, ids.length);
+      for (var i = 0; i < topicsToRestore; i++) applyTopicToCard(ids[i], formData.topics[i]);
     }
 
     // Debounce function for better performance
@@ -2978,12 +3309,80 @@
           <option value="cc">Cc</option>
           <option value="bcc">Bcc</option>
         </select>
-        <input type="email" name="recipient_email_${recipientCounter}" placeholder="email@example.com">
+        <div class="recipient-input-wrap">
+          <input type="email" name="recipient_email_${recipientCounter}" placeholder="Name or email…" autocomplete="off">
+          <div class="staff-suggest"></div>
+        </div>
         <button type="button" onclick="removeRecipient(${recipientCounter})">
           <span class="material-icons">delete</span>
         </button>
       `;
       recipientsList.appendChild(row);
+      attachStaffAutocomplete(row.querySelector('input[type="email"]'), row.querySelector('.staff-suggest'));
+    }
+
+    // ── Staff directory autocomplete (staff collection, synced from OneSync on Admin) ──
+    var staffDirectory = [];
+    async function loadStaffDirectory() {
+      try {
+        staffDirectory = await getStaff();
+      } catch (error) {
+        console.warn('Staff directory unavailable:', error);
+        staffDirectory = [];
+      }
+      var hint = document.getElementById('recipientHint');
+      if (hint) hint.style.display = staffDirectory.length ? '' : 'none';
+    }
+    function staffMatches(q) {
+      var terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+      if (!terms.length) return [];
+      var out = [];
+      for (var i = 0; i < staffDirectory.length && out.length < 8; i++) {
+        var s = staffDirectory[i];
+        var words = ((s.displayName || '') + ' ' + (s.email || '').split('@')[0].replace(/[._-]/g, ' ') + ' ' + (s.username || '')).toLowerCase().split(/\s+/);
+        var emailLc = (s.email || '').toLowerCase();
+        var ok = terms.every(function(t) {
+          return emailLc.indexOf(t) === 0 || words.some(function(w) { return w.indexOf(t) === 0; });
+        });
+        if (ok) out.push(s);
+      }
+      return out;
+    }
+    function attachStaffAutocomplete(input, box) {
+      var items = [], active = -1;
+      function close() { box.classList.remove('open'); box.innerHTML = ''; items = []; active = -1; }
+      function pick(s) { input.value = s.email; close(); input.dispatchEvent(new Event('change')); }
+      function paint() {
+        box.querySelectorAll('.staff-opt').forEach(function(el, i) { el.classList.toggle('active', i === active); });
+      }
+      function render() {
+        var q = input.value.trim();
+        if (!staffDirectory.length || q.length < 2 || q.indexOf('@') > 0 && staffDirectory.some(function(s) { return s.email === q.toLowerCase(); })) { close(); return; }
+        items = staffMatches(q);
+        active = items.length ? 0 : -1;
+        if (!items.length) { close(); return; }
+        box.innerHTML = items.map(function(s) {
+          var meta = [s.title, s.building].filter(Boolean).join(' · ');
+          return '<div class="staff-opt"><span class="nm">' + escapeHtml(s.displayName) + '</span>'
+            + '<span class="em">' + escapeHtml(s.email) + '</span>'
+            + (meta ? '<span class="meta">' + escapeHtml(meta) + '</span>' : '') + '</div>';
+        }).join('');
+        box.querySelectorAll('.staff-opt').forEach(function(el, i) {
+          el.addEventListener('mousedown', function(e) { e.preventDefault(); pick(items[i]); });
+        });
+        paint();
+        box.classList.add('open');
+      }
+      input.addEventListener('input', render);
+      input.addEventListener('focus', render);
+      input.addEventListener('blur', function() { setTimeout(close, 120); });
+      input.addEventListener('keydown', function(e) {
+        if (!box.classList.contains('open')) return;
+        if (e.key === 'ArrowDown') { e.preventDefault(); active = (active + 1) % items.length; paint(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); active = (active - 1 + items.length) % items.length; paint(); }
+        else if (e.key === 'Enter') { e.preventDefault(); if (active >= 0) pick(items[active]); }
+        else if (e.key === 'Escape') { close(); }
+      });
     }
 
     // Remove recipient row
@@ -3077,13 +3476,17 @@
       var subject = document.getElementById('subject').value;
       var subheading = document.getElementById('subheading').value;
       var preview = document.getElementById('emailPreview');
+      scheduleSync(); // every edit path ends here; the flush only writes real diffs
 
       if (!template) {
         preview.innerHTML = '<p style="color: #666; text-align: center; padding: 40px 20px;">Select a layout to see your email preview</p>';
+        document.getElementById('pvEditing').style.display = 'none';
         return;
       }
 
       var topics = collectTopics();
+      // Tag each topic with its card id so the preview can be highlighted per topic
+      topics.forEach(function(t) { t._pv = t.id; });
       var intro      = quillInstances['intro'] ? quillInstances['intro'].root.innerHTML : '';
       var outro      = quillInstances['outro'] ? quillInstances['outro'].root.innerHTML : '';
       var headerIcon = collectHeaderIcon();
@@ -3109,7 +3512,13 @@
       });
       document.getElementById('sampleBadge').style.display = usedSample ? '' : 'none';
 
-      preview.innerHTML = generateEmailHTML(template, subject, subheading, topics, intro, outro, headerIcon);
+      pvMarkers = true;
+      try {
+        preview.innerHTML = generateEmailHTML(template, subject, subheading, topics, intro, outro, headerIcon);
+      } finally {
+        pvMarkers = false;
+      }
+      applyPreviewHighlight(false);
     }
 
     var SAMPLE_TOPICS = [
@@ -3144,8 +3553,8 @@
       var html = '<div style="font-family: Arial, Helvetica, sans-serif; max-width: 800px; margin: 0 auto; background: #f0f2f5; padding: 20px;">';
 
       // ── Header ──
-      var titleHtml = '<h1 style="margin: 0; font-size: ' + (typo.subjectSize || 28) + 'px; font-weight: 700;">' + (subject || 'Newsletter Title') + '</h1>';
-      var subHtml   = subheading ? '<p style="margin: 10px 0 0 0; font-size: ' + (typo.subheadingSize || 16) + 'px; opacity: 0.9;">' + subheading + '</p>' : '';
+      var titleHtml = '<h1' + pv('subject') + ' style="margin: 0; font-size: ' + (typo.subjectSize || 28) + 'px; font-weight: 700;">' + (subject || 'Newsletter Title') + '</h1>';
+      var subHtml   = subheading ? '<p' + pv('subheading') + ' style="margin: 10px 0 0 0; font-size: ' + (typo.subheadingSize || 16) + 'px; opacity: 0.9;">' + subheading + '</p>' : '';
       var textBlock = '<div>' + titleHtml + subHtml + '</div>';
 
       var headerInner = '';
@@ -3188,7 +3597,7 @@
       }
 
       var bannerBg = (headerIcon && headerIcon.bannerColor === 'red') ? BRAND_COLORS.primaryRed : BRAND_COLORS.primaryBlue;
-      html += '<div style="background: ' + bannerBg + '; color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">';
+      html += '<div' + pv('header', true) + ' style="background: ' + bannerBg + '; color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">';
       html += headerInner;
       html += '</div>';
 
@@ -3197,7 +3606,7 @@
 
       // Intro text
       if (intro && !EMPTY_CONTENT.test(intro)) {
-        html += '<div style="color: ' + BRAND_COLORS.primaryGray + '; font-size: ' + (typo.introSize || 16) + 'px; margin-bottom: 28px; padding-bottom: 22px; border-bottom: 2px solid #e8ecf4;">' + processQuillHTML(intro) + '</div>';
+        html += '<div' + pv('intro') + ' style="color: ' + BRAND_COLORS.primaryGray + '; font-size: ' + (typo.introSize || 16) + 'px; margin-bottom: 28px; padding-bottom: 22px; border-bottom: 2px solid #e8ecf4;">' + processQuillHTML(intro) + '</div>';
       }
 
       if (template === 'hero') {
@@ -3276,7 +3685,7 @@
 
       // Outro text
       if (outro && !EMPTY_CONTENT.test(outro)) {
-        html += '<div style="color: ' + BRAND_COLORS.primaryGray + '; font-size: ' + (typo.outroSize || 16) + 'px; margin-top: 28px; padding-top: 22px; border-top: 2px solid #e8ecf4;">' + processQuillHTML(outro) + '</div>';
+        html += '<div' + pv('outro') + ' style="color: ' + BRAND_COLORS.primaryGray + '; font-size: ' + (typo.outroSize || 16) + 'px; margin-top: 28px; padding-top: 22px; border-top: 2px solid #e8ecf4;">' + processQuillHTML(outro) + '</div>';
       }
 
       // Footer logo
@@ -3284,7 +3693,7 @@
       if (footer.url) {
         var logoImg = '<img src="' + footer.url + '" style="width: ' + footer.width + 'px; max-width: 100%; height: auto; display: inline-block;" alt="">';
         if (footer.link) logoImg = '<a href="' + footer.link + '" style="text-decoration: none;">' + logoImg + '</a>';
-        html += '<div style="text-align: ' + footer.align + '; margin-top: 28px; padding-top: 22px; border-top: 2px solid #e8ecf4;">' + logoImg + '</div>';
+        html += '<div' + pv('footer') + ' style="text-align: ' + footer.align + '; margin-top: 28px; padding-top: 22px; border-top: 2px solid #e8ecf4;">' + logoImg + '</div>';
       }
 
       html += '</div></div>';
@@ -3352,6 +3761,12 @@
       var titleSize = topic.titleSize || (typo && typo.titleSize) || sizeDef[0];
       var descSize  = topic.descSize  || (typo && typo.descSize)  || sizeDef[1];
 
+      // Preview-only highlight hooks (see applyPreviewHighlight)
+      var tp  = topic._pv ? 'topic:' + topic._pv : '';
+      var pvT = pv((tp ? tp + ':title '   : '') + 'title');
+      var pvD = pv((tp ? tp + ':desc '    : '') + 'desc');
+      var pvB = pv((tp ? tp + ':buttons ' : '') + 'button');
+
       var imageSize = topic.imageSize || 100;
       var imageAlign = topic.imageAlign || 'center';
       var bgEnabled = topic.bgEnabled || false;
@@ -3388,7 +3803,7 @@
         if (!btns.length) return '';
         var bs = buttonStyle(typo, colors);
         var pill = function(b) {
-          return '<a href="' + b.url + '" style="display: inline-block; margin: 0 10px 8px 0; padding: ' + bs.pad + '; background: ' + bs.bg + '; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: ' + bs.fs + 'px;">' + b.text + '</a>';
+          return '<a' + pvB + ' href="' + b.url + '" style="display: inline-block; margin: 0 10px 8px 0; padding: ' + bs.pad + '; background: ' + bs.bg + '; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: ' + bs.fs + 'px;">' + b.text + '</a>';
         };
         // Lead-less buttons flow inline as a pill row; a button with a lead-in
         // starts a new block: lead paragraph, then its pill.
@@ -3416,8 +3831,8 @@
         if (topic.image) {
           html += buildImageTag(topic.image, imageSize + '%', '400px', 'width: ' + imageSize + '%; max-height: 400px; margin-bottom: 20px;');
         }
-        html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 12px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
-        html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
+        html += '<div' + pvT + ' style="color: ' + colors.primaryBlue + '; margin: 0 0 12px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
+        html += '<div' + pvD + ' style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
         html += buildButtons();
         if (topic.showDivider) {
           html += '<div style="margin: 30px 0; border-bottom: 2px solid #e0e0e0;"></div>';
@@ -3427,8 +3842,8 @@
         if (topic.image) {
           html += buildImageTag(topic.image, imageSize + '%', '220px', 'width: ' + imageSize + '%; max-height: 220px; margin-bottom: 15px;');
         }
-        html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
-        html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
+        html += '<div' + pvT + ' style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
+        html += '<div' + pvD + ' style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
         html += buildButtons();
         if (topic.showDivider) {
           html += '<div style="margin: 20px 0; border-bottom: 2px solid #e0e0e0;"></div>';
@@ -3446,8 +3861,8 @@
           // Table layout (not flex) so the spacing survives Gmail, which
           // strips the CSS `gap` property.
           var offsetImg  = '<img src="' + topic.image + '" style="' + imgStyle + ' display: block;" alt="' + altText + '">';
-          var offsetText = '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>'
-            + '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>'
+          var offsetText = '<div' + pvT + ' style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>'
+            + '<div' + pvD + ' style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>'
             + buildButtons();
           html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse; table-layout: fixed; width: 100%;"><tr>';
           if (offsetAlign === 'left') {
@@ -3459,8 +3874,8 @@
           }
           html += '</tr></table>';
         } else {
-          html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
-          html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
+          html += '<div' + pvT + ' style="color: ' + colors.primaryBlue + '; margin: 0 0 10px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
+          html += '<div' + pvD + ' style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
           html += buildButtons();
         }
         if (topic.showDivider) {
@@ -3469,8 +3884,8 @@
 
       } else if (layout === 'textfirst') {
         // Showcase: title + description first, image underneath, button last
-        html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 12px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
-        html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
+        html += '<div' + pvT + ' style="color: ' + colors.primaryBlue + '; margin: 0 0 12px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
+        html += '<div' + pvD + ' style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
         if (topic.image) {
           html += buildImageTag(topic.image, imageSize + '%', '400px', 'width: ' + imageSize + '%; max-height: 400px; margin-top: 18px;');
         }
@@ -3505,20 +3920,21 @@
           html += '<td width="' + colPx + '" style="width: ' + colPx + 'px; padding: 0 12px 0 0; vertical-align: top; text-align: center;">' + thumb + '</td>';
         }
         html += '<td style="vertical-align: top;">';
-        html += '<div style="color: ' + colors.primaryBlue + '; margin: 0 0 6px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
-        html += '<div style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
+        html += '<div' + pvT + ' style="color: ' + colors.primaryBlue + '; margin: 0 0 6px 0; font-size: ' + titleSize + 'px; font-weight: 600;">' + titleHTML + '</div>';
+        html += '<div' + pvD + ' style="color: ' + colors.primaryGray + '; margin: 0; font-size: ' + descSize + 'px;">' + descHTML + '</div>';
         var links = topicButtons(topic).filter(function(b) { return b.text && b.url; });
         if (links.length) {
           html += '<div style="margin-top: 14px;">' + links.map(function(b) {
             var leadHtml = b.lead ? '<div style="color: ' + colors.primaryGray + '; font-size: ' + descSize + 'px; line-height: 1.65; margin-bottom: 6px;">' + escapeHtml(b.lead) + '</div>' : '';
             var ls = buttonStyle(typo, colors);
             var linkColor = (typo && typo.buttonColor && typo.buttonColor !== 'navy') ? ls.bg : colors.primaryRed;
-            return '<div style="margin-bottom: 10px;">' + leadHtml + '<a href="' + b.url + '" style="display: inline-block; color: ' + linkColor + '; font-weight: 600; text-decoration: none; font-size: ' + (typo && typo.buttonSize ? typo.buttonSize : 14) + 'px;">' + b.text + ' &rarr;</a></div>';
+            return '<div style="margin-bottom: 10px;">' + leadHtml + '<a' + pvB + ' href="' + b.url + '" style="display: inline-block; color: ' + linkColor + '; font-weight: 600; text-decoration: none; font-size: ' + (typo && typo.buttonSize ? typo.buttonSize : 14) + 'px;">' + b.text + ' &rarr;</a></div>';
           }).join('') + '</div>';
         }
         html += '</td></tr></table>';
       }
 
+      if (html && tp && pvMarkers) html = '<div' + pv(tp, true) + '>' + html + '</div>';
       return html;
     }
 
@@ -3783,8 +4199,7 @@
         var offset = existing.length;
         var need = offset + nums.length;
         while (document.querySelectorAll('.topic-card').length < need) {
-          nextTopicId++;
-          createTopicCard(nextTopicId, container);
+          createTopicCard(newTopicId(), container);
         }
         var cards = document.querySelectorAll('.topic-card');
         nums.forEach(function(n, i) {
@@ -3888,6 +4303,7 @@
         setIconPosition('right');
         formData = {};
         quillInstances = {};
+        detachDraft(true);
         addRecipientRow();
         setTab('setup');
         updatePreview();
@@ -4190,171 +4606,681 @@
       if (event.target == document.getElementById('importModal')) closeImportModal();
     }
 
-    // ========== DRAFT MANAGEMENT (Firestore per-user drafts) ==========
+    // ========== DRAFT MANAGEMENT (collaborative drafts: draftFolders/{folder}/drafts/{id}) ==========
+    // Every editable control maps to one Firestore field (a flat dot-path key
+    // such as 'subject' or 'topics.t1abc.title'). Local edits are diffed
+    // against `lastSynced` and patched field-by-field; remote snapshots are
+    // applied to every field the local user isn't editing or hasn't changed
+    // since the last flush. `presence.{uid}` on the doc shows who is where.
+    var draftUnsub = null;
+    var draftMeta = null;         // latest snapshot of the draft doc
+    var lastSynced = {};          // key -> value last known to be in Firestore
+    var normAlias = {};           // key -> local form of a remote value (Quill re-serialises HTML)
+    var syncTimer = null;
+    var syncing = false;
+    var syncQueued = false;
+    var syncReady = false;        // true once init resolved the user + folder + URL draft
+    var draftOrphaned = false;    // the doc vanished under us (moved/deleted elsewhere)
     var autoSaveInterval = null;
-    var draftSaving = false;
+    var draftFolders = [];
+    var focusedKey = null;        // field key the local user is in (for presence + conflict skip)
+    var presenceSent = null;
+    var presenceTimer = null;
+    var presenceHeartbeat = null;
+    var PRESENCE_STALE_MS = 75000;
+    var PRESENCE_COLORS = ['#ad2122', '#2d3f69', '#0b7a75', '#b5651d', '#6a3d9a', '#1f6f8b', '#8a6d00'];
+    var lastSavedAt = null;
 
-    // Auto-save draft every 30 seconds
-    function startAutoSave() {
-      autoSaveInterval = setInterval(function() {
-        if (!draftSaving && document.getElementById('template').value) {
-          saveDraftAutomatically();
+    function jsonEq(a, b) {
+      return JSON.stringify(a === undefined ? null : a) === JSON.stringify(b === undefined ? null : b);
+    }
+
+    // ---- flatten / unflatten ----
+    function collectFlat() {
+      var flat = {};
+      flat.template   = document.getElementById('template').value || '';
+      flat.subject    = document.getElementById('subject').value || '';
+      flat.subheading = document.getElementById('subheading').value || '';
+      flat.intro = quillInstances['intro'] ? quillInstances['intro'].root.innerHTML : '';
+      flat.outro = quillInstances['outro'] ? quillInstances['outro'].root.innerHTML : '';
+      var groups = { headerIcon: collectHeaderIcon(), footerLogo: collectFooterLogo(), typography: collectTypography() };
+      Object.keys(groups).forEach(function(g) {
+        Object.keys(groups[g]).forEach(function(k) { flat[g + '.' + k] = groups[g][k]; });
+      });
+      var order = topicCardIds();
+      order.forEach(function(id) {
+        var t = collectTopicCard(id);
+        Object.keys(t).forEach(function(k) { flat['topics.' + id + '.' + k] = t[k]; });
+      });
+      flat.topicOrder = order;
+      return flat;
+    }
+    function flattenDraft(d) {
+      var flat = {};
+      ['template', 'subject', 'subheading', 'intro', 'outro'].forEach(function(k) { flat[k] = d[k] || ''; });
+      ['headerIcon', 'footerLogo', 'typography'].forEach(function(g) {
+        var obj = d[g] || {};
+        Object.keys(obj).forEach(function(k) { flat[g + '.' + k] = obj[k]; });
+      });
+      var topics = (d.topics && !Array.isArray(d.topics)) ? d.topics : {};
+      var order = Array.isArray(d.topicOrder) ? d.topicOrder.filter(function(id) { return !!topics[id]; }) : [];
+      Object.keys(topics).forEach(function(id) { if (order.indexOf(id) < 0) order.push(id); });
+      order.forEach(function(id) {
+        var t = topics[id] || {};
+        Object.keys(t).forEach(function(k) { if (k !== 'id') flat['topics.' + id + '.' + k] = t[k]; });
+      });
+      flat.topicOrder = order;
+      return flat;
+    }
+    function unflatten(flat) {
+      var out = {};
+      Object.keys(flat).forEach(function(key) {
+        var parts = key.split('.');
+        var cur = out;
+        for (var i = 0; i < parts.length - 1; i++) cur = cur[parts[i]] = cur[parts[i]] || {};
+        cur[parts[parts.length - 1]] = flat[key];
+      });
+      return out;
+    }
+    function isDirtyKey(key, localValue) {
+      if (jsonEq(localValue, lastSynced[key])) return false;
+      if ((key in normAlias) && jsonEq(localValue, normAlias[key])) return false;
+      return true;
+    }
+
+    // ---- apply remote values to the form ----
+    function ensureTopicOrder(order) {
+      var container = document.getElementById('topicFields');
+      if (!container) return;
+      order.forEach(function(id) {
+        if (!document.getElementById('topicCard_' + id)) createTopicCard(id, container);
+      });
+      // Put remote-known cards in order; cards only we know about stay put (at the end)
+      var cards = order.map(function(id) { return document.getElementById('topicCard_' + id); });
+      var cursor = container.firstElementChild;
+      cards.forEach(function(card) {
+        if (!card) return;
+        if (cursor !== card) container.insertBefore(card, cursor);
+        cursor = card.nextElementSibling;
+      });
+      renumberTopics();
+    }
+    function applyTopicField(id, field, value) {
+      var $ = function(suffix) { return document.getElementById('topic' + id + suffix); };
+      var q;
+      switch (field) {
+        case 'title':
+          q = quillInstances['topic' + id + '_title'];
+          if (q) { setQuillHtml(q, value || ''); updateTopicSummary(id); }
+          break;
+        case 'description':
+          q = quillInstances['topic' + id + '_description'];
+          if (q) setQuillHtml(q, value || '');
+          break;
+        case 'image':       if ($('_image')) $('_image').value = value || ''; break;
+        case 'imageSize':   if ($('_size'))  { $('_size').value = value || 100; updateImageSize(id); } break;
+        case 'imageAlign':  if ($('_align')) $('_align').value = value || 'center'; break;
+        case 'bgColor':     if ($('_bg'))    $('_bg').value = value || '#ffffff'; break;
+        case 'bgEnabled':   if ($('_bg_enable')) $('_bg_enable').checked = !!value; break;
+        case 'showDivider': if ($('_divider')) $('_divider').checked = !!value; break;
+        case 'titleSize':   if ($('_title_size')) $('_title_size').value = value || ''; break;
+        case 'descSize':    if ($('_desc_size'))  $('_desc_size').value = value || ''; break;
+        case 'buttons':     setTopicButtons(id, { buttons: Array.isArray(value) ? value : [] }); break;
+      }
+    }
+    function applyRemoteKey(key, value) {
+      if (key === 'template') {
+        var sel = document.getElementById('template');
+        if (sel.value !== (value || '')) {
+          sel.value = value || '';
+          sel.dispatchEvent(new Event('change'));
         }
-      }, 30000); // 30 seconds
+      } else if (key === 'subject' || key === 'subheading') {
+        document.getElementById(key).value = value || '';
+      } else if (key === 'intro' || key === 'outro') {
+        if (quillInstances[key]) setQuillHtml(quillInstances[key], value || '');
+      } else if (key === 'topicOrder') {
+        ensureTopicOrder(Array.isArray(value) ? value : []);
+      } else if (key.indexOf('topics.') === 0) {
+        var parts = key.split('.');
+        var id = parts[1], field = parts.slice(2).join('.');
+        if (!document.getElementById('topicCard_' + id)) createTopicCard(id, document.getElementById('topicFields'));
+        applyTopicField(id, field, value);
+      }
+    }
+    function keyIsFocused(key) {
+      return !!focusedKey && (key === focusedKey || key.indexOf(focusedKey + '.') === 0);
     }
 
-    // Manual save draft
-    function manualSaveDraft() {
-      saveDraftData(true);
+    // Bring the form up to date with the latest snapshot (draftMeta).
+    function reconcile() {
+      if (!draftMeta || draftOrphaned) return;
+      var remote = flattenDraft(draftMeta);
+      var local = collectFlat();
+      var applied = [];
+      var groupPatch = {};
+
+      function shouldApply(key) {
+        if (jsonEq(remote[key], lastSynced[key])) return false;          // nothing new from remote
+        if ((key in local) && jsonEq(local[key], remote[key])) {          // already matches (our own echo)
+          lastSynced[key] = remote[key]; delete normAlias[key]; return false;
+        }
+        if ((key in local) && isDirtyKey(key, local[key])) return false; // our pending edit wins
+        if (keyIsFocused(key)) return false;                              // re-applied on blur
+        return true;
+      }
+
+      // 1. Layout first: switching re-creates the content section (ids kept)
+      if (shouldApply('template')) {
+        applyRemoteKey('template', remote.template);
+        lastSynced.template = remote.template;
+        local = collectFlat();
+        applied.push('template');
+      }
+
+      // 2. Topics removed elsewhere (skip ones we're still editing / haven't flushed)
+      var remoteIds = {};
+      remote.topicOrder.forEach(function(id) { remoteIds[id] = true; });
+      var known = {};
+      Object.keys(lastSynced).forEach(function(k) { var m = /^topics\.([^.]+)\./.exec(k); if (m) known[m[1]] = true; });
+      Object.keys(known).forEach(function(id) {
+        if (remoteIds[id] || !document.getElementById('topicCard_' + id)) return;
+        var dirty = Object.keys(local).some(function(k) {
+          return k.indexOf('topics.' + id + '.') === 0 && isDirtyKey(k, local[k]);
+        });
+        if (dirty || keyIsFocused('topics.' + id)) return;
+        removeTopic(id);
+        Object.keys(lastSynced).forEach(function(k) {
+          if (k.indexOf('topics.' + id + '.') === 0) { delete lastSynced[k]; delete normAlias[k]; }
+        });
+        applied.push('topics.' + id);
+      });
+
+      // 3. Order / new topics, then every other field
+      if (shouldApply('topicOrder')) {
+        applyRemoteKey('topicOrder', remote.topicOrder);
+        lastSynced.topicOrder = remote.topicOrder;
+        applied.push('topicOrder');
+      }
+      Object.keys(remote).forEach(function(key) {
+        if (key === 'template' || key === 'topicOrder') return;
+        if (!shouldApply(key)) return;
+        var g = /^(headerIcon|footerLogo|typography)\.(.+)$/.exec(key);
+        if (g) {
+          (groupPatch[g[1]] = groupPatch[g[1]] || {})[g[2]] = remote[key];
+        } else {
+          applyRemoteKey(key, remote[key]);
+        }
+        lastSynced[key] = remote[key];
+        applied.push(key);
+      });
+      Object.keys(groupPatch).forEach(function(g) {
+        var cur = g === 'headerIcon' ? collectHeaderIcon() : g === 'footerLogo' ? collectFooterLogo() : collectTypography();
+        Object.assign(cur, groupPatch[g]);
+        (g === 'headerIcon' ? restoreHeaderIcon : g === 'footerLogo' ? restoreFooterLogo : restoreTypography)(cur);
+      });
+
+      if (applied.length) {
+        // Quill may re-serialise remote HTML; remember the local form so it isn't
+        // treated as a fresh edit and written straight back.
+        var after = collectFlat();
+        applied.forEach(function(key) {
+          if ((key in after) && !jsonEq(after[key], lastSynced[key])) normAlias[key] = after[key];
+          else delete normAlias[key];
+        });
+        renumberTopics();
+        updatePreviewDebounced();
+        renderPresence((draftMeta && draftMeta.presence) || {});
+      }
     }
 
-    // Auto save draft (silent)
-    function saveDraftAutomatically() {
-      saveDraftData(false);
+    // ---- local -> Firestore ----
+    function scheduleSync() {
+      if (!syncReady || draftOrphaned) return;
+      clearTimeout(syncTimer);
+      syncTimer = setTimeout(function() { flushDraft(false); }, 1200);
     }
-
-    // Common save function
-    async function saveDraftData(showFeedback) {
+    function dirtyPatch() {
+      var local = collectFlat();
+      var patch = {}, count = 0;
+      Object.keys(local).forEach(function(k) {
+        if (isDirtyKey(k, local[k])) { patch[k] = local[k]; count++; }
+      });
+      var live = {};
+      local.topicOrder.forEach(function(id) { live[id] = true; });
+      var removed = {};
+      Object.keys(lastSynced).forEach(function(k) {
+        var m = /^topics\.([^.]+)\./.exec(k);
+        if (m && !live[m[1]]) removed[m[1]] = true;
+      });
+      Object.keys(removed).forEach(function(id) { patch['topics.' + id] = DELETE_FIELD; count++; });
+      return { patch: patch, count: count, local: local };
+    }
+    async function flushDraft(showFeedback) {
+      clearTimeout(syncTimer); syncTimer = null;
+      if (!currentUser || !syncReady) return;
+      if (draftOrphaned) {
+        // The doc went away under us; a manual save keeps the work as a new draft.
+        if (!showFeedback) return;
+        draftOrphaned = false;
+        detachDraft(true);
+      }
+      if (syncing) { syncQueued = true; return; }
       var template = document.getElementById('template').value;
       if (!template) {
-        if (showFeedback) {
-          showDraftStatus('Please select a layout first', 'error');
-        }
+        if (showFeedback) showDraftStatus('Please select a layout first', 'error');
         return;
       }
-
-      draftSaving = true;
-
-      // Collect all form data
-      var subject = document.getElementById('subject').value;
-      var draftData = {
-        template:   template,
-        subject:    subject,
-        subheading: document.getElementById('subheading').value,
-        intro:      quillInstances['intro'] ? quillInstances['intro'].root.innerHTML : '',
-        outro:      quillInstances['outro'] ? quillInstances['outro'].root.innerHTML : '',
-        headerIcon: collectHeaderIcon(),
-        footerLogo: collectFooterLogo(),
-        typography: collectTypography(),
-        topics:     collectTopics(),
-        preview:    subject || 'Untitled Draft'
-      };
-
+      var d = dirtyPatch();
+      if (!d.count && currentDraftId) {
+        setSyncState('saved');
+        if (showFeedback) showDraftStatus('Draft saved', 'success');
+        return;
+      }
+      syncing = true;
+      setSyncState('saving');
       try {
-        var draftId = await saveDraft(currentUser.uid, draftData, currentDraftId || null);
-        draftSaving = false;
-        // Update current draft ID if this is a new draft
-        if (draftId) {
-          currentDraftId = draftId;
-        }
-        if (showFeedback) {
-          showDraftStatus('Draft saved successfully', 'success');
+        var preview = d.local.subject || 'Untitled Draft';
+        if (!currentDraftId) {
+          var docData = unflatten(d.local);
+          docData.preview = preview;
+          if (!currentFolderId) currentFolderId = personalFolderId(currentUser.uid);
+          currentDraftId = await createDraft(currentFolderId, docData, currentUser.uid, currentUser.email);
+          lastSynced = d.local;
+          normAlias = {};
+          updateDraftUrl();
+          attachDraft();
         } else {
-          showDraftStatus('Auto-saved', 'success');
+          d.patch.preview = preview;
+          await patchDraft(currentFolderId, currentDraftId, d.patch, currentUser.email);
+          Object.keys(d.patch).forEach(function(k) {
+            if (k === 'preview') return;
+            if (d.patch[k] === DELETE_FIELD) {
+              Object.keys(lastSynced).forEach(function(lk) {
+                if (lk.indexOf(k + '.') === 0) { delete lastSynced[lk]; delete normAlias[lk]; }
+              });
+            } else {
+              lastSynced[k] = d.patch[k];
+              delete normAlias[k];
+            }
+          });
         }
+        lastSavedAt = new Date();
+        setSyncState('saved');
+        if (showFeedback) showDraftStatus('Draft saved', 'success');
       } catch (error) {
-        draftSaving = false;
         console.error('Failed to save draft:', error);
-        if (showFeedback) {
-          showDraftStatus('Failed to save draft', 'error');
-        }
+        setSyncState('error');
+        if (showFeedback) showDraftStatus('Failed to save draft: ' + (error.message || error), 'error');
       }
+      syncing = false;
+      if (syncQueued) { syncQueued = false; flushDraft(false); }
     }
+    function manualSaveDraft() { flushDraft(true); }
+    // 30-second backstop for anything the debounce missed
+    function startAutoSave() {
+      clearInterval(autoSaveInterval);
+      autoSaveInterval = setInterval(function() {
+        if (!syncing && !syncTimer && document.getElementById('template').value) flushDraft(false);
+      }, 30000);
+      setInterval(function() { if (draftMeta) renderPresence(draftMeta.presence || {}); }, 30000);
+    }
+    window.addEventListener('pagehide', function() {
+      stopPresence();
+      if (syncReady && !syncing && currentDraftId) flushDraft(false); // SDK queues the write offline
+    });
 
-    // Load draft on page load
-    async function loadDraftOnInit() {
-      // If we have a draftId from URL, load that specific draft
-      if (currentDraftId) {
-        try {
-          var draft = await loadDraft(currentUser.uid, currentDraftId);
-          if (draft) {
-            loadDraftData(draft);
-            showDraftStatus('Draft loaded from library', 'success');
-          } else {
-            showDraftStatus('Draft not found', 'error');
+    // ---- listener lifecycle ----
+    function attachDraft() {
+      if (draftUnsub) draftUnsub();
+      draftOrphaned = false;
+      draftUnsub = watchDraft(currentFolderId, currentDraftId, function(data) {
+        if (!data) {
+          if (draftMeta) {
+            // We had it and now it's gone: someone moved or deleted it.
+            if (draftUnsub) { draftUnsub(); draftUnsub = null; }
+            stopPresence();
+            draftOrphaned = true;
+            renderPresence({});
+            setSyncState('idle', 'Draft moved or deleted');
+            showDraftStatus('This draft was moved or deleted by another editor. Your copy is still here — click Save Draft to keep it as a new draft.', 'error', 8000);
           }
-        } catch (error) {
-          console.log('Failed to load draft:', error);
-          showDraftStatus('Failed to load draft', 'error');
+          return;
         }
+        draftMeta = data;
+        renderPresence(data.presence || {});
+        reconcile();
+      });
+      startPresence();
+    }
+    function detachDraft(startFresh) {
+      if (draftUnsub) { draftUnsub(); draftUnsub = null; }
+      stopPresence();
+      draftMeta = null;
+      lastSynced = {};
+      normAlias = {};
+      currentDraftId = '';
+      draftOrphaned = false;
+      renderPresence({});
+      if (startFresh) { updateDraftUrl(); setSyncState('idle'); }
+    }
+    function updateDraftUrl() {
+      var personal = currentFolderId === personalFolderId(currentUser.uid);
+      var qs = [];
+      if (currentDraftId || !personal) qs.push('folder=' + encodeURIComponent(currentFolderId));
+      if (currentDraftId) qs.push('draftId=' + encodeURIComponent(currentDraftId));
+      history.replaceState(null, '', 'compose.html' + (qs.length ? '?' + qs.join('&') : ''));
+    }
+    function setSyncState(state, text) {
+      var el = document.getElementById('syncState');
+      var txt = document.getElementById('syncText');
+      if (!el) return;
+      el.className = 'sync-state ' + state;
+      if (text) { txt.textContent = text; return; }
+      if (state === 'saving') txt.textContent = 'Saving…';
+      else if (state === 'error') txt.textContent = 'Save failed — retrying';
+      else if (state === 'saved') {
+        txt.textContent = 'Saved' + (lastSavedAt ? ' · ' + lastSavedAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '');
+      } else txt.textContent = currentDraftId ? 'Saved' : 'Not saved yet';
+    }
+
+    // ---- load on open ----
+    async function loadDraftOnInit() {
+      if (!currentDraftId) { setSyncState('idle'); return; }
+      try {
+        var draft = await loadDraft(currentFolderId, currentDraftId);
+        if (!draft) {
+          showDraftStatus('Draft not found', 'error');
+          currentDraftId = '';
+          currentFolderId = personalFolderId(currentUser.uid);
+          updateDraftUrl(); renderFolderChip(); setSyncState('idle');
+          return;
+        }
+        if (Array.isArray(draft.topics)) {
+          // Legacy array shape: convert once so every editor shares the same ids
+          var keyed = topicsToKeyed(draft.topics);
+          draft.topics = keyed.topics;
+          draft.topicOrder = keyed.topicOrder;
+          await patchDraft(currentFolderId, currentDraftId, { topics: keyed.topics, topicOrder: keyed.topicOrder }, currentUser.email);
+        }
+        loadDraftData(draft);
+        lastSynced = flattenDraft(draft);
+        normAlias = {};
+        var after = collectFlat();
+        Object.keys(lastSynced).forEach(function(k) {
+          if ((k in after) && !jsonEq(after[k], lastSynced[k])) normAlias[k] = after[k];
+        });
+        draftMeta = draft;
+        attachDraft();
+        lastSavedAt = (draft.updatedAt && draft.updatedAt.toDate) ? draft.updatedAt.toDate() : null;
+        setSyncState('saved');
+        showDraftStatus('Draft loaded', 'success');
+      } catch (error) {
+        console.error('Failed to load draft:', error);
+        showDraftStatus('Failed to load draft' + (error.code === 'permission-denied' ? ' — you no longer have access to its folder' : ''), 'error');
+        currentDraftId = '';
+        currentFolderId = personalFolderId(currentUser.uid);
+        updateDraftUrl(); renderFolderChip(); setSyncState('idle');
       }
     }
 
-    // Load draft data into form
+    // Load draft data into the form (synchronous: the layout handler builds
+    // the content section immediately, so no timers are needed)
     function loadDraftData(draft) {
       if (!draft) return;
+      formData = {};
+      var sel = document.getElementById('template');
+      sel.value = draft.template || '';
+      sel.dispatchEvent(new Event('change'));
 
-      // Set template first (triggers template change handler)
-      document.getElementById('template').value = draft.template;
-      document.getElementById('template').dispatchEvent(new Event('change'));
+      document.getElementById('subject').value = draft.subject || '';
+      document.getElementById('subheading').value = draft.subheading || '';
+      restoreHeaderIcon(draft.headerIcon);
+      restoreFooterLogo(draft.footerLogo);
+      if (quillInstances['intro']) setQuillHtml(quillInstances['intro'], draft.intro || '');
+      if (quillInstances['outro']) setQuillHtml(quillInstances['outro'], draft.outro || '');
 
-      // Wait for template to initialise, then populate data
-      setTimeout(function() {
-        document.getElementById('subject').value = draft.subject || '';
-        document.getElementById('subheading').value = draft.subheading || '';
+      var order = flattenDraft(draft).topicOrder;
+      if (order.length) {
+        // Replace the layout's default cards with the draft's own (ids preserved)
+        topicCardIds().forEach(function(id) { if (order.indexOf(id) < 0) removeTopic(id); });
+        ensureTopicOrder(order);
+        order.forEach(function(id) { applyTopicToCard(id, (draft.topics || {})[id]); });
+      }
+      restoreTypography(draft.typography);
+      renumberTopics();
+      updatePreview();
+    }
 
-        // Restore header icon
-        restoreHeaderIcon(draft.headerIcon);
-        restoreFooterLogo(draft.footerLogo);
-
-        // Load intro / outro
-        if (draft.intro && quillInstances['intro']) {
-          quillInstances['intro'].root.innerHTML = draft.intro;
-        }
-        if (draft.outro && quillInstances['outro']) {
-          quillInstances['outro'].root.innerHTML = draft.outro;
-        }
-
-        // Match the card count to the draft (trailing empty topics dropped)
-        draft.topics = trimEmptyTopics(draft.topics || []);
-        if (draft.topics.length > 0) {
-          var topicCards = document.querySelectorAll('.topic-card');
-          while (topicCards.length < draft.topics.length) {
-            nextTopicId++;
-            createTopicCard(nextTopicId, document.getElementById('topicFields'));
-            topicCards = document.querySelectorAll('.topic-card');
+    // ---- folders ----
+    function folderById(id) {
+      for (var i = 0; i < draftFolders.length; i++) if (draftFolders[i].id === id) return draftFolders[i];
+      return null;
+    }
+    function renderFolderChip() {
+      var f = folderById(currentFolderId);
+      document.getElementById('folderName').textContent = f ? f.name : 'My Drafts';
+      var menu = document.getElementById('folderMenu');
+      menu.innerHTML = draftFolders.map(function(fl) {
+        var icon = fl.personal ? 'person' : (fl.ownerUid === currentUser.uid ? 'folder' : 'folder_shared');
+        var n = (fl.members || []).length;
+        var note = fl.personal ? 'only you' : (fl.ownerUid !== currentUser.uid ? 'shared with you' : (n ? n + ' collaborator' + (n === 1 ? '' : 's') : 'not shared'));
+        return '<button type="button" class="' + (fl.id === currentFolderId ? 'active' : '') + '" onclick="chooseFolder(\'' + escapeHtml(fl.id) + '\')">' +
+          '<span class="material-icons">' + icon + '</span><span>' + escapeHtml(fl.name) + '</span><small>' + escapeHtml(note) + '</small></button>';
+      }).join('') +
+        '<div class="sep"></div>' +
+        '<button type="button" onclick="manageFolders()"><span class="material-icons">create_new_folder</span><span>New / manage folders…</span></button>';
+    }
+    function toggleFolderMenu(e) {
+      if (e) e.stopPropagation();
+      document.getElementById('folderPick').classList.toggle('open');
+    }
+    function closeFolderMenu() {
+      document.getElementById('folderPick').classList.remove('open');
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('#folderPick')) closeFolderMenu();
+    });
+    async function chooseFolder(id) {
+      closeFolderMenu();
+      if (id === currentFolderId) return;
+      var target = folderById(id);
+      if (!target) return;
+      if (!currentDraftId) {
+        currentFolderId = id;
+        updateDraftUrl();
+        renderFolderChip();
+        if (document.getElementById('template').value) scheduleSync();
+        return;
+      }
+      try {
+        setSyncState('saving', 'Moving…');
+        await flushDraft(false);
+        var fromFolder = currentFolderId, draftId = currentDraftId;
+        if (draftUnsub) { draftUnsub(); draftUnsub = null; }
+        stopPresence();
+        await moveDraft(fromFolder, draftId, id);
+        currentFolderId = id;
+        currentDraftId = draftId;
+        draftMeta = null;
+        updateDraftUrl();
+        renderFolderChip();
+        attachDraft();
+        setSyncState('saved');
+        showDraftStatus('Moved to “' + target.name + '”', 'success');
+      } catch (error) {
+        console.error('Move failed:', error);
+        setSyncState('error');
+        showDraftStatus('Could not move the draft: ' + (error.message || error), 'error');
+        attachDraft();
+      }
+    }
+    function manageFolders() {
+      closeFolderMenu();
+      openFolderManager({
+        user: currentUser,
+        onChange: function(folders) {
+          draftFolders = folders;
+          if (!folderById(currentFolderId)) {
+            currentFolderId = personalFolderId(currentUser.uid);
+            if (!currentDraftId) updateDraftUrl();
           }
-          while (topicCards.length > draft.topics.length) {
-            removeTopic(topicCards[topicCards.length - 1].id.replace('topicCard_', ''));
-            topicCards = document.querySelectorAll('.topic-card');
-          }
-
-          // Populate topics in DOM order
-          topicCards = document.querySelectorAll('.topic-card');
-          for (var i = 0; i < draft.topics.length; i++) {
-            var id = topicCards[i].id.replace('topicCard_', '');
-            var topic = draft.topics[i];
-
-            var titleQuill    = quillInstances['topic' + id + '_title'];
-            var descQuill     = quillInstances['topic' + id + '_description'];
-            var imageField    = document.getElementById('topic' + id + '_image');
-            var sizeField     = document.getElementById('topic' + id + '_size');
-            var alignField    = document.getElementById('topic' + id + '_align');
-            var bgColorField  = document.getElementById('topic' + id + '_bg');
-            var bgEnableField = document.getElementById('topic' + id + '_bg_enable');
-            var dividerField  = document.getElementById('topic' + id + '_divider');
-
-            if (titleQuill) titleQuill.root.innerHTML = topic.title || '';
-            if (descQuill)  descQuill.root.innerHTML  = topic.description || '';
-            if (imageField) imageField.value = topic.image || '';
-            if (sizeField)  { sizeField.value = topic.imageSize || 100; updateImageSize(id); }
-            if (alignField) alignField.value = topic.imageAlign || 'center';
-            if (bgColorField)  bgColorField.value  = topic.bgColor  || '#ffffff';
-            if (bgEnableField) bgEnableField.checked = topic.bgEnabled || false;
-            setTopicButtons(id, topic);
-            if (dividerField)  dividerField.checked = topic.showDivider || false;
-            setTopicSizes(id, topic);
-          }
+          renderFolderChip();
         }
+      });
+    }
 
-        restoreTypography(draft.typography);
-        updatePreview();
-        showDraftStatus('Draft loaded', 'success');
-      }, 500);
+    // ---- presence: who is editing what ----
+    function fieldKeyFor(el) {
+      if (!el || !el.closest || !el.closest('#composeForm')) return null;
+      if (el.closest('#intro_container')) return 'intro';
+      if (el.closest('#outro_container')) return 'outro';
+      var card = el.closest('.topic-card');
+      if (card) {
+        var tid = card.dataset.topicId;
+        if (el.closest('#topic' + tid + '_title_container'))       return 'topics.' + tid + '.title';
+        if (el.closest('#topic' + tid + '_description_container')) return 'topics.' + tid + '.description';
+        if (el.closest('.button-link-control'))                    return 'topics.' + tid + '.buttons';
+        if (el.closest('.collapse-head'))                          return null;
+        return 'topics.' + tid;
+      }
+      var id = el.id || '';
+      if (id === 'subject' || id === 'subheading') return id;
+      if (/^headerIcon_/.test(id) || el.closest('[data-color], [data-pos]')) return 'headerIcon';
+      if (/^footerLogo_/.test(id) || el.closest('#footerAlignButtons')) return 'footerLogo';
+      if (/^typo_/.test(id)) return 'typography';
+      return null;
+    }
+    function onQuillSelection(range) {
+      // Quill's editor is contenteditable, so focusin/focusout already fire;
+      // this only catches toolbar-driven focus changes.
+      if (range && !focusedKey) {
+        var active = document.activeElement;
+        var key = fieldKeyFor(active);
+        if (key) { focusedKey = key; schedulePresence(); }
+      }
+    }
+    document.addEventListener('focusin', function(e) {
+      var key = fieldKeyFor(e.target);
+      if (key !== focusedKey) { focusedKey = key; schedulePresence(); }
+    });
+    document.addEventListener('focusout', function() {
+      focusedKey = null;
+      schedulePresence();
+      setTimeout(function() { if (!focusedKey) reconcile(); }, 80);
+    });
+    function startPresence() {
+      stopPresence();
+      presenceSent = null;
+      pushPresence(true);
+      presenceHeartbeat = setInterval(function() { pushPresence(true); }, 25000);
+    }
+    function stopPresence() {
+      clearInterval(presenceHeartbeat); presenceHeartbeat = null;
+      clearTimeout(presenceTimer); presenceTimer = null;
+      if (presenceSent !== null && currentDraftId && currentUser) {
+        setDraftPresence(currentFolderId, currentDraftId, currentUser.uid, null).catch(function() {});
+      }
+      presenceSent = null;
+    }
+    function schedulePresence() {
+      clearTimeout(presenceTimer);
+      presenceTimer = setTimeout(function() { pushPresence(false); }, 400);
+    }
+    function pushPresence(force) {
+      if (!currentDraftId || !draftUnsub || !currentUser) return;
+      var key = focusedKey || '';
+      if (!force && key === presenceSent) return;
+      presenceSent = key;
+      setDraftPresence(currentFolderId, currentDraftId, currentUser.uid, {
+        name: currentUser.displayName || currentUser.email || 'Someone',
+        email: currentUser.email || '',
+        field: key
+      }).catch(function() {});
+    }
+    function presenceColor(email) {
+      var h = 0;
+      String(email || '').split('').forEach(function(c) { h = (h * 31 + c.charCodeAt(0)) >>> 0; });
+      return PRESENCE_COLORS[h % PRESENCE_COLORS.length];
+    }
+    function initials(name) {
+      var parts = String(name || '').replace(/@.*/, '').split(/[\s._-]+/).filter(Boolean);
+      return (parts.length ? parts.map(function(p) { return p[0]; }).slice(0, 2).join('') : '?').toUpperCase();
+    }
+    function fieldLabel(key) {
+      if (!key) return 'viewing';
+      var names = { subject: 'subject', subheading: 'subheading', intro: 'intro', outro: 'outro',
+                    headerIcon: 'header', footerLogo: 'footer logo', typography: 'typography' };
+      if (names[key]) return names[key];
+      var m = /^topics\.([^.]+)(?:\.(\w+))?$/.exec(key);
+      if (!m) return key;
+      var card = document.getElementById('topicCard_' + m[1]);
+      var head = card && card.querySelector('.collapse-head-title');
+      var name = head ? head.textContent.trim() : 'a topic';
+      var part = { title: 'title', description: 'description', buttons: 'buttons' }[m[2]];
+      return name + (part ? ' · ' + part : '');
+    }
+    function badgeTargets(key) {
+      var out = [];
+      function push(el) { if (el) out.push(el); }
+      function q(sel, root) { try { return (root || document).querySelector(sel); } catch (e) { return null; } }
+      if (key === 'subject' || key === 'subheading') push(q('label[for="' + key + '"]'));
+      else if (key === 'intro' || key === 'outro') {
+        var box = document.getElementById(key + '_container');
+        push(box && box.closest('.intro-outro-group') && q('.collapse-head-title', box.closest('.intro-outro-group')));
+      }
+      else if (key === 'typography') push(q('.typography-group .collapse-head-title'));
+      else if (key === 'headerIcon' || key === 'footerLogo') {
+        var f = document.getElementById(key + '_url');
+        push(f && f.closest('.form-group') && q('label', f.closest('.form-group')));
+      }
+      else if (key.indexOf('topics.') === 0) {
+        var parts = key.split('.'), id = parts[1], part = parts[2];
+        var card = document.getElementById('topicCard_' + id);
+        if (card) {
+          push(q('.collapse-head-title', card));
+          if (part === 'title' || part === 'description') push(q('label[for="topic' + id + '_' + part + '"]', card));
+          else if (part === 'buttons') push(q('.button-link-control > label', card));
+        }
+      }
+      return out;
+    }
+    function renderPresence(presence) {
+      var wrap = document.getElementById('collabPeople');
+      document.querySelectorAll('.co-badge').forEach(function(b) { b.remove(); });
+      if (!wrap) return;
+      var now = Date.now();
+      var others = Object.keys(presence || {}).filter(function(uid) { return uid !== currentUser.uid; })
+        .map(function(uid) { return presence[uid]; })
+        .filter(function(p) {
+          if (!p || !p.at) return false;
+          var t = typeof p.at.toMillis === 'function' ? p.at.toMillis() : new Date(p.at).getTime();
+          return (now - t) < PRESENCE_STALE_MS;
+        });
+      wrap.innerHTML = others.map(function(p) {
+        var color = presenceColor(p.email || p.name);
+        return '<span class="co-chip" style="--co:' + color + '" title="' + escapeHtml(p.email || '') + '">' +
+          '<span class="avatar">' + escapeHtml(initials(p.name || p.email)) + '</span>' +
+          escapeHtml((p.name || p.email || 'Someone').split(' ')[0]) +
+          '<small>' + escapeHtml(p.field ? 'editing ' + fieldLabel(p.field) : 'here') + '</small></span>';
+      }).join('');
+      others.forEach(function(p) {
+        if (!p.field) return;
+        var color = presenceColor(p.email || p.name);
+        badgeTargets(p.field).forEach(function(target) {
+          var b = document.createElement('span');
+          b.className = 'co-badge';
+          b.style.setProperty('--co', color);
+          b.innerHTML = '<span class="avatar">' + escapeHtml(initials(p.name || p.email)) + '</span>' +
+            escapeHtml((p.name || p.email || 'Someone').split(' ')[0]);
+          target.insertAdjacentElement('afterend', b);
+        });
+      });
     }
 
     // Show draft status message
-    function showDraftStatus(message, type) {
+    var draftStatusTimer = null;
+    function showDraftStatus(message, type, duration) {
       var statusDiv = document.getElementById('draftStatus');
       var statusText = document.getElementById('draftStatusText');
 
@@ -4371,19 +5297,21 @@
         statusDiv.style.color = '#0c5460';
       }
 
-      // Auto-hide after 3 seconds
-      setTimeout(function() {
+      // Auto-hide (3 seconds unless told otherwise)
+      clearTimeout(draftStatusTimer);
+      draftStatusTimer = setTimeout(function() {
         statusDiv.style.display = 'none';
-      }, 3000);
+      }, duration || 3000);
     }
 
     // Clear draft after successful send
     function clearDraft() {
       if (currentDraftId) {
-        deleteDraft(currentUser.uid, currentDraftId).catch(function(error) {
+        var folder = currentFolderId, id = currentDraftId;
+        detachDraft(true);
+        deleteDraft(folder, id).catch(function(error) {
           console.error('Failed to delete draft:', error);
         });
-        currentDraftId = ''; // Reset current draft ID
       }
     }
 
@@ -4424,8 +5352,14 @@
     window.resetPx = resetPx;
     window.addButtonRow = addButtonRow;
     window.syncButtonColor = syncButtonColor;
+    window.saveTypographyDefaults = saveTypographyDefaults;
+    window.applyTypographyDefaults = applyTypographyDefaults;
+    window.clearTypographyDefaults = clearTypographyDefaults;
     window.archiveSentEmail = archiveSentEmail;
     window.manualSaveDraft = manualSaveDraft;
+    window.toggleFolderMenu = toggleFolderMenu;
+    window.chooseFolder = chooseFolder;
+    window.manageFolders = manageFolders;
     window.resetForm = resetForm;
     window.insertSnippet = insertSnippet;
     window.saveSnippetFrom = saveSnippetFrom;
@@ -4443,14 +5377,26 @@
       // Load email groups + snippets from Firestore
       loadEmailGroups();
       loadSnippets();
+      loadPersonalTypography();
+      loadStaffDirectory();
 
-      // Start auto-save once we know who the user is
+      // Folders: make sure the personal folder exists, sweep any legacy
+      // users/{uid}/drafts into it, then list everything I can see.
+      try {
+        await ensurePersonalFolder(currentUser.uid, currentUser.email);
+        migrateLegacyDrafts(currentUser.uid, currentUser.email)
+          .catch(function(e) { console.warn('Draft migration:', e); });
+        draftFolders = await getMyFolders(currentUser.uid, currentUser.email);
+      } catch (e) {
+        console.error('Could not load draft folders:', e);
+      }
+      if (!currentFolderId) currentFolderId = personalFolderId(currentUser.uid);
+      renderFolderChip();
+
+      // Load draft when page loads (?folder=&draftId= from the drafts library)
+      await loadDraftOnInit();
+      syncReady = true;
       startAutoSave();
-
-      // Load draft when page loads (?draftId= from the drafts library)
-      setTimeout(function() {
-        loadDraftOnInit();
-      }, 1000);
     }
 
     init();

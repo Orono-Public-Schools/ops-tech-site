@@ -152,6 +152,16 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .loading-text { color: white; margin-top: 20px; font-weight: 500; }
 
+    .sa-email {
+      font-family: Consolas, 'Courier New', monospace; font-size: 0.9em; color: #1d2a5d;
+      background: #f0f2f7; padding: 1px 6px; border-radius: 4px; user-select: all;
+    }
+    .sync-status { font-size: 0.9em; color: #444; line-height: 1.5; }
+    .sync-status .err { color: #ad2122; display: block; margin-top: 4px; }
+    .btn-secondary { background: white; color: #2d3f69; border: 2px solid #d8dbe4; }
+    .btn-secondary:hover { border-color: #2d3f69; background: #eef1f8; }
+    .btn:disabled { opacity: 0.6; cursor: wait; transform: none !important; box-shadow: none !important; }
+
     @media (max-width: 700px) {
       .form-row { grid-template-columns: 1fr; gap: 4px; }
     }
@@ -292,6 +302,41 @@
       </button>
       <div class="msg" id="groupsMsg"></div>
     </div>
+
+    <div class="panel">
+      <h2><span class="material-icons">badge</span> Staff Directory</h2>
+      <p class="panel-note">Staff names and emails synced from the OneSync Google Sheet (the same sheet
+        PaperPal and OronoHR sync from). Powers name/email autocomplete for individual recipients on the
+        Compose page. The sheet must be shared as a <b>Viewer</b> with
+        <span class="sa-email">770722055544-compute@developer.gserviceaccount.com</span>.</p>
+
+      <div class="form-row">
+        <label for="staffSheetId">Google Sheet ID</label>
+        <input type="text" id="staffSheetId" placeholder="1uvr4MN3DhNyHKxxZuVeT_Tag3U6EpkRxr3s82plIqbU">
+      </div>
+      <div class="form-row">
+        <label for="staffSheetRange">Range</label>
+        <input type="text" id="staffSheetRange" placeholder="A:H">
+      </div>
+      <div class="form-row">
+        <label for="staffSyncEnabled">Sync nightly (4:00 AM)</label>
+        <input type="checkbox" id="staffSyncEnabled" class="toggle">
+      </div>
+      <div class="form-row">
+        <label>Status</label>
+        <div class="sync-status" id="staffSyncStatus">Loading…</div>
+      </div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-primary" id="saveStaffSyncBtn" type="button">
+          <span class="material-icons" style="font-size:18px;">save</span> Save Settings
+        </button>
+        <button class="btn btn-secondary" id="syncStaffBtn" type="button">
+          <span class="material-icons" style="font-size:18px;">sync</span> Sync now
+        </button>
+      </div>
+      <div class="msg" id="staffMsg"></div>
+    </div>
   </div>
 
   <script type="module">
@@ -300,9 +345,14 @@
     import {
       getConfig, saveConfig, getEmailGroups, addItem, updateItem, deleteItem,
       getAllowedUsers, addAllowedUser, removeAllowedUser, setAllowedUserPerm, setAllowedUserPerms,
-      getPublicStatusConfig, savePublicStatusConfig
+      getPublicStatusConfig, savePublicStatusConfig,
+      getStaffSyncConfig, saveStaffSyncConfig
     } from './js/data.js';
     import { attachImageUpload } from './js/upload.js';
+    import { functions } from './js/firebase-init.js';
+    import { httpsCallable } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-functions.js';
+
+    const syncStaffFn = httpsCallable(functions, 'syncStaff');
 
     renderLayout('admin');
     requirePerm('admin');
@@ -575,8 +625,70 @@
       }
     });
 
+    // ── Staff directory sync ──
+    function renderStaffSyncStatus(cfg) {
+      const el = $('staffSyncStatus');
+      const when = cfg.lastSyncedAt && cfg.lastSyncedAt.toDate ? cfg.lastSyncedAt.toDate().toLocaleString() : null;
+      let html = when
+        ? `<b>${cfg.count || 0}</b> staff · last synced ${when}` +
+          (cfg.lastSource ? ` (${cfg.lastSource === 'manual' ? 'manual' : 'nightly'})` : '')
+        : 'Never synced yet.';
+      if (cfg.lastError) {
+        const errWhen = cfg.lastErrorAt && cfg.lastErrorAt.toDate ? ' — ' + cfg.lastErrorAt.toDate().toLocaleString() : '';
+        html += `<span class="err">Last error${errWhen}: ${escapeAttr(cfg.lastError)}</span>`;
+      }
+      el.innerHTML = html;
+    }
+
+    async function loadStaffSync() {
+      try {
+        const cfg = await getStaffSyncConfig();
+        $('staffSheetId').value = cfg.sheetId || '';
+        $('staffSheetRange').value = cfg.range || '';
+        $('staffSyncEnabled').checked = cfg.enabled === true;
+        renderStaffSyncStatus(cfg);
+      } catch (err) {
+        $('staffSyncStatus').textContent = 'Load failed: ' + err.message;
+      }
+    }
+
+    function staffSyncValues() {
+      return {
+        sheetId: $('staffSheetId').value.trim(),
+        range: $('staffSheetRange').value.trim(),
+        enabled: $('staffSyncEnabled').checked
+      };
+    }
+
+    $('saveStaffSyncBtn').addEventListener('click', async () => {
+      try {
+        await saveStaffSyncConfig(staffSyncValues());
+        flash($('staffMsg'), true, 'Staff sync settings saved.');
+      } catch (err) {
+        flash($('staffMsg'), false, 'Save failed: ' + err.message);
+      }
+    });
+
+    $('syncStaffBtn').addEventListener('click', async () => {
+      const btn = $('syncStaffBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="material-icons" style="font-size:18px;">hourglass_top</span> Syncing…';
+      try {
+        await saveStaffSyncConfig(staffSyncValues());   // the function reads these
+        const res = await syncStaffFn();
+        const d = res.data || {};
+        flash($('staffMsg'), true, `Synced ${d.synced} staff (${d.removed} removed).`);
+      } catch (err) {
+        flash($('staffMsg'), false, 'Sync failed: ' + err.message);
+      }
+      await loadStaffSync();
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-icons" style="font-size:18px;">sync</span> Sync now';
+    });
+
     async function init() {
       const user = await authReady;
+      loadStaffSync();
       currentEmail = user.email.toLowerCase();
       try {
         allowedUsers = await getAllowedUsers();
