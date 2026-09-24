@@ -293,14 +293,25 @@ async function scrapeStatusPage(url) {
       return {
         status: 'down',
         details: 'Status page unavailable (HTTP ' + response.status + ')',
-        source: 'http_error'
+        source: 'http_error',
+        unreachable: true,
+        // 429 = the vendor is throttling us, which says nothing about the
+        // service itself — runAllChecks keeps the last known status.
+        rateLimited: response.status === 429
       };
     }
 
     const html = response.text;
+    // Visible text only for the phrase patterns: scripts carry status
+    // vocabulary ("Major Outage" enums, colour-code comments) and meta
+    // descriptions mention "scheduled maintenance" on every page.
+    const text = html
+      .replace(/<(script|style|noscript|template)[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/g, ' ');
 
     // Pattern 1: Statuspage.io - Check for "All Systems Operational" or similar
-    if (html.match(/all\s+systems?\s+(operational|running|up)/i)) {
+    if (text.match(/all\s+systems?\s+(operational|running|up)/i)) {
       return {
         status: 'operational',
         details: 'All systems operational',
@@ -308,8 +319,11 @@ async function scrapeStatusPage(url) {
       };
     }
 
-    // Pattern 2: Statuspage.io - Check for status indicators
-    if (html.match(/class="[^"]*status-red[^"]*"/i) || html.match(/class="[^"]*impact-critical[^"]*"/i)) {
+    // Pattern 2: Statuspage.io - Check for status indicators. Legend items
+    // ("legend-item status-red") are on every page and never count.
+    const hasClass = (cls) => (html.match(/class="[^"]*"/gi) || [])
+      .some(c => c.indexOf(cls) >= 0 && c.indexOf('legend') < 0);
+    if (hasClass('status-red') || hasClass('impact-critical')) {
       return {
         status: 'down',
         details: 'Major outage reported',
@@ -317,7 +331,7 @@ async function scrapeStatusPage(url) {
       };
     }
 
-    if (html.match(/class="[^"]*status-orange[^"]*"/i) || html.match(/class="[^"]*impact-major[^"]*"/i)) {
+    if (hasClass('status-orange') || hasClass('impact-major')) {
       return {
         status: 'partial',
         details: 'Partial outage reported',
@@ -325,7 +339,7 @@ async function scrapeStatusPage(url) {
       };
     }
 
-    if (html.match(/class="[^"]*status-yellow[^"]*"/i) || html.match(/class="[^"]*impact-minor[^"]*"/i)) {
+    if (hasClass('status-yellow') || hasClass('impact-minor')) {
       return {
         status: 'degraded',
         details: 'Performance issues reported',
@@ -333,7 +347,7 @@ async function scrapeStatusPage(url) {
       };
     }
 
-    if (html.match(/class="[^"]*status-blue[^"]*"/i) || html.match(/class="[^"]*maintenance[^"]*"/i)) {
+    if (hasClass('status-blue') || hasClass('maintenance')) {
       return {
         status: 'maintenance',
         details: 'Scheduled maintenance in progress',
@@ -342,9 +356,9 @@ async function scrapeStatusPage(url) {
     }
 
     // Pattern 3: Check for common operational phrases
-    if (html.match(/currently\s+(operational|running|available)/i) ||
-        html.match(/no\s+(known\s+)?issues/i) ||
-        html.match(/everything\s+(is\s+)?(running|working)/i)) {
+    if (text.match(/currently\s+(operational|running|available)/i) ||
+        text.match(/no\s+(known\s+)?issues/i) ||
+        text.match(/everything\s+(is\s+)?(running|working)/i)) {
       return {
         status: 'operational',
         details: 'Service operational',
@@ -353,8 +367,8 @@ async function scrapeStatusPage(url) {
     }
 
     // Pattern 4: Check for outage/incident keywords
-    if (html.match(/major\s+(outage|incident)/i) ||
-        html.match(/service\s+(outage|unavailable|down)/i)) {
+    if (text.match(/major\s+(outage|incident)/i) ||
+        text.match(/service\s+(outage|unavailable|down)/i)) {
       return {
         status: 'down',
         details: 'Service outage reported',
@@ -362,8 +376,8 @@ async function scrapeStatusPage(url) {
       };
     }
 
-    if (html.match(/partial\s+outage/i) ||
-        html.match(/some\s+services\s+(affected|unavailable)/i)) {
+    if (text.match(/partial\s+outage/i) ||
+        text.match(/some\s+services\s+(affected|unavailable)/i)) {
       return {
         status: 'partial',
         details: 'Partial outage reported',
@@ -371,9 +385,9 @@ async function scrapeStatusPage(url) {
       };
     }
 
-    if (html.match(/degraded\s+(performance|service)/i) ||
-        html.match(/investigating\s+(an\s+)?issue/i) ||
-        html.match(/performance\s+issues/i)) {
+    if (text.match(/degraded\s+(performance|service)/i) ||
+        text.match(/investigating\s+(an\s+)?issue/i) ||
+        text.match(/performance\s+issues/i)) {
       return {
         status: 'degraded',
         details: 'Service degradation reported',
@@ -381,9 +395,9 @@ async function scrapeStatusPage(url) {
       };
     }
 
-    if (html.match(/scheduled\s+maintenance/i) ||
-        html.match(/maintenance\s+(window|in\s+progress)/i) ||
-        html.match(/under\s+maintenance/i)) {
+    if (text.match(/scheduled\s+maintenance/i) ||
+        text.match(/maintenance\s+(window|in\s+progress)/i) ||
+        text.match(/under\s+maintenance/i)) {
       return {
         status: 'maintenance',
         details: 'Scheduled maintenance in progress',
@@ -392,7 +406,7 @@ async function scrapeStatusPage(url) {
     }
 
     // Pattern 5: Statuspage.io - Check for green status (most reliable)
-    if (html.match(/class="[^"]*status-green[^"]*"/i) || html.match(/class="[^"]*impact-none[^"]*"/i)) {
+    if (hasClass('status-green') || hasClass('impact-none')) {
       return {
         status: 'operational',
         details: 'All components operational',
@@ -413,6 +427,135 @@ async function scrapeStatusPage(url) {
       status: 'down',
       details: 'Unable to access status page: ' + String(error),
       source: 'error',
+      unreachable: true
+    };
+  }
+}
+
+const COMPONENT_STATUS = {
+  major_outage: 'down',
+  partial_outage: 'partial',
+  degraded_performance: 'degraded',
+  under_maintenance: 'maintenance'
+};
+const INDICATOR_STATUS = {
+  critical: 'down',
+  major: 'partial',
+  minor: 'degraded',
+  maintenance: 'maintenance'
+};
+
+/**
+ * Statuspage.io sites publish a machine-readable summary at
+ * /api/v2/summary.json. Status comes from component states plus the page's
+ * overall indicator — so informational incidents the vendor rates
+ * "impact: none" (credential resets, third-party viewer glitches) stay
+ * operational instead of being scraped as outages from the HTML.
+ * Returns null when the site isn't a Statuspage (caller falls back to HTML).
+ */
+async function checkStatuspageApi(url) {
+  let origin;
+  try { origin = new URL(url).origin; } catch (e) { return null; }
+  let response;
+  try {
+    response = await fetchTextOnce(origin + '/api/v2/summary.json');
+  } catch (e) {
+    return null;
+  }
+  if (response.status !== 200) return null;
+  let data;
+  try { data = JSON.parse(response.text); } catch (e) { return null; }
+  if (!data || !data.status || !Array.isArray(data.components)) return null;
+
+  let status = INDICATOR_STATUS[data.status.indicator] || 'operational';
+  const affected = [];
+  data.components.forEach(c => {
+    const st = COMPONENT_STATUS[c.status];
+    if (!st) return;
+    status = worseOf(status, st);
+    if (!c.group) affected.push(c.name);
+  });
+
+  const incidents = Array.isArray(data.incidents) ? data.incidents : [];
+  const active = incidents.find(i => i.impact && i.impact !== 'none') || incidents[0] || null;
+
+  if (status === 'operational') {
+    return {
+      status: 'operational',
+      details: 'All systems operational' +
+        (active ? ' (vendor notice: ' + String(active.name).slice(0, 100) + ')' : ''),
+      source: 'statuspage_api'
+    };
+  }
+
+  if (status === 'maintenance') {
+    const mw = (data.scheduled_maintenances || []).find(m => m.status === 'in_progress');
+    return {
+      status: 'maintenance',
+      details: 'Scheduled maintenance: ' + ((mw && mw.name) || affected.join(', ') || 'in progress').slice(0, 100),
+      source: 'statuspage_api'
+    };
+  }
+
+  const label = { down: 'Major outage', partial: 'Partial outage', degraded: 'Degraded service' }[status];
+  let incident = null;
+  if (active) {
+    const update = (active.incident_updates || [])[0];
+    incident = {
+      title: String(active.name || '').slice(0, 140),
+      summary: String((update && update.body) || '').slice(0, 1500),
+      link: active.shortlink || url,
+      updatedAt: active.updated_at || ''
+    };
+  }
+  return {
+    status: status,
+    details: label + ': ' + ((active && active.name) || affected.join(', ') || data.status.description).slice(0, 100),
+    source: 'statuspage_api',
+    incident: incident
+  };
+}
+
+// status.cloud.microsoft is a JS app (the HTML has nothing to parse) and
+// throttles its page routes. Its banner post comes from /api/posts/mac.
+const MS_POST_STATUS = {
+  Available: 'operational',
+  Operational: 'operational',
+  ServiceRestored: 'operational',
+  ServiceDegradation: 'partial'
+};
+
+async function checkMicrosoftStatus(url) {
+  try {
+    const response = await fetchText('https://status.cloud.microsoft/api/posts/mac');
+    if (response.status !== 200) {
+      return {
+        status: 'down',
+        details: 'Status page unavailable (HTTP ' + response.status + ')',
+        unreachable: true,
+        rateLimited: response.status === 429
+      };
+    }
+    const post = JSON.parse(response.text);
+    const status = MS_POST_STATUS[post.Status];
+    if (!status) {
+      return { status: 'operational', details: 'Status page accessible (unrecognized status "' + post.Status + '")' };
+    }
+    if (status === 'operational') {
+      return { status: 'operational', details: 'All services operational' };
+    }
+    const summary = String(post.Message || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ').trim();
+    const title = String(post.Title || '').trim() || summary.slice(0, 100) || 'Service degradation';
+    return {
+      status: status,
+      details: 'Service degradation: ' + title.slice(0, 100),
+      incident: { title: title.slice(0, 140), summary: summary.slice(0, 1500), link: url, updatedAt: post.LastUpdatedTime || '' }
+    };
+  } catch (error) {
+    return {
+      status: 'down',
+      details: 'Unable to access status page: ' + String(error),
       unreachable: true
     };
   }
@@ -487,14 +630,19 @@ async function checkSystem(system) {
     };
   }
 
-  // 4. Status-page HTML scrape with reachability fallback
-  const statusResult = await scrapeStatusPage(system.url);
+  // 4. Microsoft 365 status API, then Statuspage.io JSON API, then
+  // status-page HTML scrape with reachability fallback.
+  const url = String(system.url || '');
+  const statusResult = /status\.cloud\.microsoft/i.test(url)
+    ? await checkMicrosoftStatus(url)
+    : (await checkStatuspageApi(url)) || (await scrapeStatusPage(url));
   return {
     status: statusResult.status,
     details: statusResult.details,
     unreachable: !!statusResult.unreachable,
-        incident: statusResult.incident || null,
-    url: system.url || ''
+    rateLimited: !!statusResult.rateLimited,
+    incident: statusResult.incident || null,
+    url: url
   };
 }
 
@@ -680,8 +828,14 @@ async function runAllChecks(db) {
 
     // Debounce unreachable results: hold the previous status until the
     // failure repeats UNREACHABLE_CONFIRM_CHECKS times in a row.
-    const failStreak = check.unreachable ? ((prev && prev.failStreak) || 0) + 1 : 0;
-    if (!overlay && check.unreachable && failStreak < UNREACHABLE_CONFIRM_CHECKS
+    // Rate limiting (HTTP 429) never escalates: keep the last known status
+    // for as long as the vendor keeps throttling us.
+    const failStreak = check.rateLimited ? ((prev && prev.failStreak) || 0)
+      : check.unreachable ? ((prev && prev.failStreak) || 0) + 1 : 0;
+    if (!overlay && check.rateLimited && prev && prev.status) {
+      status = prev.status;
+      check.details = 'Status page rate-limited (HTTP 429) — showing last known status';
+    } else if (!overlay && check.unreachable && failStreak < UNREACHABLE_CONFIRM_CHECKS
         && prev && prev.status && !isProblemStatus(prev.status)) {
       status = prev.status;
       check.details = 'Status page temporarily unreachable (' + shortReason(check.details)
@@ -817,4 +971,4 @@ function shortReason(details) {
   return d.replace(/^Unable to access status (page|feed): /i, '').replace(/^Error checking system: /i, '').slice(0, 80) || 'network error';
 }
 
-module.exports = { runAllChecks, scrapeFeedStatus };
+module.exports = { runAllChecks, scrapeFeedStatus, checkSystem };
