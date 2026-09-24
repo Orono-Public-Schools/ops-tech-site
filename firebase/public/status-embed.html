@@ -614,6 +614,9 @@
     } from './js/data.js';
     import { functions } from './js/firebase-init.js';
     import { httpsCallable } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-functions.js';
+    import { renderNotes, ensureNoteStyles } from './js/incident-notes.js';
+
+    ensureNoteStyles();
 
     // ===== Email subscription (public, double-opt-in) =====
     const statusSubscribeFn = httpsCallable(functions, 'statusSubscribe');
@@ -959,7 +962,7 @@
               <span class="ib-pill" style="background:${pillColor};">${escapeHtml(pill)}</span>
               <span class="ib-when">${escapeHtml(when)}</span>
             </div>
-            ${inc.note ? '<div class="ib-note">' + escapeHtml(inc.note) + '</div>' : ''}
+            ${renderNotes(inc)}
             ${(inc.systemNames && inc.systemNames.length)
               ? '<div class="ib-systems">Affects: ' + escapeHtml(inc.systemNames.join(', ')) + '</div>' : ''}
           </div>`;

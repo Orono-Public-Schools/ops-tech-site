@@ -1018,7 +1018,7 @@
 
     .btn-skip:hover { background: #e8eaf1; border-color: #2d3f69; }
 
-    #notifyEditor {
+    #notifyEditor, .note-editor {
       min-height: 90px;
       font-family: 'Lexend', sans-serif;
       font-size: 14px;
@@ -1423,21 +1423,32 @@
             <label>Title *</label>
             <input type="text" id="incTitle" required placeholder="e.g., PowerSchool login failures">
           </div>
-          <div class="form-group">
-            <label>Severity *</label>
-            <select id="incSeverity">
-              <option value="down">Major Outage</option>
-              <option value="partial">Partial Outage</option>
-              <option value="degraded">Degraded Performance</option>
-            </select>
+          <div class="form-group" style="display:flex; gap:12px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:200px;">
+              <label>Severity *</label>
+              <select id="incSeverity">
+                <option value="down">Major Outage</option>
+                <option value="partial">Partial Outage</option>
+                <option value="degraded">Degraded Performance</option>
+              </select>
+            </div>
+            <div style="flex:1; min-width:200px;">
+              <label>Stage</label>
+              <select id="incStage">
+                <option value="investigating">Investigating</option>
+                <option value="identified">Identified</option>
+                <option value="monitoring">Monitoring</option>
+                <option value="update">Update</option>
+              </select>
+            </div>
           </div>
           <div class="form-group">
             <label>Affected Systems *</label>
             <div class="sys-check-list" id="incSystemsList"></div>
           </div>
           <div class="form-group">
-            <label>Note</label>
-            <textarea id="incNote" placeholder="What's happening, what you're doing about it, workarounds..."></textarea>
+            <label id="incNoteLabel">Note</label>
+            <div class="note-editor" id="incNoteEditor"></div>
           </div>
           <div class="form-group">
             <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
@@ -1486,8 +1497,8 @@
             <div class="sys-check-list" id="mSystemsList"></div>
           </div>
           <div class="form-group">
-            <label>Note</label>
-            <textarea id="mNote" placeholder="What's being done and what users should expect..."></textarea>
+            <label id="mNoteLabel">Note</label>
+            <div class="note-editor" id="mNoteEditor"></div>
           </div>
           <div class="form-group">
             <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
@@ -1506,6 +1517,49 @@
           </small>
         </form>
       </div>
+    </div>
+  </div>
+
+  <!-- Post Update Modal (adds an entry to an incident's update timeline) -->
+  <div class="modal" id="postUpdateModal">
+    <div class="modal-content" style="max-width: 640px;">
+      <div class="modal-header">
+        <h2>Post Update</h2>
+        <button class="close-btn" id="closePostUpdateBtn">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <form id="postUpdateForm" style="padding: 20px 25px 25px;">
+        <p id="puTitle" style="margin:0 0 16px; font-weight:700; color:#1d2a5d;"></p>
+        <div class="form-group" style="display:flex; gap:12px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:180px;">
+            <label>Stage</label>
+            <select id="puStage"></select>
+          </div>
+          <div style="flex:1; min-width:180px;" id="puSeverityWrap">
+            <label>Severity</label>
+            <select id="puSeverity">
+              <option value="down">Major Outage</option>
+              <option value="partial">Partial Outage</option>
+              <option value="degraded">Degraded Performance</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Update *</label>
+          <div class="note-editor" id="puEditor"></div>
+        </div>
+        <div class="form-group">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" id="puNotify" style="width:16px; height:16px; accent-color:#ad2122;">
+            Email this update after posting
+          </label>
+        </div>
+        <button type="submit" class="btn-primary" id="puSubmitBtn">Post Update</button>
+        <small style="display:block; text-align:center; color:#999; margin-top:8px; font-size:0.8em;">
+          The newest update shows on both status pages; earlier ones stay in the timeline.
+        </small>
+      </form>
     </div>
   </div>
 
@@ -1788,6 +1842,10 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
     import { httpsCallable } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-functions.js';
     import { attachIconPicker } from './js/icon-picker.js';
     import { attachImageUpload } from './js/upload.js';
+    import {
+      INCIDENT_STAGES, MAINT_STAGES, sanitizeNoteHtml, isEmptyNoteHtml, textToNoteHtml,
+      noteHtmlToText, latestNoteHtml, makeUpdate, renderNotes, ensureNoteStyles
+    } from './js/incident-notes.js';
 
     renderLayout('status');
 
@@ -1796,6 +1854,7 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
     attachImageUpload(document.getElementById('systemImageUrl'));
     attachImageUpload(document.getElementById('editSystemImageUrl'));
     gateEditing('admin');
+    ensureNoteStyles();
 
     const checkNow = httpsCallable(functions, 'checkNow');
     const sendEmailFn = httpsCallable(functions, 'sendEmail');
@@ -2409,7 +2468,7 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
       else if (system.details) note += system.details.trim() + '\n\n';
       note += 'Source: ' + (fi.link || system.url || 'vendor status page')
         + (fi.updatedAt ? ' (updated ' + fmtWhen(new Date(fi.updatedAt)) + ')' : '');
-      document.getElementById('incNote').value = note.trim();
+      setNoteHtml('inc', textToNoteHtml(note));
 
       document.getElementById('incTitle').focus();
     }
@@ -2531,11 +2590,14 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
             <span class="status-pill ${escapeHtml(sev)}">${escapeHtml(sevLabel)}</span>
             <span class="ib-when">${escapeHtml(incWindowText(inc))}</span>
           </div>
-          ${inc.note ? '<div class="ib-note">' + escapeHtml(inc.note) + '</div>' : ''}
+          ${renderNotes(inc)}
           ${(inc.systemNames && inc.systemNames.length)
             ? '<div class="ib-systems">Affects: ' + escapeHtml(inc.systemNames.join(', ')) + '</div>' : ''}
           ${withActions ? `
           <div class="ib-actions">
+            <button type="button" class="ib-btn inc-update" data-id="${escapeHtml(inc.id)}">
+              <span class="material-icons">add_comment</span>Post Update
+            </button>
             <button type="button" class="ib-btn inc-edit" data-id="${escapeHtml(inc.id)}">
               <span class="material-icons">edit</span>Edit
             </button>
@@ -2731,9 +2793,11 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
       document.getElementById('notifySubject').value = ctx.subject || '';
       document.getElementById('notifyHeading').value = ctx.title || '';
       document.getElementById('notifyPillNote').value = ctx.pillNote || '';
-      notifyQuill.root.innerHTML = ctx.messageText
-        ? '<p>' + escapeHtml(ctx.messageText).replace(/\n/g, '<br>') + '</p>'
-        : '';
+      notifyQuill.root.innerHTML = ctx.messageHtml
+        ? ctx.messageHtml
+        : ctx.messageText
+          ? '<p>' + escapeHtml(ctx.messageText).replace(/\n/g, '<br>') + '</p>'
+          : '';
       showNotifyMsg('');
       await populateGroupChecks('notifyGroupsList', ctx.preCheckedGroupIds);
       updateNotifyPreview();
@@ -2834,6 +2898,8 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
       document.getElementById('mEditBar').classList.toggle('show', editMaint);
       document.getElementById('incSubmitBtn').textContent = editInc ? 'Save Changes' : 'Publish Incident';
       document.getElementById('mSubmitBtn').textContent = editMaint ? 'Save Changes' : 'Schedule Maintenance';
+      document.getElementById('incNoteLabel').textContent = editInc ? 'Latest update' : 'Note';
+      document.getElementById('mNoteLabel').textContent = editMaint ? 'Latest update' : 'Note';
       document.getElementById('incNotifyLabel').textContent =
         editInc ? 'Email an update after saving' : 'Notify by email after publishing';
       document.getElementById('mNotifyLabel').textContent =
@@ -2844,10 +2910,75 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
 
     function exitEditMode() {
       if (editingIncId) {
-        document.getElementById('newIncidentForm').reset();
-        document.getElementById('newMaintForm').reset();
+        resetIncForm();
+        resetMaintForm();
       }
       setEditMode(null);
+    }
+
+    function resetIncForm() {
+      document.getElementById('newIncidentForm').reset();
+      setNoteHtml('inc', '');
+    }
+
+    function resetMaintForm() {
+      document.getElementById('newMaintForm').reset();
+      setNoteHtml('m', '');
+    }
+
+    // ----- Rich-text note editors (Quill 1.x) -----
+    const NOTE_EDITOR_IDS = { inc: 'incNoteEditor', m: 'mNoteEditor', pu: 'puEditor' };
+    const NOTE_PLACEHOLDERS = {
+      inc: "What's happening, what you're doing about it, workarounds...",
+      m: "What's being done and what users should expect...",
+      pu: 'What changed? Progress, new workarounds, next update time...'
+    };
+    const noteQuills = {};
+
+    function noteQuill(key) {
+      if (!noteQuills[key]) {
+        noteQuills[key] = new Quill('#' + NOTE_EDITOR_IDS[key], {
+          theme: 'snow',
+          placeholder: NOTE_PLACEHOLDERS[key],
+          modules: { toolbar: [['bold', 'italic', 'underline'], [{ 'list': 'ordered' }, { 'list': 'bullet' }], ['link'], ['clean']] }
+        });
+      }
+      return noteQuills[key];
+    }
+
+    function setNoteHtml(key, html) {
+      noteQuill(key).root.innerHTML = html || '';
+    }
+
+    function getNoteHtml(key) {
+      return sanitizeNoteHtml(noteQuill(key).root.innerHTML);
+    }
+
+    // Timeline with its latest entry's text replaced (the Edit form edits the
+    // latest update). Empty text drops that entry.
+    function withEditedLatest(inc, stage, html) {
+      const ups = Array.isArray(inc.updates) ? inc.updates.slice() : [];
+      if (!ups.length) return html ? [makeUpdate(stage, html)] : [];
+      const last = ups[ups.length - 1];
+      if (!html) return ups.slice(0, -1);
+      ups[ups.length - 1] = { ...last, stage: stage || last.stage || 'update', html: html, text: noteHtmlToText(html) };
+      return ups;
+    }
+
+    // Firestore fields for a timeline: the array plus the latest note mirrored
+    // into note (plain) / noteHtml for older readers and the status sweep.
+    function noteFieldsFrom(updates) {
+      const last = updates[updates.length - 1];
+      return {
+        updates: updates,
+        note: last ? (last.text || noteHtmlToText(last.html)) : '',
+        noteHtml: last ? (last.html || '') : ''
+      };
+    }
+
+    function latestStageOf(inc) {
+      const ups = Array.isArray(inc.updates) ? inc.updates : [];
+      return ups.length ? ups[ups.length - 1].stage : '';
     }
 
     function setCheckedSystems(containerId, ids) {
@@ -2872,14 +3003,15 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
         document.getElementById('mTitle').value = inc.title || '';
         document.getElementById('mStart').value = toLocalInputValue(toDate(inc.startAt));
         document.getElementById('mEnd').value = toLocalInputValue(toDate(inc.endAt));
-        document.getElementById('mNote').value = inc.note || '';
+        setNoteHtml('m', latestNoteHtml(inc));
         setCheckedSystems('mSystemsList', inc.systemIds);
         setEditMode(inc);
         switchIncTab('maintenance');
       } else {
         document.getElementById('incTitle').value = inc.title || '';
         document.getElementById('incSeverity').value = inc.severity || 'down';
-        document.getElementById('incNote').value = inc.note || '';
+        document.getElementById('incStage').value = INCIDENT_STAGES[latestStageOf(inc)] ? latestStageOf(inc) : 'investigating';
+        setNoteHtml('inc', latestNoteHtml(inc));
         setCheckedSystems('incSystemsList', inc.systemIds);
         setEditMode(inc);
         switchIncTab('incident');
@@ -2898,7 +3030,7 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
           incidentId: inc.id,
           templateUsed: 'Maintenance Notice',
           subject: (isUpdate ? '[Maintenance Update] ' : '[Planned Maintenance] ') + title,
-          messageText: inc.note || '',
+          messageHtml: latestNoteHtml(inc),
           color: '#2d3f69',
           colorDeep: '#1d2a5d',
           label: 'Planned Maintenance',
@@ -2916,7 +3048,7 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
         incidentId: inc.id,
         templateUsed: 'Incident Notice',
         subject: (isUpdate ? '[Tech Alert Update] ' : '[Tech Alert] ') + title,
-        messageText: inc.note || '',
+        messageHtml: latestNoteHtml(inc),
         color: '#ad2122',
         colorDeep: '#7a1718',
         label: 'Tech Alert',
@@ -2980,12 +3112,6 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
       }
     }
 
-    function plainToHtml(text) {
-      return String(text || '').trim()
-        ? String(text).trim().split(/\n{2,}/).map(p => '<p>' + escapeHtml(p).replace(/\n/g, '<br>') + '</p>').join('')
-        : '';
-    }
-
     function statusLineOf(ctx, pillNote) {
       const note = pillNote != null ? pillNote : ctx.pillNote;
       return (ctx.pill ? ctx.pill.text : '') + (note ? ' — ' + note : '');
@@ -2998,7 +3124,7 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
       openInCommunications({
         subject: ctx.subject,
         statusLine: statusLineOf(ctx),
-        messageHtml: plainToHtml(inc.note),
+        messageHtml: latestNoteHtml(inc),
         systems: ctx.systems,
         windowText: ctx.windowText,
         bannerColor: inc.type === 'maintenance' ? 'blue' : 'red',
@@ -3031,10 +3157,11 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
         return false;
       }
       const notify = document.getElementById('incNotify').checked;
+      const stage = document.getElementById('incStage').value;
+      const html = getNoteHtml('inc');
       const data = {
         title: document.getElementById('incTitle').value.trim(),
         severity: document.getElementById('incSeverity').value,
-        note: document.getElementById('incNote').value.trim(),
         systemIds: picked.ids,
         systemNames: picked.names
       };
@@ -3042,13 +3169,16 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
       try {
         let inc;
         if (editingId) {
+          const prev = activeIncidents.find(x => x.id === editingId) || {};
+          Object.assign(data, noteFieldsFrom(withEditedLatest(prev, stage, html)));
           await updateItem('incidents', editingId, data);
-          inc = { ...(activeIncidents.find(x => x.id === editingId) || {}), ...data, id: editingId, type: 'incident' };
+          inc = { ...prev, ...data, id: editingId, type: 'incident' };
           exitEditMode();
         } else {
+          Object.assign(data, noteFieldsFrom(html ? [makeUpdate(stage, html)] : []));
           const id = await addIncident({ type: 'incident', ...data, notifiedGroupIds: [] });
           inc = { ...data, id: id, type: 'incident', notifiedGroupIds: [] };
-          document.getElementById('newIncidentForm').reset();
+          resetIncForm();
         }
         switchIncTab('current');
         syncStatusesNow();
@@ -3073,9 +3203,9 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
         return false;
       }
       const notify = document.getElementById('mNotify').checked;
+      const html = getNoteHtml('m');
       const data = {
         title: document.getElementById('mTitle').value.trim(),
-        note: document.getElementById('mNote').value.trim(),
         systemIds: picked.ids,
         systemNames: picked.names,
         startAt: start,
@@ -3085,19 +3215,90 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
       try {
         let inc;
         if (editingId) {
+          const prev = activeIncidents.find(x => x.id === editingId) || {};
+          Object.assign(data, noteFieldsFrom(withEditedLatest(prev, '', html)));
           await updateItem('incidents', editingId, data);
-          inc = { ...(activeIncidents.find(x => x.id === editingId) || {}), ...data, id: editingId, type: 'maintenance' };
+          inc = { ...prev, ...data, id: editingId, type: 'maintenance' };
           exitEditMode();
         } else {
+          Object.assign(data, noteFieldsFrom(html ? [makeUpdate('scheduled', html)] : []));
           const id = await addIncident({ type: 'maintenance', ...data, notifiedGroupIds: [] });
           inc = { ...data, id: id, type: 'maintenance', notifiedGroupIds: [] };
-          document.getElementById('newMaintForm').reset();
+          resetMaintForm();
         }
         switchIncTab('current');
         syncStatusesNow();
         if (notify) openNotifyModal(noticeCtx(inc, !!editingId));
       } catch (error) {
         alert('Could not ' + (editingId ? 'save' : 'schedule') + ' maintenance: ' + (error.message || error));
+      }
+      return false;
+    }
+
+    // ----- Post Update: append an entry to an incident's timeline -----
+
+    let postUpdateIncId = null;
+
+    function openPostUpdate(id) {
+      const inc = activeIncidents.find(x => x.id === id);
+      if (!inc) return;
+      postUpdateIncId = id;
+      const isMaint = inc.type === 'maintenance';
+      const stages = isMaint ? MAINT_STAGES : INCIDENT_STAGES;
+      document.getElementById('puTitle').textContent = inc.title || (isMaint ? 'Scheduled maintenance' : 'Incident');
+      const stageSel = document.getElementById('puStage');
+      stageSel.innerHTML = Object.keys(stages)
+        .map(k => '<option value="' + k + '">' + escapeHtml(stages[k]) + '</option>').join('');
+      // Suggest the next step after the latest stage (Investigating -> Identified -> Monitoring).
+      const order = Object.keys(stages);
+      const cur = order.indexOf(latestStageOf(inc));
+      stageSel.value = (cur >= 0 && cur < order.length - 1) ? order[cur + 1] : 'update';
+      document.getElementById('puSeverityWrap').style.display = isMaint ? 'none' : '';
+      document.getElementById('puSeverity').value = inc.severity || 'down';
+      document.getElementById('puNotify').checked = false;
+      setNoteHtml('pu', '');
+      document.getElementById('postUpdateModal').classList.add('show');
+      setTimeout(() => noteQuill('pu').focus(), 50);
+    }
+
+    function closePostUpdate() {
+      document.getElementById('postUpdateModal').classList.remove('show');
+      postUpdateIncId = null;
+    }
+
+    async function submitPostUpdate(event) {
+      event.preventDefault();
+      const inc = activeIncidents.find(x => x.id === postUpdateIncId);
+      if (!inc) { closePostUpdate(); return false; }
+      const html = getNoteHtml('pu');
+      if (isEmptyNoteHtml(html)) {
+        alert('Write the update first.');
+        return false;
+      }
+      const isMaint = inc.type === 'maintenance';
+      const stage = document.getElementById('puStage').value;
+      const entry = makeUpdate(stage, html);
+      // Legacy docs (plain `note`, no timeline) keep that note as the first entry.
+      const existing = Array.isArray(inc.updates) && inc.updates.length
+        ? inc.updates
+        : (inc.note ? [{ stage: '', html: latestNoteHtml(inc), text: inc.note, at: inc.createdAt || new Date() }] : []);
+      const data = noteFieldsFrom(existing.concat([entry]));
+      if (!isMaint) data.severity = document.getElementById('puSeverity').value;
+      const notify = document.getElementById('puNotify').checked;
+      const btn = document.getElementById('puSubmitBtn');
+      btn.disabled = true;
+      try {
+        await updateItem('incidents', inc.id, data);
+        closePostUpdate();
+        syncStatusesNow();
+        if (notify) {
+          const stages = isMaint ? MAINT_STAGES : INCIDENT_STAGES;
+          openNotifyModal({ ...noticeCtx({ ...inc, ...data }, true), pillNote: stages[stage] || 'Update' });
+        }
+      } catch (error) {
+        alert('Could not post update: ' + (error.message || error));
+      } finally {
+        btn.disabled = false;
       }
       return false;
     }
@@ -3387,7 +3588,9 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
     document.getElementById('incidentsBtn').addEventListener('click', openIncidentsModal);
 
     // Page-level incident banners: admins click through to the manager
-    document.getElementById('incidentBanners').addEventListener('click', function() {
+    // (clicks on the update history toggle or links inside a note don't count)
+    document.getElementById('incidentBanners').addEventListener('click', function(e) {
+      if (e.target.closest('details, a')) return;
       if (document.body.classList.contains('can-edit')) openIncidentsModal();
     });
     document.getElementById('closeIncidentsBtn').addEventListener('click', closeIncidentsModal);
@@ -3399,6 +3602,8 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
     document.getElementById('notifySkipBtn').addEventListener('click', closeNotifyModal);
     document.getElementById('notifySendBtn').addEventListener('click', sendNotifyNow);
     document.getElementById('notifyCommsBtn').addEventListener('click', notifyToCommunications);
+    document.getElementById('closePostUpdateBtn').addEventListener('click', closePostUpdate);
+    document.getElementById('postUpdateForm').addEventListener('submit', submitPostUpdate);
     document.getElementById('notifySubject').addEventListener('input', updateNotifyPreview);
     document.getElementById('notifyHeading').addEventListener('input', updateNotifyPreview);
     document.getElementById('notifyPillNote').addEventListener('input', updateNotifyPreview);
@@ -3413,6 +3618,8 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
 
     // Edit / Communications / resolve / delete buttons in the incidents list (delegated)
     document.getElementById('incCurrentList').addEventListener('click', async function(e) {
+      const updateBtn = e.target.closest('.inc-update');
+      if (updateBtn) { openPostUpdate(updateBtn.dataset.id); return; }
       const editBtn = e.target.closest('.inc-edit');
       if (editBtn) { startEditIncident(editBtn.dataset.id); return; }
       const commsBtn = e.target.closest('.inc-comms');

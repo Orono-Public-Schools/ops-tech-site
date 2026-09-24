@@ -37,6 +37,36 @@ function textToHtml(text) {
     esc(text).replace(/\n/g, '<br>') + '</p>';
 }
 
+// Rich incident note (noteHtml, sanitised client-side) -> email HTML. Re-
+// sanitised here with a tag allowlist (only safe links keep an attribute),
+// then given inline styles since email clients ignore <style>.
+const NOTE_TAGS = /^(p|br|strong|b|em|i|u|s|ul|ol|li|a)$/i;
+function noteHtmlToEmail(html) {
+  let out = String(html || '')
+    .replace(/<(script|style|iframe|object|embed|template|noscript)[^>]*>[\s\S]*?<\/\1>/gi, '')
+    .replace(/<\/?([a-z0-9]+)\b[^>]*>/gi, (tag, name) => {
+      if (!NOTE_TAGS.test(name)) return '';
+      if (tag.charAt(1) === '/') return '</' + name.toLowerCase() + '>';
+      if (name.toLowerCase() === 'a') {
+        const href = /href\s*=\s*"([^"]*)"/i.exec(tag);
+        return (href && /^(https?:|mailto:)/i.test(href[1]))
+          ? '<a href="' + esc(href[1]) + '" style="color:#ad2122; font-weight:bold;">'
+          : '<a>';
+      }
+      return '<' + name.toLowerCase() + '>';
+    });
+  out = out
+    .replace(/<p>/g, '<p style="margin:0 0 10px 0;line-height:1.65;">')
+    .replace(/<ul>/g, '<ul style="margin:0 0 10px 0;padding-left:24px;line-height:1.65;">')
+    .replace(/<ol>/g, '<ol style="margin:0 0 10px 0;padding-left:24px;line-height:1.65;">')
+    .replace(/<li>/g, '<li style="margin:0 0 4px 0;line-height:1.65;">');
+  return out.trim();
+}
+
+function incidentNoteHtml(inc) {
+  return inc.noteHtml ? noteHtmlToEmail(inc.noteHtml) : textToHtml(inc.note);
+}
+
 /**
  * Banner-D notification email.
  * opts: { color, colorDeep, title, noteHtml, systems[], pill:{text,color},
@@ -119,7 +149,7 @@ function buildIncidentEmail(inc, unsubUrl) {
         color: '#2d3f69',
         colorDeep: '#1d2a5d',
         title: inc.title || 'Scheduled maintenance',
-        noteHtml: textToHtml(inc.note),
+        noteHtml: incidentNoteHtml(inc),
         systems: inc.systemNames || [],
         pill: { text: 'Scheduled', color: '#117a8b' },
         windowText: (start ? fmtWhen(start) : '?') + ' – ' + (end ? fmtWhen(end) : '?'),
@@ -134,7 +164,7 @@ function buildIncidentEmail(inc, unsubUrl) {
       color: '#ad2122',
       colorDeep: '#7a1718',
       title: inc.title || 'Service incident',
-      noteHtml: textToHtml(inc.note),
+      noteHtml: incidentNoteHtml(inc),
       systems: inc.systemNames || [],
       pill: { text: meta.label, color: meta.color },
       pillNote: 'We are investigating',
