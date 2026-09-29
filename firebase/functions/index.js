@@ -124,7 +124,7 @@ async function maybeSendAlerts(transitions) {
 }
 
 exports.statusCheck = onSchedule(
-  { schedule: 'every 15 minutes', timeoutSeconds: 120, secrets: [GMAIL_SA_KEY] },
+  { schedule: 'every 15 minutes', timeoutSeconds: 180, secrets: [GMAIL_SA_KEY] },
   async () => {
     const results = await runAllChecks(db);
     console.log(`Status check complete: ${results.length} systems checked`);
@@ -132,7 +132,7 @@ exports.statusCheck = onSchedule(
   }
 );
 
-exports.checkNow = onCall({ secrets: [GMAIL_SA_KEY] }, async (req) => {
+exports.checkNow = onCall({ timeoutSeconds: 150, secrets: [GMAIL_SA_KEY] }, async (req) => {
   await assertAllowed(req.auth);
 
   // Optional: wipe one system's uptime history (statusResults doc + its

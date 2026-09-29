@@ -15,7 +15,9 @@
 const GOOGLE_WORKSPACE_FEED = 'https://www.google.com/appsstatus/dashboard/en/feed.atom';
 const GOOGLE_WORKSPACE_DASHBOARD = 'https://www.google.com/appsstatus/dashboard/';
 
-const FETCH_TIMEOUT_MS = 15000; // old code used UrlFetchApp timeout: 15 (seconds)
+// Statuspage.io's CDN intermittently stalls ~28s before the first byte
+// (measured 2026-09-29 on roughly a third of requests), so allow 40s.
+const FETCH_TIMEOUT_MS = 40000;
 
 // Some status pages (Statuspage.io etc.) return 403 to non-browser agents.
 const USER_AGENT =
@@ -29,24 +31,21 @@ const USER_AGENT =
  */
 const FETCH_RETRY_DELAY_MS = 2500;
 
-// Consecutive unreachable checks required before a system is marked down
-// (2 checks × 15-minute schedule = ~30 minutes). A single blip — a timeout
-// or a momentary 404 from a vendor's CDN — keeps the previous status.
-const UNREACHABLE_CONFIRM_CHECKS = 2;
-
 async function fetchText(url) {
   try {
     return await fetchTextOnce(url);
   } catch (firstError) {
-    // Transient network failures (aborts, resets, DNS hiccups) usually clear
-    // within seconds — try once more before reporting a problem.
+    // A timeout already waited the full 40s — retrying would push manual
+    // checks past the callable's client timeout. Quick failures (resets,
+    // DNS hiccups) usually clear within seconds, so those get one retry.
+    if (isTimeout(firstError)) throw firstError;
     await new Promise(r => setTimeout(r, FETCH_RETRY_DELAY_MS));
-    try {
-      return await fetchTextOnce(url);
-    } catch (secondError) {
-      throw secondError;
-    }
+    return await fetchTextOnce(url);
   }
+}
+
+function isTimeout(error) {
+  return /AbortError|aborted|timeout/i.test(String(error && (error.name + ' ' + error.message)));
 }
 
 async function fetchTextOnce(url) {
@@ -186,10 +185,16 @@ async function scrapeFeedStatus(feedUrl) {
         }
       }
 
+      // Maintenance notices often say "service disruption during the
+      // window" — classify them only as maintenance, never as an outage.
+      const isMaintenanceNotice = /maintenance|scheduled\s+work|patching|planned\s+(upgrade|update)/i.test(title);
+
       // Check for service disruption indicators in unresolved, recent incidents
-      if (title.match(/service\s+(outage|disruption)/i) ||
+      if (isMaintenanceNotice) {
+        // handled by the maintenance check below
+      } else if (title.match(/service\s+(outage|disruption)/i) ||
           title.match(/not\s+available/i) ||
-          title.match(/down/i) ||
+          title.match(/\bdown\b/i) ||
           title.match(/major\s+(outage|incident)/i) ||
           summary.match(/service\s+(outage|disruption)/i)) {
         hasActiveIssue = true;
@@ -198,28 +203,28 @@ async function scrapeFeedStatus(feedUrl) {
       }
 
       // Check for partial outages
-      if (title.match(/some\s+users/i) ||
+      if (!isMaintenanceNotice && (title.match(/some\s+users/i) ||
           title.match(/limited\s+availability/i) ||
           title.match(/intermittent/i) ||
           title.match(/partial\s+(outage|disruption)/i) ||
-          summary.match(/some\s+users/i)) {
+          summary.match(/some\s+users/i))) {
         hasPartialIssue = true;
         if (!latestIssue) latestIssue = title.substring(0, 100);
         if (!incident) incident = feedIncidentFrom(item, title, summary);
       }
 
       // Check for degraded performance
-      if (title.match(/degraded\s+performance/i) ||
+      if (!isMaintenanceNotice && (title.match(/degraded\s+performance/i) ||
           title.match(/slow/i) ||
           title.match(/delays/i) ||
-          summary.match(/degraded\s+performance/i)) {
+          summary.match(/degraded\s+performance/i))) {
         hasDegradedService = true;
         if (!latestIssue) latestIssue = title.substring(0, 100);
         if (!incident) incident = feedIncidentFrom(item, title, summary);
       }
 
       // Check for maintenance
-      if (title.match(/maintenance/i) ||
+      if (isMaintenanceNotice ||
           title.match(/scheduled\s+work/i) ||
           summary.match(/maintenance/i)) {
         // Only count as maintenance if not already marked as something worse
@@ -266,7 +271,8 @@ async function scrapeFeedStatus(feedUrl) {
   } catch (error) {
     return {
       status: 'down',
-      details: 'Unable to check status feed: ' + String(error)
+      details: 'Unable to check status feed: ' + String(error),
+      unreachable: true
     };
   }
 }
@@ -294,10 +300,7 @@ async function scrapeStatusPage(url) {
         status: 'down',
         details: 'Status page unavailable (HTTP ' + response.status + ')',
         source: 'http_error',
-        unreachable: true,
-        // 429 = the vendor is throttling us, which says nothing about the
-        // service itself — runAllChecks keeps the last known status.
-        rateLimited: response.status === 429
+        unreachable: true
       };
     }
 
@@ -352,6 +355,17 @@ async function scrapeStatusPage(url) {
         status: 'maintenance',
         details: 'Scheduled maintenance in progress',
         source: 'statuspage_indicator'
+      };
+    }
+
+    // Statuspage-built pages print their colour legend ("Major Outage",
+    // "Partial Outage"...) as visible text, so the phrase patterns below
+    // would always fire. Their real state is in the classes checked above.
+    if (/legend-item|statuspage\.io|atlassian statuspage/i.test(html)) {
+      return {
+        status: 'operational',
+        details: 'Status page accessible (no active issues shown)',
+        source: 'statuspage_html'
       };
     }
 
@@ -456,11 +470,24 @@ const INDICATOR_STATUS = {
 async function checkStatuspageApi(url) {
   let origin;
   try { origin = new URL(url).origin; } catch (e) { return null; }
+  // A timeout / 5xx / throttle means "couldn't read it right now", not "not
+  // a Statuspage site" — report unreachable instead of falling back to the
+  // HTML scrape (which misreads Statuspage's legend text as an outage).
+  // 403/404 and non-JSON mean the site isn't a Statuspage: return null.
+  const unreachable = (reason) => ({
+    status: 'down',
+    details: 'Unable to access status page: ' + reason,
+    source: 'statuspage_api',
+    unreachable: true
+  });
   let response;
   try {
-    response = await fetchTextOnce(origin + '/api/v2/summary.json');
+    response = await fetchText(origin + '/api/v2/summary.json');
   } catch (e) {
-    return null;
+    return unreachable(String(e));
+  }
+  if (response.status === 405 || response.status === 429 || response.status >= 500) {
+    return unreachable('HTTP ' + response.status);
   }
   if (response.status !== 200) return null;
   let data;
@@ -532,8 +559,7 @@ async function checkMicrosoftStatus(url) {
       return {
         status: 'down',
         details: 'Status page unavailable (HTTP ' + response.status + ')',
-        unreachable: true,
-        rateLimited: response.status === 429
+        unreachable: true
       };
     }
     const post = JSON.parse(response.text);
@@ -619,8 +645,13 @@ async function checkSystem(system) {
   }
 
   // 3. RSS/Atom feed if provided (more reliable than HTML scraping)
+  // Statuspage sites with a feed configured (e.g. PowerSchool) use the API
+  // first — it reports component state and in-progress maintenance
+  // directly instead of keyword-guessing from feed titles.
   if (system.feedUrl && String(system.feedUrl).trim() !== '') {
-    const statusResult = await scrapeFeedStatus(String(system.feedUrl).trim());
+    const api = /status\.cloud\.microsoft/i.test(String(system.url || ''))
+      ? null : await checkStatuspageApi(String(system.url || ''));
+    const statusResult = api || await scrapeFeedStatus(String(system.feedUrl).trim());
     return {
       status: statusResult.status,
       details: statusResult.details,
@@ -640,7 +671,6 @@ async function checkSystem(system) {
     status: statusResult.status,
     details: statusResult.details,
     unreachable: !!statusResult.unreachable,
-    rateLimited: !!statusResult.rateLimited,
     incident: statusResult.incident || null,
     url: url
   };
@@ -826,20 +856,19 @@ async function runAllChecks(db) {
     const docRef = db.collection('statusResults').doc(system.id);
     let prev = prevById[system.id] || null;
 
-    // Debounce unreachable results: hold the previous status until the
-    // failure repeats UNREACHABLE_CONFIRM_CHECKS times in a row.
-    // Rate limiting (HTTP 429) never escalates: keep the last known status
-    // for as long as the vendor keeps throttling us.
-    const failStreak = check.rateLimited ? ((prev && prev.failStreak) || 0)
-      : check.unreachable ? ((prev && prev.failStreak) || 0) + 1 : 0;
-    if (!overlay && check.rateLimited && prev && prev.status) {
-      status = prev.status;
-      check.details = 'Status page rate-limited (HTTP 429) — showing last known status';
-    } else if (!overlay && check.unreachable && failStreak < UNREACHABLE_CONFIRM_CHECKS
-        && prev && prev.status && !isProblemStatus(prev.status)) {
-      status = prev.status;
-      check.details = 'Status page temporarily unreachable (' + shortReason(check.details)
-        + ') — will re-check before reporting a problem';
+    // Not being able to read a vendor's status page (timeouts, 405/429/5xx,
+    // resets) says nothing about the vendor's service — their CDNs stall and
+    // throttle routinely. It never changes the status: the last status we
+    // actually read is kept, with a note saying since when the page has
+    // been unreachable.
+    const failStreak = check.unreachable ? ((prev && prev.failStreak) || 0) + 1 : 0;
+    const unreachableSince = check.unreachable
+      ? (toJsDate(prev && prev.unreachableSince) || checkedAt) : null;
+    const lastReadStatus = check.unreachable ? lastReadStatusOf(prev) : (check.status || 'operational');
+    if (!overlay && check.unreachable) {
+      status = lastReadStatus;
+      check.details = 'Status page not responding (' + shortReason(check.details) + ') since '
+        + fmtLocal(unreachableSince) + ' — showing last known status';
     }
 
     // Systems that predate hourly buckets: rebuild from raw history once.
@@ -898,6 +927,8 @@ async function runAllChecks(db) {
       hourly: hourly,
       events: events,
       failStreak: failStreak,
+      unreachableSince: unreachableSince,
+      lastReadStatus: lastReadStatus,
       // Vendor-reported incident behind this status (from the RSS/Atom feed),
       // used by "Create incident from this report" on the status page.
       feedIncident: (!overlay && check.incident) ? check.incident : null
@@ -958,8 +989,32 @@ function feedIncidentFrom(item, rawTitle, rawSummary) {
   };
 }
 
-function isProblemStatus(st) {
-  return st === 'down' || st === 'partial' || st === 'degraded';
+// Status from the last successful read of the vendor's page. Results
+// written before lastReadStatus existed fall back to their status unless
+// that status itself came from an unreachable page.
+function lastReadStatusOf(prev) {
+  if (!prev) return 'operational';
+  if (prev.lastReadStatus) return prev.lastReadStatus;
+  const d = String(prev.details || '');
+  if (!prev.status || /unable to (access|check)|unavailable \(HTTP|unreachable|not responding|error checking/i.test(d)) {
+    return 'operational';
+  }
+  return prev.status;
+}
+
+function toJsDate(v) {
+  if (!v) return null;
+  if (typeof v.toDate === 'function') return v.toDate();
+  const d = new Date(v);
+  return isNaN(d) ? null : d;
+}
+
+// Cloud Functions run in UTC; show district-local times in details.
+function fmtLocal(d) {
+  if (!d) return '';
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Chicago', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+  }).format(d);
 }
 // "Unable to access status page: AbortError: This operation was aborted"
 //   -> "timed out"; HTTP codes stay as-is; anything else is trimmed.

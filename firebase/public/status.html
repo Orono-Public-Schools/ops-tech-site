@@ -1856,7 +1856,8 @@ Canvas LMS | https://status.instructure.com/ | Learning management system | scho
     gateEditing('admin');
     ensureNoteStyles();
 
-    const checkNow = httpsCallable(functions, 'checkNow');
+    // Slow vendor pages can take ~40s each (checked in parallel).
+    const checkNow = httpsCallable(functions, 'checkNow', { timeout: 150000 });
     const sendEmailFn = httpsCallable(functions, 'sendEmail');
 
     const STATUS_META = {
