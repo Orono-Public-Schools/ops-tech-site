@@ -10,7 +10,7 @@
 import { app } from './firebase-init.js';
 import {
   getStorage, ref, uploadBytesResumable, getDownloadURL
-} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js';
+} from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js';
 
 const storage = getStorage(app);
 const MAX_BYTES = 10 * 1024 * 1024; // keep in sync with storage.rules

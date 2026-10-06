@@ -8,7 +8,7 @@ import {
   collection, doc, getDoc, getDocs, getDocsFromCache, addDoc, setDoc, updateDoc,
   deleteDoc, query, where, orderBy, limit, writeBatch, serverTimestamp, onSnapshot, Timestamp,
   deleteField
-} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 
 const SORT_GAP = 1000;
 

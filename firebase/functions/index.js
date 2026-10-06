@@ -15,7 +15,8 @@ const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { defineSecret } = require('firebase-functions/params');
 const { setGlobalOptions } = require('firebase-functions/v2');
-const admin = require('firebase-admin');
+const { initializeApp } = require('firebase-admin/app');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const crypto = require('node:crypto');
 
 const { google } = require('googleapis');
@@ -26,8 +27,8 @@ const { buildIncidentEmail, buildAlertEmail, buildVerifyEmail } = require('./lib
 
 setGlobalOptions({ region: 'us-central1' });
 
-admin.initializeApp();
-const db = admin.firestore();
+initializeApp();
+const db = getFirestore();
 
 const GMAIL_SA_KEY = defineSecret('GMAIL_SA_KEY');
 
@@ -210,7 +211,7 @@ exports.statusSubscribe = onCall({ secrets: [GMAIL_SA_KEY] }, async (req) => {
     email: email,
     verified: false,
     token: token,
-    createdAt: admin.firestore.FieldValue.serverTimestamp()
+    createdAt: FieldValue.serverTimestamp()
   });
 
   const verify = buildVerifyEmail(subscriptionUrl('confirm', email, token));
@@ -259,7 +260,7 @@ exports.statusSubscriptionAction = onRequest(async (req, res) => {
   }
 
   if (action === 'confirm') {
-    await ref.update({ verified: true, verifiedAt: admin.firestore.FieldValue.serverTimestamp() });
+    await ref.update({ verified: true, verifiedAt: FieldValue.serverTimestamp() });
     res.send(page('check', 'You\'re subscribed!',
       'You\'ll get an email whenever the Orono Tech Department posts a service incident ' +
       'or scheduled maintenance. Every email includes an unsubscribe link.'));
@@ -365,7 +366,7 @@ exports.sendEmail = onCall({ secrets: [GMAIL_SA_KEY] }, async (req) => {
     });
 
     await db.collection('communications').add({
-      sentAt: admin.firestore.FieldValue.serverTimestamp(),
+      sentAt: FieldValue.serverTimestamp(),
       subject: subject,
       recipients: recipientNames.join(', '),
       templateUsed: templateUsed,
@@ -442,7 +443,7 @@ async function performStaffSync(source, triggeredBy) {
 
     const writer = db.bulkWriter();
     const seen = new Set();
-    const now = admin.firestore.FieldValue.serverTimestamp();
+    const now = FieldValue.serverTimestamp();
     for (const s of staff) {
       seen.add(s.email);
       writer.set(db.collection('staff').doc(s.email), { ...s, syncedAt: now });
@@ -467,7 +468,7 @@ async function performStaffSync(source, triggeredBy) {
   } catch (err) {
     await cfgRef.set({
       lastError: err.message || String(err),
-      lastErrorAt: admin.firestore.FieldValue.serverTimestamp()
+      lastErrorAt: FieldValue.serverTimestamp()
     }, { merge: true }).catch(() => {});
     throw err;
   }
@@ -527,7 +528,7 @@ exports.processScheduledEmails = onSchedule(
         });
 
         await db.collection('communications').add({
-          sentAt: admin.firestore.FieldValue.serverTimestamp(),
+          sentAt: FieldValue.serverTimestamp(),
           subject: d.subject,
           recipients: recipientNames.join(', '),
           templateUsed: d.templateUsed || 'Custom',
@@ -539,7 +540,7 @@ exports.processScheduledEmails = onSchedule(
 
         await docSnap.ref.update({
           status: 'sent',
-          sentAt: admin.firestore.FieldValue.serverTimestamp()
+          sentAt: FieldValue.serverTimestamp()
         });
         sent++;
       } catch (error) {

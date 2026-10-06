@@ -49,6 +49,10 @@ firebase deploy --only "functions:sendEmail,functions:statusCheck,..."   # by na
   set in the environment.
 - After editing an HTML page's inline `<script type="module">`, syntax-check it before
   deploying (extract the script block and `node --check`).
+- `firebase-admin` v14+ has no namespaced API (`admin.firestore()` is gone) — functions use the modular
+  imports (`firebase-admin/app`, `firebase-admin/firestore`). Keep it that way when adding code.
+- After `npm install -g firebase-tools`, npm 11 can drop the `firebase` command shim. If `firebase` is
+  "not found", run `npm rebuild -g firebase-tools --bin-links`.
 - Hidden `<select id="template">` on compose.html must list every template value the
   segmented buttons use, or `select.value = x` silently becomes `''`.
 

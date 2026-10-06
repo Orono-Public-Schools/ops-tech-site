@@ -2,7 +2,7 @@
 // renderLayout(currentPage) injects all three; auth.js fills in the
 // signed-in email via setFooterEmail() (now shown in the sidebar).
 
-export const SITE_VERSION = 'v2.6.0';
+export const SITE_VERSION = 'v2.6.1';
 
 const NAV_ITEMS = [
   { page: 'home', href: 'index.html', icon: 'home', label: 'Home' },
@@ -144,7 +144,7 @@ export function renderLayout(currentPage) {
   document.getElementById('signOutBtn').addEventListener('click', async () => {
     try {
       const { auth } = await import('./firebase-init.js');
-      const { signOut } = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js');
+      const { signOut } = await import('https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js');
       await signOut(auth);
     } finally {
       location.replace('signin.html');
