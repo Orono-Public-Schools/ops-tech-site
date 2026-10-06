@@ -57,6 +57,11 @@ firebase deploy --only "functions:sendEmail,functions:statusCheck,..."   # by na
   `functions/package.json` overrides simple (plain package keys, no `pkg@range` scoped keys) or
   `npm ci` fails in the build with "package.json and package-lock.json are not in sync". Verify with
   `npx npm@10 ci --omit=dev --ignore-scripts` in a copy of the functions folder before deploying.
+- Web SDK is pinned at **10.12.5** on purpose. Bumping the gstatic imports to 12.19.0 (2026-10-06) broke
+  popup sign-in for Google and ClassLink on the live site ("The requested action is invalid" from the
+  auth handler) while everything else worked; it was rolled back the same day. Do not bump the web SDK
+  without a way to test the full popup sign-in round trip first (preview channels need their domain
+  added to Auth > Authorized domains).
 - Hidden `<select id="template">` on compose.html must list every template value the
   segmented buttons use, or `select.value = x` silently becomes `''`.
 

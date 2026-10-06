@@ -1,12 +1,12 @@
 // Firebase initialization — shared by every page.
 // Modular v10 SDK loaded from the gstatic CDN (no bundler).
 
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
-import { getAuth } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import { getAuth } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
 import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager
-} from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
-import { getFunctions } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-functions.js';
+} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+import { getFunctions } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-functions.js';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyD3AEyykrwXwitsL6cD60hxUrKX0bhAw78',

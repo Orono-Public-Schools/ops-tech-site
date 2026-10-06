@@ -144,7 +144,7 @@ export function renderLayout(currentPage) {
   document.getElementById('signOutBtn').addEventListener('click', async () => {
     try {
       const { auth } = await import('./firebase-init.js');
-      const { signOut } = await import('https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js');
+      const { signOut } = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js');
       await signOut(auth);
     } finally {
       location.replace('signin.html');
