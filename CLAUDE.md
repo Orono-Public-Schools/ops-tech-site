@@ -53,6 +53,10 @@ firebase deploy --only "functions:sendEmail,functions:statusCheck,..."   # by na
   imports (`firebase-admin/app`, `firebase-admin/firestore`). Keep it that way when adding code.
 - After `npm install -g firebase-tools`, npm 11 can drop the `firebase` command shim. If `firebase` is
   "not found", run `npm rebuild -g firebase-tools --bin-links`.
+- Cloud Build installs functions with Node 22's bundled npm 10, but the local machine runs npm 11. Keep
+  `functions/package.json` overrides simple (plain package keys, no `pkg@range` scoped keys) or
+  `npm ci` fails in the build with "package.json and package-lock.json are not in sync". Verify with
+  `npx npm@10 ci --omit=dev --ignore-scripts` in a copy of the functions folder before deploying.
 - Hidden `<select id="template">` on compose.html must list every template value the
   segmented buttons use, or `select.value = x` silently becomes `''`.
 
